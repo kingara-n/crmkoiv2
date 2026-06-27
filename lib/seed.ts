@@ -3,7 +3,7 @@ import {
 } from "./types";
 
 export const SEED_TEAM: TeamMember[] = [
-  { id: "tm1", name: "Local Admin", email: "admin@koitravel.com", role: "management", status: "active", quotas: { revenue: 10000000, bookings: 50 }, joinDate: "2024-01-01", createdAt: "2024-01-01" }
+  { id: "tm1", name: "Local Admin", initials: "LA", phone: "+1234567890", email: "admin@koitravel.com", role: "management", status: "active", quotas: { revenue: 10000000, bookings: 50 }, joinDate: "2024-01-01", createdAt: "2024-01-01" }
 ];
 
 export const DEFAULT_SETTINGS: UserSettings = {

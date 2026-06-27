@@ -167,10 +167,14 @@ export interface TeamMember {
   email: string;
   phone: string;
   isTopPerformer?: boolean;
-  revenue: number;
-  dealsClosed: number;
-  quotaAttainment: number; // 0..150
-  trend: number;           // -100..100
+  revenue?: number;
+  dealsClosed?: number;
+  quotaAttainment?: number; // 0..150
+  trend?: number;           // -100..100
+  status?: string;
+  quotas?: { revenue: number; bookings: number };
+  joinDate?: string;
+  createdAt?: string;
 }
 
 export interface Notification {
