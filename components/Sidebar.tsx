@@ -4,7 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
   LayoutDashboard, GitBranch, Handshake, Users, Building2,
-  Plane, BarChart3, Settings as SettingsIcon, ChevronLeft, DollarSign,
+  Plane, BarChart3, Settings as SettingsIcon, ChevronLeft, Banknote,
   FileText, Car, Receipt, FolderOpen, CheckCircle2
 } from "lucide-react";
 import { useStore, useSettings } from "@/lib/store";
@@ -14,11 +14,11 @@ const NAV = [
   { href: "/tasks", label: "Tasks", icon: CheckCircle2 },
   { href: "/pipeline", label: "Pipeline", icon: GitBranch },
   { href: "/bookings", label: "Bookings", icon: Handshake },
-  { href: "/invoices", label: "Invoices", icon: Receipt },
+  { href: "/invoices", label: "Accounts", icon: Receipt },
   { href: "/trips", label: "Trips", icon: Plane },
   { href: "/transfers", label: "Transfers", icon: Car },
   { href: "/clients", label: "Clients", icon: Users },
-  { href: "/documents", label: "Documents", icon: FolderOpen },
+  { href: "/documents", label: "Document Vault", icon: FolderOpen },
   { href: "/suppliers", label: "Suppliers", icon: Building2 },
   { href: "/reports", label: "Reports", icon: BarChart3 },
 ];
@@ -31,7 +31,6 @@ export function Sidebar() {
 
   const activeNav = [...NAV];
   activeNav.push({ href: "/staff-activity", label: "Performance", icon: Users });
-  activeNav.push({ href: "/etims-test", label: "eTIMS Sandbox", icon: FileText });
   activeNav.push({ href: "/settings", label: "Settings", icon: SettingsIcon });
 
   return (
@@ -43,7 +42,7 @@ export function Sidebar() {
       {/* Brand */}
       <div className="px-4 py-5 flex items-center gap-3">
         <div className="h-9 w-9 shrink-0 rounded-lg bg-white flex items-center justify-center">
-          <DollarSign className="h-5 w-5 text-black" />
+          <Banknote className="h-5 w-5 text-black" />
         </div>
         {!collapsed && (
           <span className="text-white font-semibold">Koi Travel</span>

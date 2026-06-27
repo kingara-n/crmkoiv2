@@ -4,7 +4,7 @@ import { useState, useMemo } from "react";
 import Link from "next/link";
 import {
   Search, Filter, Plus, MapPin, Mail, Phone, Calendar, ExternalLink, Star,
-  TrendingUp, DollarSign, Building2,
+  TrendingUp, Banknote, Building2,
 } from "lucide-react";
 import { Card, StatCard } from "@/components/ui/Card";
 import { Badge } from "@/components/ui/Badge";
@@ -18,9 +18,9 @@ import { formatMoney, relativeTime } from "@/lib/format";
 import { Client, Tier } from "@/lib/types";
 
 const TIER_FILTERS: { value: Tier | "all"; label: string }[] = [
-  { value: "enterprise", label: "Enterprise" },
-  { value: "growth", label: "Growth" },
-  { value: "starter", label: "Starter" },
+  { value: "VIP", label: "VIP" },
+  { value: "Premium", label: "Premium" },
+  { value: "Standard", label: "Standard" },
 ];
 
 export default function ClientsPage() {
@@ -57,7 +57,7 @@ export default function ClientsPage() {
   const activeDeals = bookings.filter((b) => b.status !== "lost").length;
 
   function tierBadge(t: Tier) {
-    const tone = t === "enterprise" ? "success" : t === "growth" ? "info" : "neutral";
+    const tone = t === "VIP" ? "success" : t === "Premium" ? "info" : "neutral";
     return <Badge tone={tone}>{t.charAt(0).toUpperCase() + t.slice(1)}</Badge>;
   }
 
@@ -70,7 +70,7 @@ export default function ClientsPage() {
         <StatCard label="Total Clients" value={String(clients.length)}
           icon={<Building2 className="h-4 w-4" />} />
         <StatCard label="Total Revenue" value={formatMoney(totalRevenue, currency)}
-          icon={<DollarSign className="h-4 w-4 text-accent-500" />} />
+          icon={<Banknote className="h-4 w-4 text-accent-500" />} />
         <StatCard label="Avg Health Score" value={`${avgHealth}%`}
           icon={<Star className="h-4 w-4 text-amber-400" />} />
         <StatCard label="Active Bookings" value={String(activeDeals)}

@@ -1,179 +1,155 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { Modal } from "@/components/ui/Modal";
 import { Button } from "@/components/ui/Button";
-import { Input, Label } from "@/components/ui/Field";
-import { useStore, useSettings } from "@/lib/store";
-import { Invoice, InvoiceEditApproval, Currency } from "@/lib/types";
+import { Input, Select, Label } from "@/components/ui/Field";
+import { useStore } from "@/lib/store";
+import { Currency } from "@/lib/types";
 
 export function InvoiceModal({
   open,
   onClose,
-  bookingId,
 }: {
   open: boolean;
   onClose: () => void;
-  bookingId: string;
 }) {
-  const booking = useStore((s) => s.bookings.find((b) => b.id === bookingId));
-  const invoices = useStore((s) => s.invoices.filter((i) => i.bookingId === bookingId));
-  const approvals = useStore((s) => s.invoiceEditApprovals);
-  
   const addInvoice = useStore((s) => s.addInvoice);
-  const proposeInvoiceEdit = useStore((s) => s.proposeInvoiceEdit);
-  
-  const settings = useSettings();
-  const [creating, setCreating] = useState(false);
-  const [editingId, setEditingId] = useState<string | null>(null);
+  const clients = useStore((s) => s.clients);
 
-  // Form states
-  const [number, setNumber] = useState("");
+  const [clientId, setClientId] = useState(clients[0]?.id ?? "");
   const [amount, setAmount] = useState("");
-  const [dueDate, setDueDate] = useState("");
+  const [currency, setCurrency] = useState<Currency>("KES");
+  const [description, setDescription] = useState("");
+  const [number, setNumber] = useState(`INV-${Math.floor(Math.random() * 10000)}`);
 
-  if (!booking) return null;
+  const invoiceRef = useRef<HTMLDivElement>(null);
 
-  function handleCreate() {
-    setCreating(true);
-    setNumber(`INV-${Math.floor(Math.random() * 10000)}`);
-    setAmount(booking!.value.toString());
-    setDueDate(new Date(Date.now() + 14 * 86400000).toISOString().slice(0, 10));
-  }
-
-  function handleSaveNew() {
-    addInvoice({
-      bookingId,
-      clientId: booking?.clientId,
+  const handleSaveAndGenerate = async () => {
+    if (!clientId || !amount) return;
+    
+    const client = clients.find(c => c.id === clientId);
+    
+    // Add to DB
+    await addInvoice({
+      bookingId: "", // standalone invoice
+      clientId,
       number,
       amountKes: Number(amount),
-      currency: booking!.currency,
-      dueDate,
+      currency,
+      dueDate: new Date(Date.now() + 14 * 86400000).toISOString().slice(0, 10),
     });
-    setCreating(false);
-  }
 
-  function handleProposeEdit() {
-    if (!editingId) return;
-    // We store the diff. For simplicity in UI, we just propose the new amount/date
-    proposeInvoiceEdit({
-      invoiceId: editingId,
-      requestedBy: "current-user-id", // Note: In real app, get from auth session
-      approverId: "pending",
-      diffJson: { amountKes: Number(amount), dueDate },
-    });
-    setEditingId(null);
-  }
+    // Generate PDF
+    if (invoiceRef.current) {
+      const html2pdf = (await import("html2pdf.js")).default;
+      const opt = {
+        margin:       1,
+        filename:     `invoice-${client?.name?.replace(/\s+/g, '-') || 'download'}.pdf`,
+        image:        { type: 'jpeg' as const, quality: 0.98 },
+        html2canvas:  { scale: 2 },
+        jsPDF:        { unit: 'in', format: 'letter' as const, orientation: 'portrait' as const }
+      };
+      
+      await html2pdf().set(opt).from(invoiceRef.current).save();
+    }
+
+    onClose();
+  };
 
   return (
     <Modal
+      size="xl"
       open={open}
       onClose={onClose}
-      title={`Invoices for ${booking.clientName}`}
-      size="lg"
+      title="Create Invoice"
       footer={
-        <Button variant="secondary" onClick={onClose}>Close</Button>
+        <>
+          <Button variant="secondary" onClick={onClose}>Cancel</Button>
+          <Button onClick={handleSaveAndGenerate}>Save & Download PDF</Button>
+        </>
       }
     >
-      <div className="space-y-6">
-        {invoices.length === 0 && !creating ? (
-          <div className="text-center py-6 text-neutral-400">
-            No invoices generated yet.
-            <div className="mt-4">
-              <Button onClick={handleCreate}>Generate Invoice</Button>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-start">
+        {/* Form Side */}
+        <div className="space-y-4">
+          <div>
+            <Label htmlFor="client">Client</Label>
+            <Select id="client" value={clientId} onChange={(e) => setClientId(e.target.value)}>
+              {clients.map((c) => (
+                <option key={c.id} value={c.id}>{c.name}</option>
+              ))}
+            </Select>
+          </div>
+          <div>
+            <Label htmlFor="desc">Description</Label>
+            <Input
+              id="desc"
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+              placeholder="e.g. Deposit for Safari"
+            />
+          </div>
+          <div className="grid grid-cols-[1fr_2fr] gap-3">
+            <div>
+              <Label htmlFor="curr">Currency</Label>
+              <Select id="curr" value={currency} onChange={(e) => setCurrency(e.target.value as Currency)}>
+                <option value="KES">KES</option>
+                <option value="USD">USD</option>
+                <option value="EUR">EUR</option>
+                <option value="GBP">GBP</option>
+                <option value="CAD">CAD</option>
+              </Select>
+            </div>
+            <div>
+              <Label htmlFor="amt">Amount</Label>
+              <Input
+                id="amt"
+                type="number"
+                value={amount}
+                onChange={(e) => setAmount(e.target.value)}
+                placeholder="0.00"
+              />
             </div>
           </div>
-        ) : null}
+        </div>
 
-        {invoices.map((inv) => {
-          const invApprovals = approvals.filter(a => a.invoiceId === inv.id);
-          const pendingEdits = invApprovals.filter(a => a.approverId === "pending");
-
-          return (
-            <div key={inv.id} className="border border-ink-700 rounded-lg p-4 bg-ink-900">
-              <div className="flex justify-between items-center mb-2">
-                <h4 className="font-semibold text-white">{inv.number}</h4>
-                <div className="text-sm font-mono bg-ink-800 px-2 py-1 rounded text-accent-400">
-                  {inv.currency} {inv.amountKes.toLocaleString()}
+        {/* Live Preview Side */}
+        <div className="rounded-lg overflow-y-auto max-h-[60vh] border border-ink-700 bg-ink-900/50 p-2">
+          <p className="text-xs text-neutral-500 mb-2 font-medium px-2 uppercase tracking-wider">Live PDF Preview</p>
+          <div className="bg-white text-black p-6 rounded shadow-sm">
+            <div ref={invoiceRef}>
+              <h1 style={{ fontSize: '24px', fontWeight: 'bold', marginBottom: '20px' }}>INVOICE {number}</h1>
+              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '40px' }}>
+                <div>
+                  <p style={{ fontWeight: 'bold' }}>Koi Travel CRM</p>
+                  <p>123 Safari Way, Nairobi</p>
+                </div>
+                <div style={{ textAlign: 'right' }}>
+                  <p style={{ fontWeight: 'bold' }}>Billed To:</p>
+                  <p>{clients.find(c => c.id === clientId)?.name || "Select Client"}</p>
                 </div>
               </div>
-              <p className="text-xs text-neutral-400">Due: {inv.dueDate || "N/A"}</p>
-
-              {pendingEdits.length > 0 && (
-                <div className="mt-3 p-3 bg-yellow-500/10 border border-yellow-500/20 rounded text-xs text-yellow-500">
-                  <p><strong>Pending Edit Request</strong></p>
-                  <p>Requested change: {JSON.stringify(pendingEdits[0].diffJson)}</p>
-                  <p className="mt-1">{invApprovals.filter(a => a.approverId !== "pending").length} / 3 Manager Approvals</p>
-                  {settings.role === "management" && (
-                    <Button className="mt-2 text-xs py-1 px-2" onClick={() => alert("Approval logic wired to Supabase trigger.")}>
-                      Approve Edit
-                    </Button>
-                  )}
-                </div>
-              )}
-
-              {editingId !== inv.id && pendingEdits.length === 0 && (
-                <Button variant="secondary" className="mt-3 text-xs py-1 px-2" onClick={() => {
-                  setEditingId(inv.id);
-                  setAmount(inv.amountKes.toString());
-                  setDueDate(inv.dueDate || "");
-                }}>
-                  Propose Edit
-                </Button>
-              )}
-
-              {editingId === inv.id && (
-                <div className="mt-4 space-y-3 p-3 border border-ink-700 rounded bg-ink-950">
-                  <h5 className="text-sm font-medium">Propose Change</h5>
-                  <div className="grid grid-cols-2 gap-3">
-                    <div>
-                      <Label>Amount</Label>
-                      <Input value={amount} onChange={(e) => setAmount(e.target.value)} type="number" />
-                    </div>
-                    <div>
-                      <Label>Due Date</Label>
-                      <Input value={dueDate} onChange={(e) => setDueDate(e.target.value)} type="date" />
-                    </div>
-                  </div>
-                  <div className="flex gap-2">
-                    <Button className="text-xs py-1 px-2" onClick={handleProposeEdit}>Submit to Managers</Button>
-                    <Button variant="secondary" className="text-xs py-1 px-2" onClick={() => setEditingId(null)}>Cancel</Button>
-                  </div>
-                </div>
-              )}
+              <table style={{ width: '100%', borderCollapse: 'collapse', marginBottom: '20px' }}>
+                <thead>
+                  <tr style={{ borderBottom: '2px solid #ddd', textAlign: 'left' }}>
+                    <th style={{ padding: '8px' }}>Description</th>
+                    <th style={{ padding: '8px', textAlign: 'right' }}>Amount</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr style={{ borderBottom: '1px solid #eee' }}>
+                    <td style={{ padding: '8px' }}>{description || 'Services Rendered'}</td>
+                    <td style={{ padding: '8px', textAlign: 'right' }}>{currency} {Number(amount).toLocaleString()}</td>
+                  </tr>
+                </tbody>
+              </table>
+              <div style={{ textAlign: 'right', fontWeight: 'bold', fontSize: '18px' }}>
+                Total: {currency} {Number(amount).toLocaleString()}
+              </div>
             </div>
-          );
-        })}
-
-        {creating && (
-           <div className="border border-accent-500/30 rounded-lg p-4 bg-accent-500/5 mt-4">
-             <h4 className="font-semibold text-white mb-4">New Invoice</h4>
-             <div className="grid grid-cols-2 gap-3 mb-4">
-               <div>
-                 <Label>Invoice Number</Label>
-                 <Input value={number} onChange={(e) => setNumber(e.target.value)} />
-               </div>
-               <div>
-                 <Label>Amount</Label>
-                 <Input value={amount} onChange={(e) => setAmount(e.target.value)} type="number" />
-               </div>
-               <div>
-                 <Label>Due Date</Label>
-                 <Input value={dueDate} onChange={(e) => setDueDate(e.target.value)} type="date" />
-               </div>
-             </div>
-             <div className="flex gap-2">
-               <Button onClick={handleSaveNew}>Save Invoice</Button>
-               <Button variant="secondary" onClick={() => setCreating(false)}>Cancel</Button>
-             </div>
-           </div>
-        )}
-
-        {invoices.length > 0 && !creating && (
-          <Button variant="secondary" onClick={handleCreate} className="mt-4 w-full">
-            Generate Another Invoice
-          </Button>
-        )}
+          </div>
+        </div>
       </div>
     </Modal>
   );

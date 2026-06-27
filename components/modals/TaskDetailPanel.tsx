@@ -7,6 +7,8 @@ import { useStore } from "@/lib/store";
 import { Avatar } from "@/components/ui/Avatar";
 import { formatDate } from "@/lib/format";
 
+import { useRouter } from "next/navigation";
+
 export function TaskDetailPanel({
   task,
   onClose,
@@ -14,6 +16,7 @@ export function TaskDetailPanel({
   task: Task;
   onClose: () => void;
 }) {
+  const router = useRouter();
   const [newComment, setNewComment] = useState("");
   const [showMentions, setShowMentions] = useState(false);
   const [mentionQuery, setMentionQuery] = useState("");
@@ -101,6 +104,31 @@ export function TaskDetailPanel({
     updateTask(task.id, { status: e.target.value as TaskStatus });
   }
 
+  function handleViewDetails() {
+    if (!task.relatedOpportunity) return;
+    const opp = task.relatedOpportunity.toLowerCase();
+    
+    // Check bookings
+    const bookings = useStore.getState().bookings;
+    if (bookings.some(b => (b.clientName || '').toLowerCase().includes(opp))) {
+      router.push('/bookings');
+      onClose();
+      return;
+    }
+
+    // Check pipeline
+    const leads = useStore.getState().leads;
+    if (leads.some(l => (l.title || '').toLowerCase().includes(opp))) {
+      router.push('/pipeline');
+      onClose();
+      return;
+    }
+
+    // Default to pipeline
+    router.push('/pipeline');
+    onClose();
+  }
+
   return (
     <>
       <div
@@ -155,9 +183,12 @@ export function TaskDetailPanel({
               <div className="font-medium">
                 {task.relatedOpportunity || "—"}
                 {task.relatedOpportunity && (
-                  <span className="text-accent-500 ml-2 cursor-pointer hover:underline text-xs">
+                  <button 
+                    onClick={handleViewDetails}
+                    className="text-accent-500 ml-2 hover:underline text-xs"
+                  >
                     View Details
-                  </span>
+                  </button>
                 )}
               </div>
             </div>

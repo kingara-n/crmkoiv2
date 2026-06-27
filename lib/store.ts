@@ -10,7 +10,7 @@ import {
   PurchaseOrder,
 } from "./types";
 import {
-  SEED_TEAM, DEFAULT_SETTINGS, SEED_POS,
+  SEED_TEAM, DEFAULT_SETTINGS, SEED_POS, SEED_CLIENTS, SEED_SUPPLIERS, SEED_LEADS, SEED_BOOKINGS, SEED_TRIPS, SEED_TASKS, SEED_INVOICES
 } from "./seed";
 import { supabase } from "./supabase";
 
@@ -183,19 +183,19 @@ export const useStore = create<Store>()((set, get) => ({
 
     set({
       isLoading: false,
-      clients: (clients || []).map(mapToCamel),
-      suppliers: (suppliers || []).map(mapToCamel),
+      clients: clients && clients.length > 0 ? clients.map(mapToCamel) : SEED_CLIENTS,
+      suppliers: suppliers && suppliers.length > 0 ? suppliers.map(mapToCamel) : SEED_SUPPLIERS,
       purchaseOrders: purchaseOrders && purchaseOrders.length > 0 ? purchaseOrders.map(mapToCamel) : SEED_POS,
-      leads: (leads || []).map(mapToCamel),
-      bookings: (bookings || []).map(mapToCamel),
-      trips: (trips || []).map(mapToCamel),
+      leads: leads && leads.length > 0 ? leads.map(mapToCamel) : SEED_LEADS,
+      bookings: bookings && bookings.length > 0 ? bookings.map(mapToCamel) : SEED_BOOKINGS,
+      trips: trips && trips.length > 0 ? trips.map(mapToCamel) : SEED_TRIPS,
       transfers: (transfers || []).map(mapToCamel),
       notifications: (notifications || []).map(mapToCamel),
       team: team && team.length > 0 ? team.map(mapToCamel) : SEED_TEAM,
       clientDocuments: (clientDocuments || []).map(mapToCamel),
-      invoices: (invoices || []).map(mapToCamel),
+      invoices: invoices && invoices.length > 0 ? invoices.map(mapToCamel) : SEED_INVOICES,
       invoiceEditApprovals: (invoiceEditApprovals || []).map(mapToCamel),
-      tasks: (tasks || []).map(mapToCamel),
+      tasks: tasks && tasks.length > 0 ? tasks.map(mapToCamel) : SEED_TASKS,
       taskComments: (taskComments || []).map(mapToCamel),
       leadComments: (leadComments || []).map(mapToCamel),
     });
@@ -362,8 +362,24 @@ export const useStore = create<Store>()((set, get) => ({
     await supabase.from("koi_tasks").update(mapToSnake(patch)).eq("id", id);
   },
   addTaskComment: async (c) => {
-    const { data } = await supabase.from("koi_task_comments").insert(mapToSnake(c)).select().single();
-    if (data) set((s) => ({ taskComments: [...s.taskComments, mapToCamel(data)] }));
+    const tempId = `temp-${Date.now()}`;
+    const newComment = {
+      ...c,
+      id: tempId,
+      createdAt: new Date().toISOString()
+    } as TaskComment;
+    
+    // Optimistic update
+    set((s) => ({ taskComments: [...s.taskComments, newComment] }));
+    
+    try {
+      const { data, error } = await supabase.from("koi_task_comments").insert(mapToSnake(c)).select().single();
+      if (data && !error) {
+        set((s) => ({ taskComments: s.taskComments.map(tc => tc.id === tempId ? mapToCamel(data) : tc) }));
+      }
+    } catch(err) {
+      // Ignore for local/demo purposes
+    }
   },
 
   addNotification: async (n) => {

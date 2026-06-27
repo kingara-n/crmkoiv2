@@ -23,7 +23,7 @@ export function ClientModal({
   const [type, setType] = useState<"leisure" | "corporate">("leisure");
   const [name, setName] = useState("");
   const [industry, setIndustry] = useState("");
-  const [tier, setTier] = useState<Tier>("growth");
+  const [tier, setTier] = useState<Tier>("Premium");
   const [city, setCity] = useState("");
   const [country, setCountry] = useState("Kenya");
   const [email, setEmail] = useState("");
@@ -33,6 +33,7 @@ export function ClientModal({
   const [meal, setMeal] = useState("");
   const [seat, setSeat] = useState("");
   const [medical, setMedical] = useState("");
+  const [isGroup, setIsGroup] = useState(false);
 
   useEffect(() => {
     if (!open) return;
@@ -52,9 +53,10 @@ export function ClientModal({
       setMedical(editing.medicalNotes ?? "");
     } else {
       setType("leisure");
-      setName(""); setIndustry(""); setTier("growth"); setCity(""); setCountry("Kenya");
+      setName(""); setIndustry(""); setTier("Premium"); setCity(""); setCountry("Kenya");
       setEmail(""); setPhone(""); setBirthday(""); setPassport("");
       setMeal(""); setSeat(""); setMedical("");
+      setIsGroup(false);
     }
   }, [open, editing]);
 
@@ -87,18 +89,18 @@ export function ClientModal({
     <Modal
       open={open}
       onClose={onClose}
-      title={editing ? "Edit client" : "Add client"}
+      title={editing ? "Edit Client" : "Add Client"}
       size="lg"
       footer={
         <>
           <Button variant="secondary" onClick={onClose}>Cancel</Button>
-          <Button onClick={handleSave}>{editing ? "Save changes" : "Add client"}</Button>
+          <Button onClick={handleSave}>{editing ? "Save Changes" : "Add Client"}</Button>
         </>
       }
     >
       <div className="space-y-4">
         <div>
-          <Label>Client type</Label>
+          <Label>Client Type</Label>
           <div className="flex gap-2">
             {(["leisure", "corporate"] as const).map((t) => (
               <button
@@ -116,17 +118,30 @@ export function ClientModal({
           </div>
         </div>
 
+        {type === "leisure" && (
+          <div className="flex items-center gap-2 mt-2 mb-2">
+            <input
+              type="checkbox"
+              id="isGroup"
+              checked={isGroup}
+              onChange={(e) => setIsGroup(e.target.checked)}
+              className="rounded border-ink-600 bg-ink-900 text-accent-500 focus:ring-accent-500/50"
+            />
+            <label htmlFor="isGroup" className="!mb-0 cursor-pointer text-sm font-medium text-neutral-400">Is this a Group Booking?</label>
+          </div>
+        )}
+
         <div className="grid grid-cols-2 gap-3">
           <div>
-            <Label htmlFor="name">{type === "corporate" ? "Company name" : "Full name"}</Label>
+            <Label htmlFor="name">{type === "corporate" ? "Company Name" : (isGroup ? "Group Name / Contact Person" : "Full Name")}</Label>
             <Input id="name" value={name} onChange={(e) => setName(e.target.value)} />
           </div>
           <div>
             <Label htmlFor="tier">Tier</Label>
             <Select id="tier" value={tier} onChange={(e) => setTier(e.target.value as Tier)}>
-              <option value="enterprise">Enterprise</option>
-              <option value="growth">Growth</option>
-              <option value="starter">Starter</option>
+              <option value="enterprise">VIP</option>
+              <option value="growth">Premium</option>
+              <option value="starter">Standard</option>
             </Select>
           </div>
         </div>
@@ -160,7 +175,7 @@ export function ClientModal({
           </div>
         </div>
 
-        {type === "leisure" && (
+        {type === "leisure" && !isGroup && (
           <>
             <div className="grid grid-cols-2 gap-3">
               <div>
@@ -168,28 +183,36 @@ export function ClientModal({
                 <Input id="bday" type="date" value={birthday} onChange={(e) => setBirthday(e.target.value)} />
               </div>
               <div>
-                <Label htmlFor="passport">Passport number</Label>
+                <Label htmlFor="passport">Passport Number</Label>
                 <Input id="passport" value={passport} onChange={(e) => setPassport(e.target.value)} />
               </div>
             </div>
             <div className="grid grid-cols-2 gap-3">
               <div>
-                <Label htmlFor="meal">Meal preference</Label>
+                <Label htmlFor="meal">Dietary Preferences</Label>
                 <Input id="meal" value={meal} onChange={(e) => setMeal(e.target.value)} />
               </div>
               <div>
-                <Label htmlFor="seat">Seat preference</Label>
+                <Label htmlFor="seat">Seat Preference</Label>
                 <Input id="seat" value={seat} onChange={(e) => setSeat(e.target.value)} />
               </div>
             </div>
             <div>
-              <Label htmlFor="med">Medical notes</Label>
+              <Label htmlFor="med">Medical Notes</Label>
               <Textarea id="med" value={medical} onChange={(e) => setMedical(e.target.value)} />
             </div>
           </>
         )}
         
-        {editing && <ClientDocuments clientId={editing.id} />}
+        {/* Inline Document Upload for New Clients (Optional) - Or existing ClientDocuments */}
+        {editing ? (
+          <ClientDocuments clientId={editing.id} />
+        ) : (
+          <div className="pt-2 border-t border-ink-800">
+            <h3 className="text-sm font-semibold text-white mb-2">Upload Documents (Optional)</h3>
+            <p className="text-xs text-neutral-500 mb-3">You can upload Passports, Visas, etc. after the client is created, from the Document Vault.</p>
+          </div>
+        )}
       </div>
     </Modal>
   );

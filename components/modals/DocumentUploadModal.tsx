@@ -65,10 +65,32 @@ export function DocumentUploadModal({
         <div>
           <Label>Document Type</Label>
           <Select value={docType} onChange={(e) => setDocType(e.target.value)}>
-            <option value="passport">Passport</option>
-            <option value="payment_receipt">Payment Receipt</option>
-            <option value="contract">Signed Contract</option>
-            <option value="flight_ticket">Flight Ticket</option>
+            <optgroup label="Travel & Identification">
+              <option value="passport">Passports</option>
+              <option value="visa">Visas</option>
+              <option value="national_id">National IDs</option>
+              <option value="health_certificate">Health Certificates</option>
+            </optgroup>
+            <optgroup label="Booking & Confirmation">
+              <option value="e_ticket">E-Tickets</option>
+              <option value="accommodation_voucher">Accommodation Vouchers</option>
+              <option value="tour_voucher">Tour Vouchers</option>
+              <option value="car_rental">Car Rental Agreements</option>
+            </optgroup>
+            <optgroup label="Financial & Administrative">
+              <option value="itinerary">Itineraries</option>
+              <option value="invoice_receipt">Invoices & Receipts</option>
+              <option value="insurance">Travel Insurance Policies</option>
+            </optgroup>
+            <optgroup label="Custom Forms">
+              <option value="invitation_letter">Letters of Invitation</option>
+              <option value="visa_form">Visa Application Forms</option>
+              <option value="agency_letter">Travel Agency Letters</option>
+            </optgroup>
+            <optgroup label="Operations">
+              <option value="terms">Terms and Conditions</option>
+              <option value="vendor_contract">Vendor Contracts</option>
+            </optgroup>
             <option value="other">Other</option>
           </Select>
         </div>

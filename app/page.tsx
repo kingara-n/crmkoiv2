@@ -1,9 +1,10 @@
 "use client";
 
-import { useMemo } from "react";
+import { useMemo, useEffect } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import {
-  DollarSign, TrendingUp, Target, Users, Trophy, CheckCircle2, Clock, XCircle, Calendar,
+  Banknote, TrendingUp, Target, Users, Trophy, CheckCircle2, Clock, XCircle, Calendar,
   ArrowRight
 } from "lucide-react";
 import { Card, StatCard } from "@/components/ui/Card";
@@ -19,6 +20,7 @@ import { STAGE_LABELS, Stage } from "@/lib/types";
 // Dynamic calculation happens inside the component based on store data.
 
 export default function OverviewPage() {
+  const router = useRouter();
   const hydrated = useIsHydrated();
   const leads = useStore((s) => s.leads);
   const bookings = useStore((s) => s.bookings);
@@ -26,6 +28,16 @@ export default function OverviewPage() {
   const clients = useStore((s) => s.clients);
   const invoices = useStore((s) => s.invoices);
   const currency = useStore((s) => s.settings.currency);
+  const settings = useStore((s) => s.settings);
+
+  useEffect(() => {
+    if (hydrated) {
+      const role = settings.role;
+      if (role !== "Sales Manager" && role !== "Director" && role !== "management") {
+        router.push("/tasks");
+      }
+    }
+  }, [hydrated, settings.role, router]);
 
   const revenueTrend = useMemo(() => {
     const trend = [];
@@ -36,7 +48,7 @@ export default function OverviewPage() {
       const nextMonth = new Date(now.getFullYear(), now.getMonth() - i + 1, 1);
 
       // Bookings confirmed within this month (using createdAt as a proxy for closeDate if missing)
-      const target = bookings
+      const target = settings.revenueTarget || bookings
         .filter((b) => b.status === "confirmed")
         .filter((b) => {
           const date = new Date(b.closeDate || "2000-01-01");
@@ -128,17 +140,17 @@ export default function OverviewPage() {
         <Card>
           <div className="flex items-center justify-between mb-2">
             <h3 className="text-sm font-medium text-neutral-400">Total Revenue</h3>
-            <DollarSign className="h-4 w-4 text-neutral-500" />
+            <Banknote className="h-4 w-4 text-neutral-500" />
           </div>
-          <div className="space-y-1 mt-3">
+          <div className="space-y-2 mt-3">
             {Object.entries(revenueByCurrency).filter(([_, v]) => v > 0).map(([cur, val]) => (
-              <div key={cur} className="flex justify-between items-center text-sm">
-                <span className="text-neutral-500">{cur}</span>
-                <span className="font-semibold text-white">{formatMoney(val, cur as any)}</span>
+              <div key={cur} className="flex justify-between items-end">
+                <span className="text-sm font-medium text-neutral-500 mb-1">{cur}</span>
+                <span className="text-3xl font-semibold tracking-tight text-white">{formatMoney(val, cur as any)}</span>
               </div>
             ))}
             {Object.values(revenueByCurrency).every(v => v === 0) && (
-              <div className="text-xl font-bold text-white">0</div>
+              <div className="text-3xl font-semibold tracking-tight text-white">0</div>
             )}
           </div>
         </Card>

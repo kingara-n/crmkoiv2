@@ -211,9 +211,10 @@ export function LeadModal({
             max={100}
             value={probability}
             onChange={(e) => setProbability(e.target.value)}
-            className="w-full accent-accent-500 rounded-lg appearance-none h-2"
+            className="w-full accent-white rounded-full appearance-none h-2.5 cursor-pointer shadow-inner border border-ink-700/50 focus:outline-none focus:ring-2 focus:ring-accent-500/50 transition-all"
             style={{
-              background: `linear-gradient(to right, #ef4444 0%, #eab308 50%, #22c55e 100%)`
+              background: `linear-gradient(to right, #ef4444 0%, #f59e0b 50%, #10b981 100%)`,
+              boxShadow: "inset 0 2px 4px rgba(0,0,0,0.4)"
             }}
           />
         </div>

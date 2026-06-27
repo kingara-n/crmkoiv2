@@ -9,7 +9,7 @@ import { Button } from "@/components/ui/Button";
 import { Badge } from "@/components/ui/Badge";
 import { Avatar } from "@/components/ui/Avatar";
 import { formatDate, formatMoney } from "@/lib/format";
-import { ChevronLeft, Mail, Phone, MapPin, Calendar, File, Briefcase, Plane, DollarSign } from "lucide-react";
+import { ChevronLeft, Mail, Phone, MapPin, Calendar, File, Briefcase, Plane, Banknote } from "lucide-react";
 
 export default function ClientProfilePage() {
   const { id } = useParams() as { id: string };
@@ -44,7 +44,7 @@ export default function ClientProfilePage() {
           <div>
             <h1 className="text-2xl font-bold text-white flex items-center gap-3">
               {client.name}
-              <Badge tone={client.tier === "enterprise" ? "accent" : client.tier === "growth" ? "success" : "neutral"}>
+              <Badge tone={client.tier === "VIP" ? "accent" : client.tier === "Premium" ? "success" : "neutral"}>
                 {client.tier.toUpperCase()}
               </Badge>
             </h1>
@@ -110,7 +110,7 @@ export default function ClientProfilePage() {
           <div className="grid grid-cols-3 gap-4">
             <Card padding={false} className="p-4 flex flex-col justify-center">
               <div className="flex items-center gap-2 text-neutral-500 mb-2">
-                <DollarSign className="h-4 w-4" />
+                <Banknote className="h-4 w-4" />
                 <span className="text-xs font-semibold uppercase tracking-wider">Lifetime Value</span>
               </div>
               <p className="text-2xl font-bold text-white">{formatMoney(client.revenue, currency)}</p>

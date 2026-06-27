@@ -68,10 +68,6 @@ export default function StaffActivityPage() {
     );
   }
 
-  const topPerformers = [...team]
-    .sort((a, b) => b.revenue - a.revenue)
-    .slice(0, 3);
-
   const averageQuotaAttainment = team.length ? Math.round(team.reduce((sum, m) => sum + m.quotaAttainment, 0) / team.length) : 0;
   const totalDealsClosed = team.reduce((sum, m) => sum + m.dealsClosed, 0);
   const teamRevenue = team.reduce((sum, m) => sum + m.revenue, 0);
@@ -93,36 +89,8 @@ export default function StaffActivityPage() {
       </div>
 
       <div className="grid gap-4 lg:grid-cols-3">
-        {/* Top Performers */}
-        <Card className="lg:col-span-1">
-          <div className="mb-4 flex items-center justify-between">
-            <div>
-              <h2 className="text-base font-semibold text-white">Top Performers</h2>
-              <p className="text-xs text-neutral-500">This month's leaders</p>
-            </div>
-            <Trophy className="h-5 w-5 text-amber-400" />
-          </div>
-          <div className="space-y-4">
-            {topPerformers.map((m, i) => (
-              <div key={m.id} className="flex items-center gap-3">
-                <Avatar initials={m.initials} size="md" crown rank={i + 1} />
-                <div className="flex-1">
-                  <p className="text-sm font-medium text-white">{m.name}</p>
-                  <p className="text-xs text-neutral-500">{m.dealsClosed} deals closed</p>
-                </div>
-                <div className="text-right">
-                  <p className="text-sm font-semibold text-white">{formatMoney(m.revenue, currency)}</p>
-                  <p className={`text-xs ${m.trend >= 0 ? "text-accent-400" : "text-chart-red"}`}>
-                    {m.trend >= 0 ? "↗" : "↘"} {m.trend >= 0 ? "+" : ""}{m.trend}%
-                  </p>
-                </div>
-              </div>
-            ))}
-          </div>
-        </Card>
-
         {/* Team Grid */}
-        <Card className="lg:col-span-2">
+        <Card className="lg:col-span-3">
           <div className="mb-4">
             <h2 className="text-base font-semibold text-white">Team Quotas</h2>
             <p className="text-xs text-neutral-500">Individual progress towards targets</p>

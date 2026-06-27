@@ -27,6 +27,7 @@ const COLUMNS: { id: TaskStatus; label: string; color: string }[] = [
 
 export default function TasksPage() {
   const hydrated = useIsHydrated();
+  const settings = useStore((s) => s.settings);
   const tasks = useStore((s) => s.tasks);
   const updateTask = useStore((s) => s.updateTask);
 
@@ -36,11 +37,14 @@ export default function TasksPage() {
   if (!hydrated) return <div className="text-neutral-500 p-2">Loading…</div>;
 
   return (
-    <div className="flex flex-col h-[calc(100vh-80px)]">
+    <div className="flex flex-col h-[calc(100vh-80px)] space-y-4">
+      <h1 className="text-2xl font-bold text-white mb-2">
+        Welcome back, {settings?.firstName || "User"}
+      </h1>
       {/* Header matching the image */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-4 border-b border-ink-700/50 mb-6 gap-4">
         <div className="flex items-center gap-4">
-          <h1 className="text-2xl font-bold text-white">Tasks</h1>
+          <h2 className="text-xl font-bold text-white">Tasks</h2>
         </div>
         <div className="flex items-center gap-3">
           <Button icon={<Plus className="h-4 w-4" />} onClick={() => setTaskModalOpen(true)}>

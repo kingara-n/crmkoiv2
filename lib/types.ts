@@ -30,9 +30,9 @@ export type Currency = "KES" | "USD" | "EUR" | "GBP" | "CAD";
 
 export type BookingStatus = "confirmed" | "pending" | "lost";
 
-export type Tier = "enterprise" | "growth" | "starter";
+export type Tier = "VIP" | "Premium" | "Standard";
 
-export type SupplierType = "hotel" | "camp" | "transport" | "dmc" | "airline";
+export type SupplierType = "hotel" | "camp" | "transport" | "dmc" | "airline" | "cruise_line";
 
 export type SupplierStatus = "approved" | "pending" | "rejected";
 
@@ -188,6 +188,7 @@ export interface UserSettings {
   darkMode: boolean;
   currency: Currency;
   compactView: boolean;
+  revenueTarget?: number;
 }
 
 export interface ClientDocument {
@@ -244,6 +245,7 @@ export interface Transfer {
   flightTime: string;
   location: string;
   driverName?: string;
+  driverPhone?: string;
   carType?: string;
   regPlate?: string;
   status: TransferStatus;

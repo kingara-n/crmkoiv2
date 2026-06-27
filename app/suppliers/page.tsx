@@ -3,7 +3,7 @@
 import { useState, useMemo } from "react";
 import {
   Search, Plus, MapPin, Mail, Phone, Building2, Users, Check, X,
-  DollarSign, AlertCircle, Calendar, FileText, ShoppingCart
+  Banknote, AlertCircle, Calendar, FileText, ShoppingCart
 } from "lucide-react";
 import { PieChart, Pie, Cell, Tooltip as RechartsTooltip, ResponsiveContainer } from "recharts";
 import { Card, StatCard } from "@/components/ui/Card";
@@ -23,6 +23,7 @@ const TYPE_LABELS: Record<SupplierType, string> = {
   transport: "Transport",
   dmc: "DMC",
   airline: "Airline",
+  cruise_line: "Cruise Line",
 };
 
 export default function SuppliersPage() {

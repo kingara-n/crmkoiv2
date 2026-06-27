@@ -9,11 +9,15 @@ import {
   CheckCircle2,
   Clock,
   AlertTriangle,
-  DollarSign,
+  Banknote,
   AlertCircle,
   Calendar,
   ShoppingCart,
   Building2,
+  ShieldCheck,
+  ArrowRight,
+  Loader2,
+  QrCode,
 } from "lucide-react";
 import {
   PieChart,
@@ -30,6 +34,7 @@ import { useStore, useSettings } from "@/lib/store";
 import { useIsHydrated } from "@/lib/useIsHydrated";
 import { InvoiceModal } from "@/components/modals/InvoiceModal";
 import { PurchaseOrderModal } from "@/components/modals/PurchaseOrderModal";
+import { BookingInvoiceModal } from "@/components/modals/BookingInvoiceModal";
 import { formatMoneyFull, formatDate } from "@/lib/format";
 import { SupplierType } from "@/lib/types";
 
@@ -39,6 +44,7 @@ const TYPE_LABELS: Record<SupplierType, string> = {
   transport: "Transport",
   dmc: "DMC",
   airline: "Airline",
+  cruise_line: "Cruise Line",
 };
 
 export default function FinancialsPage() {
@@ -60,6 +66,37 @@ export default function FinancialsPage() {
     null,
   );
   const [poModalOpen, setPoModalOpen] = useState(false);
+  const [invoiceModalOpen, setInvoiceModalOpen] = useState(false);
+
+  // eTims State
+  const [etimsLoading, setEtimsLoading] = useState(false);
+  const [etimsSynced, setEtimsSynced] = useState(false);
+  const [etimsReceiptData, setEtimsReceiptData] = useState<{
+    receiptNo: string;
+    controlCode: string;
+    date: string;
+  } | null>(null);
+
+  const mockInvoice = {
+    number: "INV-2026-089",
+    client: "Acme Corp Ltd.",
+    pin: "P123456789A",
+    subtotal: 50000,
+    vat: 8000,
+    total: 58000,
+  };
+
+  const handleSyncETims = async () => {
+    setEtimsLoading(true);
+    await new Promise((resolve) => setTimeout(resolve, 2000));
+    setEtimsReceiptData({
+      receiptNo: "KRA-" + Math.floor(100000 + Math.random() * 900000),
+      controlCode: "A1B2-C3D4-E5F6-G7H8",
+      date: new Date().toLocaleString(),
+    });
+    setEtimsSynced(true);
+    setEtimsLoading(false);
+  };
 
   const filteredInvoices = useMemo(() => {
     let rows = invoices.map((inv) => {
@@ -145,12 +182,19 @@ export default function FinancialsPage() {
     <div className="space-y-8 pt-4 pb-12">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-semibold text-white">Financials</h1>
+          <h1 className="text-2xl font-semibold text-white">Accounts</h1>
           <p className="text-sm text-neutral-400 mt-1">
-            Manage accounts receivable, payables, and approvals.
+            Manage accounts receivable, payables, refunds, and eTIMS.
           </p>
         </div>
         <div className="flex gap-3">
+          <Button
+            variant="secondary"
+            icon={<FileText className="h-4 w-4" />}
+            onClick={() => setInvoiceModalOpen(true)}
+          >
+            New Invoice
+          </Button>
           <Button
             icon={<ShoppingCart className="h-4 w-4" />}
             onClick={() => setPoModalOpen(true)}
@@ -174,15 +218,15 @@ export default function FinancialsPage() {
             </div>
             <div className="space-y-1">
               {Object.keys(paidByCurrency).length === 0 && (
-                <div className="text-xl font-bold text-white">0</div>
+                <div className="text-3xl font-semibold tracking-tight text-white">0</div>
               )}
               {Object.entries(paidByCurrency).map(([cur, val]) => (
                 <div
                   key={cur}
-                  className="flex justify-between items-center text-sm"
+                  className="flex justify-between items-end"
                 >
-                  <span className="text-neutral-500">{cur}</span>
-                  <span className="font-semibold text-white">
+                  <span className="text-sm font-medium text-neutral-500 mb-1">{cur}</span>
+                  <span className="text-3xl font-semibold tracking-tight text-white">
                     {formatMoneyFull(val, cur as any)}
                   </span>
                 </div>
@@ -199,15 +243,15 @@ export default function FinancialsPage() {
             </div>
             <div className="space-y-1">
               {Object.keys(unpaidByCurrency).length === 0 && (
-                <div className="text-xl font-bold text-white">0</div>
+                <div className="text-3xl font-semibold tracking-tight text-white">0</div>
               )}
               {Object.entries(unpaidByCurrency).map(([cur, val]) => (
                 <div
                   key={cur}
-                  className="flex justify-between items-center text-sm"
+                  className="flex justify-between items-end"
                 >
-                  <span className="text-neutral-500">{cur}</span>
-                  <span className="font-semibold text-white">
+                  <span className="text-sm font-medium text-neutral-500 mb-1">{cur}</span>
+                  <span className="text-3xl font-semibold tracking-tight text-white">
                     {formatMoneyFull(val, cur as any)}
                   </span>
                 </div>
@@ -333,6 +377,39 @@ export default function FinancialsPage() {
         </Card>
       </div>
 
+      {/* Refunds Section */}
+      <div className="pt-8 border-t border-ink-700">
+        <h2 className="text-lg font-semibold text-white mb-4">Refunds</h2>
+        <div className="grid gap-4 lg:grid-cols-3 mb-6">
+          <StatCard
+            label="Total Refunds Issued"
+            value="KES 0"
+            icon={<Banknote className="h-4 w-4 text-red-400" />}
+          />
+        </div>
+        <Card padding={false}>
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm text-left">
+              <thead>
+                <tr className="border-b border-ink-700 text-xs uppercase text-neutral-500">
+                  <th className="px-5 py-3 font-medium">Refund ID</th>
+                  <th className="px-5 py-3 font-medium">Client</th>
+                  <th className="px-5 py-3 font-medium">Amount</th>
+                  <th className="px-5 py-3 font-medium">Status</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td colSpan={4} className="px-5 py-10 text-center text-neutral-500">
+                    No active refunds.
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </Card>
+      </div>
+
       {/* Purchasing Section */}
       <div className="pt-8 border-t border-ink-700">
         <h2 className="text-lg font-semibold text-white mb-4">
@@ -343,10 +420,10 @@ export default function FinancialsPage() {
           <StatCard
             label="Total Spend (est. KES)"
             value={`KSh ${(totalSpendKes / 1000).toFixed(1)}k`}
-            icon={<DollarSign className="h-4 w-4" />}
+            icon={<Banknote className="h-4 w-4" />}
           />
           <StatCard
-            label="Active POs"
+            label="Active Purchase Orders"
             value={String(
               purchaseOrders.filter((po) => po.status !== "closed").length,
             )}
@@ -354,7 +431,7 @@ export default function FinancialsPage() {
           />
         </div>
 
-        <div className="grid gap-4 lg:grid-cols-3 mb-6">
+        <div className="grid gap-4 lg:grid-cols-2 mb-6">
           {/* Spend by Category */}
           <Card>
             <div className="flex items-center justify-between mb-2">
@@ -442,7 +519,7 @@ export default function FinancialsPage() {
               <h3 className="text-sm font-medium text-white">
                 Payables by Currency
               </h3>
-              <DollarSign className="h-4 w-4 text-neutral-500" />
+              <Banknote className="h-4 w-4 text-neutral-500" />
             </div>
             <div className="space-y-3">
               {Object.entries(payablesByCurrency).map(([cur, val]) => (
@@ -463,42 +540,11 @@ export default function FinancialsPage() {
               )}
             </div>
           </Card>
-
-          {/* Top Suppliers */}
-          <Card>
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="text-sm font-medium text-white">Top Suppliers</h3>
-              <Building2 className="h-4 w-4 text-neutral-500" />
-            </div>
-            <div className="space-y-4">
-              {topSuppliers.map((s) => (
-                <div key={s.id} className="flex items-center gap-3">
-                  <Avatar
-                    initials={s.name.substring(0, 2).toUpperCase()}
-                    size="sm"
-                  />
-                  <div className="flex-1 min-w-0">
-                    <p className="truncate text-sm font-medium text-white">
-                      {s.name}
-                    </p>
-                    <p className="text-xs text-neutral-500">
-                      {TYPE_LABELS[s.type]}
-                    </p>
-                  </div>
-                  <div className="text-right">
-                    <span className="text-white text-sm">
-                      {s.spend > 0 ? s.spend.toLocaleString() : "—"}
-                    </span>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </Card>
         </div>
 
-        <Card padding={false}>
+        <Card padding={false} className="mb-6">
           <div className="p-4 border-b border-ink-700">
-            <h3 className="font-semibold text-white">Recent Purchase Orders</h3>
+            <h3 className="font-semibold text-white">Active Purchase Orders</h3>
           </div>
           <div className="overflow-x-auto">
             <table className="w-full text-sm text-left">
@@ -514,25 +560,15 @@ export default function FinancialsPage() {
               <tbody>
                 {purchaseOrders.length === 0 && (
                   <tr>
-                    <td
-                      colSpan={5}
-                      className="px-5 py-10 text-center text-neutral-500"
-                    >
+                    <td colSpan={5} className="px-5 py-10 text-center text-neutral-500">
                       No POs generated yet.
                     </td>
                   </tr>
                 )}
                 {purchaseOrders.slice(0, 5).map((po) => (
-                  <tr
-                    key={po.id}
-                    className="border-b border-ink-700 last:border-0 hover:bg-ink-850/40"
-                  >
-                    <td className="px-5 py-4 font-medium text-white">
-                      {po.poNumber}
-                    </td>
-                    <td className="px-5 py-4 text-neutral-300">
-                      {po.supplierName}
-                    </td>
+                  <tr key={po.id} className="border-b border-ink-700 last:border-0 hover:bg-ink-850/40">
+                    <td className="px-5 py-4 font-medium text-white">{po.poNumber}</td>
+                    <td className="px-5 py-4 text-neutral-300">{po.supplierName}</td>
                     <td className="px-5 py-4 text-white">
                       {po.currency} {po.amount.toLocaleString()}
                     </td>
@@ -558,10 +594,195 @@ export default function FinancialsPage() {
             </table>
           </div>
         </Card>
+
+        {/* Top Suppliers Table Format */}
+        <Card padding={false} className="mb-6">
+          <div className="p-4 border-b border-ink-700">
+            <h3 className="font-semibold text-white">Top Suppliers</h3>
+          </div>
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm text-left">
+              <thead>
+                <tr className="border-b border-ink-700 text-xs uppercase text-neutral-500">
+                  <th className="px-5 py-3 font-medium">Supplier</th>
+                  <th className="px-5 py-3 font-medium">Type</th>
+                  <th className="px-5 py-3 font-medium">City/Country</th>
+                  <th className="px-5 py-3 font-medium text-right">Total Spend (KES)</th>
+                </tr>
+              </thead>
+              <tbody>
+                {topSuppliers.length === 0 && (
+                  <tr>
+                    <td colSpan={4} className="px-5 py-10 text-center text-neutral-500">
+                      No suppliers with spend recorded.
+                    </td>
+                  </tr>
+                )}
+                {topSuppliers.map((s) => (
+                  <tr key={s.id} className="border-b border-ink-700 last:border-0 hover:bg-ink-850/40">
+                    <td className="px-5 py-4 font-medium text-white">{s.name}</td>
+                    <td className="px-5 py-4 text-neutral-300">{TYPE_LABELS[s.type]}</td>
+                    <td className="px-5 py-4 text-neutral-300">{s.city}, {s.country}</td>
+                    <td className="px-5 py-4 text-right text-white">
+                      {s.spend > 0 ? s.spend.toLocaleString() : "—"}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </Card>
+
+        {/* Commissions Tracker */}
+        <div className="pt-8 border-t border-ink-700">
+          <h2 className="text-lg font-semibold text-white mb-4">
+            Commissions Tracker
+          </h2>
+          <Card padding={false}>
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm text-left">
+                <thead>
+                  <tr className="border-b border-ink-700 text-xs uppercase text-neutral-500">
+                    <th className="px-5 py-3 font-medium">Booking Ref</th>
+                    <th className="px-5 py-3 font-medium">Supplier</th>
+                    <th className="px-5 py-3 font-medium">Total Value</th>
+                    <th className="px-5 py-3 font-medium">Comm. %</th>
+                    <th className="px-5 py-3 font-medium">Expected</th>
+                    <th className="px-5 py-3 font-medium">Status</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td colSpan={6} className="px-5 py-10 text-center text-neutral-500">
+                      No commission data available yet. Configure booking costs to track expected commissions.
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </Card>
+        </div>
+
+      </div>
+
+      {/* eTIMS Sandbox Section */}
+      <div className="pt-8 border-t border-ink-700">
+        <div className="flex items-center gap-3 mb-6">
+          <ShieldCheck className="h-6 w-6 text-accent-500" />
+          <div>
+            <h2 className="text-lg font-semibold text-white">eTIMS Sandbox</h2>
+            <p className="text-neutral-400 text-sm">Preview the KRA eTIMS invoice synchronization workflow.</p>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          {/* Left: Invoice Data */}
+          <Card>
+            <div className="flex items-center gap-2 mb-4 pb-4 border-b border-ink-700">
+              <FileText className="h-5 w-5 text-neutral-400" />
+              <h3 className="font-medium text-white">Approved Invoice</h3>
+              <div className="ml-auto">
+                <Badge tone="success">Active</Badge>
+              </div>
+            </div>
+
+            <div className="space-y-4 text-sm">
+              <div className="flex justify-between">
+                <span className="text-neutral-500">Invoice No</span>
+                <span className="text-white font-medium">{mockInvoice.number}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-neutral-500">Client</span>
+                <span className="text-white">{mockInvoice.client}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-neutral-500">Client PIN</span>
+                <span className="text-white font-mono">{mockInvoice.pin}</span>
+              </div>
+              
+              <div className="pt-4 mt-4 border-t border-ink-800 space-y-2">
+                <div className="flex justify-between">
+                  <span className="text-neutral-500">Subtotal</span>
+                  <span className="text-neutral-300">KES {mockInvoice.subtotal.toLocaleString()}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-neutral-500">VAT (16%)</span>
+                  <span className="text-neutral-300">KES {mockInvoice.vat.toLocaleString()}</span>
+                </div>
+                <div className="flex justify-between font-medium pt-2 border-t border-ink-800 text-base">
+                  <span className="text-white">Total</span>
+                  <span className="text-white">KES {mockInvoice.total.toLocaleString()}</span>
+                </div>
+              </div>
+            </div>
+          </Card>
+
+          {/* Right: KRA Result */}
+          <Card className={etimsSynced ? "border-accent-500/30 bg-accent-500/5" : "border-dashed border-ink-700 bg-ink-900/50"}>
+            <div className="h-full flex flex-col justify-center">
+              {!etimsSynced && !etimsLoading && (
+                <div className="text-center space-y-4">
+                  <div className="mx-auto w-12 h-12 rounded-full bg-ink-800 flex items-center justify-center">
+                    <ArrowRight className="h-5 w-5 text-neutral-400" />
+                  </div>
+                  <div>
+                    <h4 className="text-white font-medium">Ready for eTIMS</h4>
+                    <p className="text-neutral-500 text-sm mt-1 px-4">Transmit this invoice to the KRA portal to receive a valid fiscal receipt number.</p>
+                  </div>
+                  <button
+                    onClick={handleSyncETims}
+                    className="bg-accent-500 text-black px-4 py-2 rounded-lg text-sm font-medium hover:bg-accent-400 transition-colors"
+                  >
+                    Sync to eTIMS
+                  </button>
+                </div>
+              )}
+
+              {etimsLoading && (
+                <div className="text-center space-y-4">
+                  <Loader2 className="h-8 w-8 animate-spin text-accent-500 mx-auto" />
+                  <p className="text-neutral-400 text-sm animate-pulse">Transmitting secure payload to KRA API...</p>
+                </div>
+              )}
+
+              {etimsSynced && etimsReceiptData && (
+                <div className="space-y-6">
+                  <div className="flex items-center justify-center gap-2 text-accent-500">
+                    <CheckCircle2 className="h-6 w-6" />
+                    <h4 className="font-semibold text-lg">Successfully Synced</h4>
+                  </div>
+
+                  <div className="bg-ink-950 rounded-lg p-4 font-mono text-sm space-y-3">
+                    <div>
+                      <div className="text-neutral-500 text-xs uppercase mb-1">eTIMS Receipt No.</div>
+                      <div className="text-white">{etimsReceiptData.receiptNo}</div>
+                    </div>
+                    <div>
+                      <div className="text-neutral-500 text-xs uppercase mb-1">Control Code</div>
+                      <div className="text-white text-xs break-all">{etimsReceiptData.controlCode}</div>
+                    </div>
+                    <div>
+                      <div className="text-neutral-500 text-xs uppercase mb-1">Timestamp</div>
+                      <div className="text-white">{etimsReceiptData.date}</div>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center justify-center gap-3 text-neutral-400">
+                    <QrCode className="h-16 w-16 opacity-50" />
+                    <div className="text-xs">
+                      <p>A QR Code is generated for the PDF.</p>
+                      <p>This invoice is now legally compliant.</p>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+          </Card>
+        </div>
       </div>
 
       {selectedBookingId && (
-        <InvoiceModal
+        <BookingInvoiceModal
           open={!!selectedBookingId}
           onClose={() => setSelectedBookingId(null)}
           bookingId={selectedBookingId}
@@ -570,6 +791,10 @@ export default function FinancialsPage() {
       <PurchaseOrderModal
         open={poModalOpen}
         onClose={() => setPoModalOpen(false)}
+      />
+      <InvoiceModal
+        open={invoiceModalOpen}
+        onClose={() => setInvoiceModalOpen(false)}
       />
     </div>
   );

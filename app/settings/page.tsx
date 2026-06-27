@@ -12,13 +12,7 @@ import { useStore } from "@/lib/store";
 import { useIsHydrated } from "@/lib/useIsHydrated";
 import { UserSettings, Currency } from "@/lib/types";
 
-const TIMEZONES = [
-  "Africa/Nairobi (EAT)",
-  "Africa/Lagos (WAT)",
-  "Africa/Cairo (EET)",
-  "Europe/London (BST)",
-  "America/New_York (ET)",
-];
+
 
 const ROLES = [
   "Sales Manager",
@@ -101,83 +95,46 @@ export default function SettingsPage() {
             <Label htmlFor="em">Email</Label>
             <Input id="em" type="email" value={draft.email} onChange={(e) => setDraft({ ...draft, email: e.target.value })} />
           </div>
-          <div>
-            <Label htmlFor="role">Role</Label>
-            <Select id="role" value={draft.role} onChange={(e) => setDraft({ ...draft, role: e.target.value })}>
-              {ROLES.map((r) => <option key={r}>{r}</option>)}
-            </Select>
-          </div>
-          <div className="sm:col-span-2">
-            <Label htmlFor="tz">Timezone</Label>
-            <Select id="tz" value={draft.timezone} onChange={(e) => setDraft({ ...draft, timezone: e.target.value })}>
-              {TIMEZONES.map((t) => <option key={t}>{t}</option>)}
-            </Select>
-          </div>
         </div>
       </Card>
 
-      {/* Display preferences — apply live */}
       <Card>
         <div className="mb-5">
-          <h2 className="text-base font-semibold text-white">Display Preferences</h2>
-          <p className="text-xs text-neutral-500">Customize how data is displayed. These apply instantly.</p>
+          <h2 className="text-base font-semibold text-white">Security</h2>
+          <p className="text-xs text-neutral-500">Manage your password and security preferences.</p>
         </div>
-
-        <div className="space-y-4">
-          <div className="flex items-center justify-between rounded-lg border border-ink-700 bg-ink-850/30 px-4 py-3">
-            <div className="flex items-center gap-3">
-              <Palette className="h-5 w-5 text-neutral-400" />
-              <div>
-                <p className="text-sm font-medium text-white">Dark Mode</p>
-                <p className="text-xs text-neutral-500">Use dark theme for the interface</p>
-              </div>
-            </div>
-            <Toggle checked={draft.darkMode} onChange={(v) => applyToggle("darkMode", v)} />
-          </div>
-
-          <div className="flex items-center justify-between rounded-lg border border-ink-700 bg-ink-850/30 px-4 py-3">
-            <div className="flex items-center gap-3">
-              <Globe className="h-5 w-5 text-neutral-400" />
-              <div>
-                <p className="text-sm font-medium text-white">Currency Format</p>
-                <p className="text-xs text-neutral-500">All amounts across the app re-render in this currency</p>
-              </div>
-            </div>
-            <div className="w-36">
-              <Select
-                value={draft.currency}
-                onChange={(e) => applyToggle("currency", e.target.value as Currency)}
-              >
-                <option value="KES">KSh (KES)</option>
-                <option value="USD">$ (USD)</option>
-                <option value="EUR">€ (EUR)</option>
-                <option value="GBP">£ (GBP)</option>
-              </Select>
-            </div>
-          </div>
-
-          <div className="flex items-center justify-between rounded-lg border border-ink-700 bg-ink-850/30 px-4 py-3">
-            <div className="flex items-center gap-3">
-              <Database className="h-5 w-5 text-neutral-400" />
-              <div>
-                <p className="text-sm font-medium text-white">Compact View</p>
-                <p className="text-xs text-neutral-500">Reduce padding to fit more on screen</p>
-              </div>
-            </div>
-            <Toggle checked={draft.compactView} onChange={(v) => applyToggle("compactView", v)} />
-          </div>
+        <div className="space-y-4 max-w-sm">
+          <Button variant="secondary" onClick={() => alert("Password reset email sent to " + draft.email)}>
+            Send Password Reset Email
+          </Button>
         </div>
       </Card>
 
-      {/* Danger zone / demo reset */}
-      <Card className="border-ink-700">
-        <h2 className="mb-2 text-base font-semibold text-white">Demo data</h2>
-        <p className="mb-4 text-xs text-neutral-500">
-          The app is running in localStorage demo mode. Use this to wipe your changes and start fresh from seed data.
-        </p>
-        <Button variant="secondary" icon={<RefreshCw className="h-4 w-4" />} onClick={handleReset}>
-          Reset to demo data
-        </Button>
+      <Card>
+        <div className="mb-5">
+          <h2 className="text-base font-semibold text-white">Automated Workflows</h2>
+          <p className="text-xs text-neutral-500">Enable or disable automated CRM actions.</p>
+        </div>
+        <div className="space-y-4">
+          {[
+            { id: "auto_responder", name: "Lead Auto-Responder", desc: "Instantly reply to new leads with a welcome email." },
+            { id: "follow_up", name: "Follow-up Reminders", desc: "Automated reminders to staff to follow up on pending leads." },
+            { id: "doc_chasers", name: "Document Chasers", desc: "Automatically request missing travel documents from clients." },
+            { id: "welcome_home", name: "Welcome Home Emails", desc: "Send a 'Welcome Home' email after a trip ends asking for feedback." },
+            { id: "invoice_overdue", name: "Invoice Overdue Alerts", desc: "Send automatic payment reminders for overdue invoices." }
+          ].map((workflow) => (
+            <div key={workflow.id} className="flex items-center justify-between py-2 border-b border-ink-700 last:border-0">
+              <div>
+                <p className="text-sm font-medium text-white">{workflow.name}</p>
+                <p className="text-xs text-neutral-500">{workflow.desc}</p>
+              </div>
+              <label className="relative inline-flex items-center cursor-pointer">
+                <input type="checkbox" className="sr-only peer" defaultChecked />
+                <div className="w-11 h-6 bg-ink-800 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-accent-500"></div>
+              </label>
+            </div>
+          ))}
+        </div>
       </Card>
 
       {/* Save bar */}

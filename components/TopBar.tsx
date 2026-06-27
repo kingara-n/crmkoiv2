@@ -1,8 +1,8 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useMemo } from "react";
 import { usePathname, useRouter } from "next/navigation";
-import { Bell, Calendar, Search, LogOut, Settings as SettingsIcon } from "lucide-react";
+import { Bell, Calendar, Search, LogOut, Settings as SettingsIcon, Sun, Moon } from "lucide-react";
 import { useStore } from "@/lib/store";
 import { useIsHydrated } from "@/lib/useIsHydrated";
 import { Avatar } from "./ui/Avatar";
@@ -18,6 +18,7 @@ const TITLES: Record<string, string> = {
   "/invoices": "Financials",
   "/trips": "Trips",
   "/reports": "Reports",
+  "/documents": "Document Vault",
   "/settings": "Settings",
 };
 
@@ -33,16 +34,37 @@ export function TopBar() {
   const notifications = useStore((s) => s.notifications);
   const markRead = useStore((s) => s.markNotificationRead);
   const markAllRead = useStore((s) => s.markAllNotificationsRead);
+  const updateSettings = useStore((s) => s.updateSettings);
+  const clients = useStore((s) => s.clients);
+  const leads = useStore((s) => s.leads);
+  const bookings = useStore((s) => s.bookings);
+  const tasks = useStore((s) => s.tasks);
 
   const [dateRange, setDateRange] = useState("Last 30 days");
   const [dateOpen, setDateOpen] = useState(false);
   const [notifOpen, setNotifOpen] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const [notifTab, setNotifTab] = useState<"all" | "unread">("all");
+  const [searchQuery, setSearchQuery] = useState("");
+  const [searchOpen, setSearchOpen] = useState(false);
 
   const dateRef = useRef<HTMLDivElement>(null);
   const notifRef = useRef<HTMLDivElement>(null);
   const menuRef = useRef<HTMLDivElement>(null);
+  const searchRef = useRef<HTMLDivElement>(null);
+
+  const searchResults = useMemo(() => {
+    if (!searchQuery.trim()) return [];
+    const q = searchQuery.toLowerCase();
+    const results: { type: string; id: string; label: string; link: string }[] = [];
+    
+    clients.filter(c => c.name.toLowerCase().includes(q) || c.email.toLowerCase().includes(q)).slice(0, 3).forEach(c => results.push({ type: 'Client', id: c.id, label: c.name, link: `/clients/${c.id}` }));
+    leads.filter(l => l.title.toLowerCase().includes(q)).slice(0, 3).forEach(l => results.push({ type: 'Lead', id: l.id, label: l.title, link: '/pipeline' }));
+    bookings.filter(b => b.destination.toLowerCase().includes(q) || b.clientName.toLowerCase().includes(q)).slice(0, 3).forEach(b => results.push({ type: 'Booking', id: b.id, label: `${b.clientName} - ${b.destination}`, link: '/bookings' }));
+    tasks.filter(t => t.title.toLowerCase().includes(q)).slice(0, 3).forEach(t => results.push({ type: 'Task', id: t.id, label: t.title, link: '/tasks' }));
+
+    return results;
+  }, [searchQuery, clients, leads, bookings, tasks]);
 
   const displayedNotifs = notifTab === "unread" ? notifications.filter(n => !n.read) : notifications;
 
@@ -51,6 +73,7 @@ export function TopBar() {
       if (dateRef.current && !dateRef.current.contains(e.target as Node)) setDateOpen(false);
       if (notifRef.current && !notifRef.current.contains(e.target as Node)) setNotifOpen(false);
       if (menuRef.current && !menuRef.current.contains(e.target as Node)) setMenuOpen(false);
+      if (searchRef.current && !searchRef.current.contains(e.target as Node)) setSearchOpen(false);
     };
     document.addEventListener("mousedown", onClick);
     return () => document.removeEventListener("mousedown", onClick);
@@ -73,13 +96,55 @@ export function TopBar() {
 
       {/* Right: search + notifications + avatar */}
       <div className="flex items-center gap-3">
-        <div className="relative">
+        <div className="flex items-center gap-2 px-2">
+          <Sun className="h-4 w-4 text-neutral-400" />
+          <button
+            role="switch"
+            aria-checked={settings?.darkMode !== false}
+            onClick={() => updateSettings({ darkMode: !settings?.darkMode })}
+            className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors ${
+              settings?.darkMode !== false ? 'bg-accent-500' : 'bg-ink-700'
+            }`}
+            aria-label="Toggle Dark Mode"
+          >
+            <span
+              className={`inline-block h-3 w-3 transform rounded-full bg-white transition-transform ${
+                settings?.darkMode !== false ? 'translate-x-5' : 'translate-x-1'
+              }`}
+            />
+          </button>
+          <Moon className="h-4 w-4 text-neutral-400" />
+        </div>
+        <div ref={searchRef} className="relative">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-neutral-500" />
           <input
             type="search"
-            placeholder="Search..."
+            placeholder="Search clients, leads, bookings..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            onFocus={() => setSearchOpen(true)}
             className="w-64 rounded-lg border border-ink-700 bg-ink-900 pl-9 pr-3 py-2 text-sm text-white placeholder:text-neutral-500 focus:outline-none focus:border-accent-500/60"
           />
+          {searchOpen && searchResults.length > 0 && (
+            <div className="absolute top-full left-0 mt-2 w-full rounded-lg border border-ink-700 bg-ink-900 shadow-xl overflow-hidden z-50">
+              <div className="max-h-64 overflow-y-auto">
+                {searchResults.map((res) => (
+                  <button
+                    key={`${res.type}-${res.id}`}
+                    className="w-full text-left px-4 py-2 hover:bg-ink-800 transition-colors border-b border-ink-700/50 last:border-b-0 flex flex-col"
+                    onClick={() => {
+                      router.push(res.link);
+                      setSearchOpen(false);
+                      setSearchQuery("");
+                    }}
+                  >
+                    <span className="text-sm font-medium text-white truncate">{res.label}</span>
+                    <span className="text-xs text-neutral-400">{res.type}</span>
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Notifications */}

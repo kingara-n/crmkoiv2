@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { DollarSign, ArrowRight } from "lucide-react";
+import { Banknote, ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { Input, Label } from "@/components/ui/Field";
 import { supabase } from "@/lib/supabase";
@@ -38,7 +38,7 @@ export default function LoginPage() {
       <div className="w-full max-w-md">
         <div className="mb-8 flex flex-col items-center">
           <div className="mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-white">
-            <DollarSign className="h-7 w-7 text-black" />
+            <Banknote className="h-7 w-7 text-black" />
           </div>
           <h1 className="text-2xl font-semibold text-white">Koi Travel</h1>
           <p className="mt-1 text-sm text-neutral-500">Sign in to your account</p>

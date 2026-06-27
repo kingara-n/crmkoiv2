@@ -1,12 +1,14 @@
 "use client";
 
 import { useState, useMemo } from "react";
-import { Search, Filter, ChevronUp, ChevronDown, ArrowUpDown, CheckCircle2, Clock, XCircle, Edit2, Trash2, FileText, Plane, DollarSign } from "lucide-react";
+import { Search, ChevronUp, ChevronDown, ArrowUpDown, CheckCircle2, Clock, XCircle, Trash2, FileText, Plane, Banknote, Plus } from "lucide-react";
 import { Card } from "@/components/ui/Card";
 import { Badge } from "@/components/ui/Badge";
+import { Button } from "@/components/ui/Button";
 import { RowMenu } from "@/components/ui/RowMenu";
-import { InvoiceModal } from "@/components/modals/InvoiceModal";
+import { BookingInvoiceModal } from "@/components/modals/BookingInvoiceModal";
 import { ItineraryModal } from "@/components/modals/ItineraryModal";
+import { BookingModal } from "@/components/modals/BookingModal";
 import { useStore } from "@/lib/store";
 import { useIsHydrated } from "@/lib/useIsHydrated";
 import { formatMoney, formatDate } from "@/lib/format";
@@ -40,6 +42,7 @@ export default function BookingsPage() {
   const [page, setPage] = useState(1);
   const [invoiceModalOpen, setInvoiceModalOpen] = useState(false);
   const [itineraryModalOpen, setItineraryModalOpen] = useState(false);
+  const [bookingModalOpen, setBookingModalOpen] = useState(false);
   const [selectedBookingId, setSelectedBookingId] = useState<string | null>(null);
 
   const filtered = useMemo(() => {
@@ -87,18 +90,6 @@ export default function BookingsPage() {
       b.status === "pending" ? "confirmed" :
       b.status === "confirmed" ? "lost" : "pending";
 
-    // GATEKEEPER LOGIC
-    if (next === "confirmed") {
-      const clientDocs = documents.filter((d) => d.clientId === b.clientId);
-      const hasPassport = clientDocs.some((d) => d.docType === "passport");
-      const hasReceipt = clientDocs.some((d) => d.docType === "payment_receipt");
-
-      if (!hasPassport || !hasReceipt) {
-        alert("Gatekeeper Blocked: Cannot confirm this booking. Missing a Passport and Payment Receipt for this client. Please upload them in the Document Vault.");
-        return;
-      }
-    }
-
     updateBooking(b.id, { status: next });
   }
 
@@ -114,7 +105,6 @@ export default function BookingsPage() {
     <div className="space-y-5">
       <p className="text-sm text-neutral-400">View and manage all your bookings in one place</p>
 
-      {/* Filters + search */}
       <div className="flex flex-wrap items-center gap-3">
         <div className="relative flex-1 min-w-[240px] max-w-md">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-neutral-500" />
@@ -143,13 +133,11 @@ export default function BookingsPage() {
           ))}
         </div>
 
-        <button className="ml-auto flex items-center gap-2 rounded-lg border border-ink-700 bg-ink-900 px-3 py-1.5 text-sm text-neutral-300 hover:bg-ink-850">
-          <Filter className="h-4 w-4" />
-          More filters
-        </button>
+        <Button onClick={() => setBookingModalOpen(true)} icon={<Plus className="h-4 w-4" />}>
+          Add Booking
+        </Button>
       </div>
 
-      {/* Table */}
       <Card padding={false}>
         <table className="w-full text-sm">
           <thead>
@@ -248,7 +236,7 @@ export default function BookingsPage() {
                             updateBooking(b.id, { costs: [...(b.costs || []), newCost] });
                           }
                         }, 
-                        icon: <DollarSign className="h-3.5 w-3.5 text-green-400" /> 
+                        icon: <Banknote className="h-3.5 w-3.5 text-green-400" /> 
                       },
                       { label: "Generate Itinerary", onClick: () => { setSelectedBookingId(b.id); setItineraryModalOpen(true); }, icon: <FileText className="h-3.5 w-3.5" /> },
                       { label: "Manage Invoices", onClick: () => { setSelectedBookingId(b.id); setInvoiceModalOpen(true); }, icon: <FileText className="h-3.5 w-3.5" /> },
@@ -262,7 +250,6 @@ export default function BookingsPage() {
           </tbody>
         </table>
 
-        {/* Pagination */}
         <div className="flex items-center justify-between border-t border-ink-700 px-5 py-3 text-sm">
           <p className="text-neutral-500">
             Showing {pageRows.length} of {filtered.length} bookings
@@ -297,7 +284,7 @@ export default function BookingsPage() {
         </div>
       </Card>
       {selectedBookingId && (
-        <InvoiceModal
+        <BookingInvoiceModal
           open={invoiceModalOpen}
           onClose={() => setInvoiceModalOpen(false)}
           bookingId={selectedBookingId}

@@ -27,6 +27,7 @@ export function TransferModal({ open, onClose, transferId }: Props) {
   const [flightTime, setFlightTime] = useState("");
   const [location, setLocation] = useState("");
   const [driverName, setDriverName] = useState("");
+  const [driverPhone, setDriverPhone] = useState("");
   const [carType, setCarType] = useState("");
   const [regPlate, setRegPlate] = useState("");
   const [status, setStatus] = useState<TransferStatus>("pending");
@@ -42,6 +43,7 @@ export function TransferModal({ open, onClose, transferId }: Props) {
           setFlightTime(t.flightTime ? new Date(t.flightTime).toISOString().slice(0, 16) : "");
           setLocation(t.location);
           setDriverName(t.driverName || "");
+          setDriverPhone(t.driverPhone || "");
           setCarType(t.carType || "");
           setRegPlate(t.regPlate || "");
           setStatus(t.status);
@@ -52,6 +54,7 @@ export function TransferModal({ open, onClose, transferId }: Props) {
         setFlightTime("");
         setLocation("");
         setDriverName("");
+        setDriverPhone("");
         setCarType("");
         setRegPlate("");
         setStatus("pending");
@@ -72,6 +75,7 @@ export function TransferModal({ open, onClose, transferId }: Props) {
       flightTime: new Date(flightTime).toISOString(),
       location,
       driverName,
+      driverPhone,
       carType,
       regPlate,
       status,
@@ -157,6 +161,16 @@ export function TransferModal({ open, onClose, transferId }: Props) {
                   placeholder="e.g. John Doe"
                   value={driverName}
                   onChange={(e) => setDriverName(e.target.value)}
+                  className="w-full rounded-lg border border-ink-700 bg-ink-900 px-3 py-2 text-sm text-white focus:border-accent-500 focus:outline-none"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-neutral-400 mb-1">Driver Phone</label>
+                <input
+                  type="text"
+                  placeholder="e.g. +254 700 000000"
+                  value={driverPhone}
+                  onChange={(e) => setDriverPhone(e.target.value)}
                   className="w-full rounded-lg border border-ink-700 bg-ink-900 px-3 py-2 text-sm text-white focus:border-accent-500 focus:outline-none"
                 />
               </div>

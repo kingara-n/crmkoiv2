@@ -60,8 +60,8 @@ export default function DocumentsPage() {
             className="w-full rounded-lg border border-ink-700 bg-ink-900 pl-9 pr-3 py-2 text-sm text-white placeholder:text-neutral-500 focus:outline-none focus:border-accent-500/60"
           />
         </div>
-        <div className="flex gap-2">
-          {["all", "passport", "payment_receipt", "contract", "flight_ticket", "other"].map((f) => (
+        <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-thin scrollbar-thumb-ink-700">
+          {["all", "passport", "visa", "national_id", "health_certificate", "e_ticket", "accommodation_voucher", "tour_voucher", "car_rental", "itinerary", "invoice_receipt", "insurance", "invitation_letter", "visa_form", "agency_letter", "terms", "vendor_contract", "other"].map((f) => (
             <button
               key={f}
               onClick={() => setFilterType(f)}
