@@ -42,8 +42,8 @@ export function TaskModal({
         title,
         description,
         priority,
-        dueDate,
-        assignedTo,
+        dueDate: dueDate || undefined,
+        assignedTo: assignedTo || undefined,
         assignedName,
         status,
       });

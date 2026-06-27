@@ -71,7 +71,7 @@ export function ClientModal({
       country,
       email,
       phone,
-      birthday: type === "leisure" ? birthday : undefined,
+      birthday: type === "leisure" ? (birthday || undefined) : undefined,
       passport: type === "leisure" ? passport : undefined,
       mealPreference: type === "leisure" ? meal : undefined,
       seatPreference: type === "leisure" ? seat : undefined,

@@ -32,7 +32,7 @@ export function InvoiceModal({
     
     // Add to DB
     await addInvoice({
-      bookingId: "", // standalone invoice
+      bookingId: undefined, // standalone invoice
       clientId,
       number,
       amountKes: Number(amount),
