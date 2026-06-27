@@ -144,64 +144,93 @@ export const useStore = create<Store>()((set, get) => ({
 
   fetchInitialData: async () => {
     set({ isLoading: true });
-    
-    try {
-      // Fetch data in parallel
-      const [
-        { data: clients },
-        { data: suppliers },
-        { data: purchaseOrders },
-        { data: leads },
-        { data: bookings },
-        { data: trips },
-        { data: transfers },
-        { data: clientDocuments },
-        { data: invoices },
-        { data: invoiceEditApprovals },
-        { data: tasks },
-        { data: taskComments },
-        { data: leadComments },
-        { data: notifications },
-        { data: team }
-      ] = await Promise.all([
-      supabase.from("clients").select("*"),
-      supabase.from("suppliers").select("*"),
-      supabase.from("koi_purchase_orders").select("*").then(res => ({ data: res.error ? [] : res.data })),
-      supabase.from("leads").select("*"),
-      supabase.from("bookings").select("*"),
-      supabase.from("trips").select("*"),
-      supabase.from("transfers").select("*"),
-      supabase.from("client_documents").select("*"),
-      supabase.from("invoices").select("*"),
-      supabase.from("invoice_edit_approvals").select("*"),
-      supabase.from("koi_tasks").select("*").then(res => ({ data: res.error ? [] : res.data })),
-      supabase.from("koi_task_comments").select("*").then(res => ({ data: res.error ? [] : res.data })),
-      supabase.from("koi_lead_comments").select("*").then(res => ({ data: res.error ? [] : res.data })),
-      supabase.from("koi_notifications").select("*").then(res => ({ data: res.error ? [] : res.data })),
-      supabase.from("team_profiles").select("*").then(res => ({ data: res.error ? [] : res.data }))
-    ]);
 
-    set({
-      isLoading: false,
-      clients: clients && clients.length > 0 ? clients.map(mapToCamel) : SEED_CLIENTS,
-      suppliers: suppliers && suppliers.length > 0 ? suppliers.map(mapToCamel) : SEED_SUPPLIERS,
-      purchaseOrders: purchaseOrders && purchaseOrders.length > 0 ? purchaseOrders.map(mapToCamel) : SEED_POS,
-      leads: leads && leads.length > 0 ? leads.map(mapToCamel) : SEED_LEADS,
-      bookings: bookings && bookings.length > 0 ? bookings.map(mapToCamel) : SEED_BOOKINGS,
-      trips: trips && trips.length > 0 ? trips.map(mapToCamel) : SEED_TRIPS,
-      transfers: (transfers || []).map(mapToCamel),
-      notifications: (notifications || []).map(mapToCamel),
-      team: team && team.length > 0 ? team.map(mapToCamel) : SEED_TEAM,
-      clientDocuments: (clientDocuments || []).map(mapToCamel),
-      invoices: invoices && invoices.length > 0 ? invoices.map(mapToCamel) : SEED_INVOICES,
-      invoiceEditApprovals: (invoiceEditApprovals || []).map(mapToCamel),
-      tasks: tasks && tasks.length > 0 ? tasks.map(mapToCamel) : SEED_TASKS,
-      taskComments: (taskComments || []).map(mapToCamel),
-      leadComments: (leadComments || []).map(mapToCamel),
-    });
-    } catch (error) {
-      console.error("Error fetching initial data:", error);
-      set({ isLoading: false });
+    // Helper: resolve with seed data immediately if Supabase is unavailable
+    const withFallback = async <T>(promise: Promise<{data: T[] | null}>, fallback: T[]): Promise<T[]> => {
+      try {
+        const { data } = await promise;
+        return data && data.length > 0 ? data : fallback;
+      } catch {
+        return fallback;
+      }
+    };
+
+    // 4-second timeout — if Supabase hasn't responded, load seed data immediately
+    const timeout = new Promise<"timeout">(resolve => setTimeout(() => resolve("timeout"), 4000));
+
+    const fetchAll = async () => {
+      try {
+        const [
+          clients, suppliers, purchaseOrders, leads, bookings, trips,
+          transfers, clientDocuments, invoices, invoiceEditApprovals,
+          tasks, taskComments, leadComments, notifications, team
+        ] = await Promise.all([
+          withFallback(supabase.from("clients").select("*"), SEED_CLIENTS),
+          withFallback(supabase.from("suppliers").select("*"), SEED_SUPPLIERS),
+          withFallback(supabase.from("koi_purchase_orders").select("*").then(r => ({ data: r.error ? [] : r.data })), SEED_POS),
+          withFallback(supabase.from("leads").select("*"), SEED_LEADS),
+          withFallback(supabase.from("bookings").select("*"), SEED_BOOKINGS),
+          withFallback(supabase.from("trips").select("*"), SEED_TRIPS),
+          withFallback(supabase.from("transfers").select("*"), []),
+          withFallback(supabase.from("client_documents").select("*"), []),
+          withFallback(supabase.from("invoices").select("*"), SEED_INVOICES),
+          withFallback(supabase.from("invoice_edit_approvals").select("*"), []),
+          withFallback(supabase.from("koi_tasks").select("*").then(r => ({ data: r.error ? [] : r.data })), SEED_TASKS),
+          withFallback(supabase.from("koi_task_comments").select("*").then(r => ({ data: r.error ? [] : r.data })), []),
+          withFallback(supabase.from("koi_lead_comments").select("*").then(r => ({ data: r.error ? [] : r.data })), []),
+          withFallback(supabase.from("koi_notifications").select("*").then(r => ({ data: r.error ? [] : r.data })), []),
+          withFallback(supabase.from("team_profiles").select("*").then(r => ({ data: r.error ? [] : r.data })), SEED_TEAM),
+        ]);
+        set({
+          isLoading: false,
+          clients: clients.map(mapToCamel),
+          suppliers: suppliers.map(mapToCamel),
+          purchaseOrders: purchaseOrders.map(mapToCamel),
+          leads: leads.map(mapToCamel),
+          bookings: bookings.map(mapToCamel),
+          trips: trips.map(mapToCamel),
+          transfers: transfers.map(mapToCamel),
+          notifications: notifications.map(mapToCamel),
+          team: team.map(mapToCamel),
+          clientDocuments: clientDocuments.map(mapToCamel),
+          invoices: invoices.map(mapToCamel),
+          invoiceEditApprovals: invoiceEditApprovals.map(mapToCamel),
+          tasks: tasks.map(mapToCamel),
+          taskComments: taskComments.map(mapToCamel),
+          leadComments: leadComments.map(mapToCamel),
+        });
+      } catch (error) {
+        console.error("Error fetching initial data:", error);
+        set({
+          isLoading: false,
+          clients: SEED_CLIENTS,
+          suppliers: SEED_SUPPLIERS,
+          purchaseOrders: SEED_POS,
+          leads: SEED_LEADS,
+          bookings: SEED_BOOKINGS,
+          trips: SEED_TRIPS,
+          invoices: SEED_INVOICES,
+          tasks: SEED_TASKS,
+          team: SEED_TEAM,
+        });
+      }
+    };
+
+    const result = await Promise.race([fetchAll(), timeout]);
+    // If timed out, load seed data immediately
+    if (result === "timeout") {
+      set({
+        isLoading: false,
+        clients: SEED_CLIENTS,
+        suppliers: SEED_SUPPLIERS,
+        purchaseOrders: SEED_POS,
+        leads: SEED_LEADS,
+        bookings: SEED_BOOKINGS,
+        trips: SEED_TRIPS,
+        invoices: SEED_INVOICES,
+        tasks: SEED_TASKS,
+        team: SEED_TEAM,
+      });
     }
   },
 
