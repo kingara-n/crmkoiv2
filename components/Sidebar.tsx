@@ -19,9 +19,8 @@ const NAV = [
   { href: "/transfers", label: "Transfers", icon: Car },
   { href: "/clients", label: "Clients", icon: Users },
   { href: "/documents", label: "Documents", icon: FolderOpen },
-  { href: "/suppliers", label: "Purchasing", icon: Building2 },
+  { href: "/suppliers", label: "Suppliers", icon: Building2 },
   { href: "/reports", label: "Reports", icon: BarChart3 },
-  { href: "/settings", label: "Settings", icon: SettingsIcon },
 ];
 
 export function Sidebar() {
@@ -33,6 +32,7 @@ export function Sidebar() {
   const activeNav = [...NAV];
   activeNav.push({ href: "/staff-activity", label: "Performance", icon: Users });
   activeNav.push({ href: "/etims-test", label: "eTIMS Sandbox", icon: FileText });
+  activeNav.push({ href: "/settings", label: "Settings", icon: SettingsIcon });
 
   return (
     <aside
