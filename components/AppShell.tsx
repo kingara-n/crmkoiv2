@@ -23,14 +23,16 @@ export function AppShell({ children }: { children: ReactNode }) {
   }, [darkMode, hydrated]);
 
   useEffect(() => {
-    if (pathname !== "/login" && !fetched.current) {
+    const isAuthPage = ["/login", "/signup", "/reset-password", "/pending"].includes(pathname);
+    if (!isAuthPage && !fetched.current) {
       fetched.current = true;
       fetchInitialData();
     }
   }, [pathname, fetchInitialData]);
 
-  // Login page renders without the shell
-  if (pathname === "/login") return <>{children}</>;
+  // Auth pages render without the shell
+  const isAuthPage = ["/login", "/signup", "/reset-password", "/pending"].includes(pathname);
+  if (isAuthPage) return <>{children}</>;
 
   return (
     <div className="flex min-h-screen">
