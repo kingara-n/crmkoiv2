@@ -1,6 +1,6 @@
 "use client";
 
-import { ReactNode, useEffect } from "react";
+import { ReactNode, useEffect, useRef } from "react";
 import { usePathname } from "next/navigation";
 import { Sidebar } from "./Sidebar";
 import { TopBar } from "./TopBar";
@@ -12,12 +12,22 @@ export function AppShell({ children }: { children: ReactNode }) {
   const hydrated = useIsHydrated();
   const darkMode = useStore((s) => s.settings.darkMode);
   const compactView = useStore((s) => s.settings.compactView);
+  const fetchInitialData = useStore((s) => s.fetchInitialData);
+  const isLoading = useStore((s) => s.isLoading);
+  const fetched = useRef(false);
 
   // Apply theme class to <html> based on persisted setting
   useEffect(() => {
     if (!hydrated) return;
     document.documentElement.classList.toggle("light", !darkMode);
   }, [darkMode, hydrated]);
+
+  useEffect(() => {
+    if (pathname !== "/login" && !fetched.current) {
+      fetched.current = true;
+      fetchInitialData();
+    }
+  }, [pathname, fetchInitialData]);
 
   // Login page renders without the shell
   if (pathname === "/login") return <>{children}</>;
@@ -27,7 +37,12 @@ export function AppShell({ children }: { children: ReactNode }) {
       <Sidebar />
       <div className="flex-1 flex flex-col min-w-0">
         <TopBar />
-        <main className={`flex-1 ${compactView ? "p-4" : "p-6"}`}>
+        <main className={`flex-1 ${compactView ? "p-4" : "p-6"} relative`}>
+          {isLoading && (
+            <div className="absolute inset-0 bg-ink-950/50 flex items-center justify-center z-50">
+              <div className="text-white">Loading data from Supabase...</div>
+            </div>
+          )}
           {children}
         </main>
       </div>

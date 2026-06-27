@@ -283,56 +283,64 @@ $$;
 -- Everyone authenticated can read clients/suppliers/leads/bookings/trips
 -- (Refine these per the PRD before going to production — e.g. accounts only
 -- sees individual AR/AP totals, not aggregate office numbers.)
-create policy if not exists "auth read clients"
-  on clients for select to authenticated using (true);
-create policy if not exists "auth read suppliers"
-  on suppliers for select to authenticated using (true);
-create policy if not exists "auth read leads"
-  on leads for select to authenticated using (true);
-create policy if not exists "auth read bookings"
-  on bookings for select to authenticated using (true);
-create policy if not exists "auth read trips"
-  on trips for select to authenticated using (true);
+drop policy if exists "auth read clients" on clients;
+create policy "auth read clients" on clients for select to authenticated using (true);
+drop policy if exists "auth read suppliers" on suppliers;
+create policy "auth read suppliers" on suppliers for select to authenticated using (true);
+drop policy if exists "auth read leads" on leads;
+create policy "auth read leads" on leads for select to authenticated using (true);
+drop policy if exists "auth read bookings" on bookings;
+create policy "auth read bookings" on bookings for select to authenticated using (true);
+drop policy if exists "auth read trips" on trips;
+create policy "auth read trips" on trips for select to authenticated using (true);
 
 -- Authenticated users can insert and update most records
-create policy if not exists "auth insert clients" on clients for insert to authenticated with check (true);
-create policy if not exists "auth update clients" on clients for update to authenticated using (true);
+drop policy if exists "auth insert clients" on clients;
+create policy "auth insert clients" on clients for insert to authenticated with check (true);
+drop policy if exists "auth update clients" on clients;
+create policy "auth update clients" on clients for update to authenticated using (true);
 
-create policy if not exists "auth insert leads" on leads for insert to authenticated with check (true);
-create policy if not exists "auth update leads" on leads for update to authenticated using (true);
+drop policy if exists "auth insert leads" on leads;
+create policy "auth insert leads" on leads for insert to authenticated with check (true);
+drop policy if exists "auth update leads" on leads;
+create policy "auth update leads" on leads for update to authenticated using (true);
 
-create policy if not exists "auth insert bookings" on bookings for insert to authenticated with check (true);
-create policy if not exists "auth update bookings" on bookings for update to authenticated using (true);
+drop policy if exists "auth insert bookings" on bookings;
+create policy "auth insert bookings" on bookings for insert to authenticated with check (true);
+drop policy if exists "auth update bookings" on bookings;
+create policy "auth update bookings" on bookings for update to authenticated using (true);
 
-create policy if not exists "auth insert trips" on trips for insert to authenticated with check (true);
-create policy if not exists "auth update trips" on trips for update to authenticated using (true);
+drop policy if exists "auth insert trips" on trips;
+create policy "auth insert trips" on trips for insert to authenticated with check (true);
+drop policy if exists "auth update trips" on trips;
+create policy "auth update trips" on trips for update to authenticated using (true);
 
 -- Suppliers: anyone authenticated can submit (status='pending'), only managers approve.
-create policy if not exists "auth submit supplier"
-  on suppliers for insert to authenticated with check (true);
+drop policy if exists "auth submit supplier" on suppliers;
+create policy "auth submit supplier" on suppliers for insert to authenticated with check (true);
 
-create policy if not exists "manager update supplier"
-  on suppliers for update to authenticated
+drop policy if exists "manager update supplier" on suppliers;
+create policy "manager update supplier" on suppliers for update to authenticated
   using (current_user_role() = 'management');
 
 -- Deletes: only management
-create policy if not exists "mgmt delete clients"
-  on clients for delete to authenticated using (current_user_role() = 'management');
-create policy if not exists "mgmt delete suppliers"
-  on suppliers for delete to authenticated using (current_user_role() = 'management');
-create policy if not exists "mgmt delete leads"
-  on leads for delete to authenticated using (current_user_role() = 'management');
-create policy if not exists "mgmt delete bookings"
-  on bookings for delete to authenticated using (current_user_role() = 'management');
-create policy if not exists "mgmt delete trips"
-  on trips for delete to authenticated using (current_user_role() = 'management');
+drop policy if exists "mgmt delete clients" on clients;
+create policy "mgmt delete clients" on clients for delete to authenticated using (current_user_role() = 'management');
+drop policy if exists "mgmt delete suppliers" on suppliers;
+create policy "mgmt delete suppliers" on suppliers for delete to authenticated using (current_user_role() = 'management');
+drop policy if exists "mgmt delete leads" on leads;
+create policy "mgmt delete leads" on leads for delete to authenticated using (current_user_role() = 'management');
+drop policy if exists "mgmt delete bookings" on bookings;
+create policy "mgmt delete bookings" on bookings for delete to authenticated using (current_user_role() = 'management');
+drop policy if exists "mgmt delete trips" on trips;
+create policy "mgmt delete trips" on trips for delete to authenticated using (current_user_role() = 'management');
 
 -- Audit log: management can read; everyone can insert their own actions via trigger
-create policy if not exists "mgmt read audit"
-  on audit_log for select to authenticated using (current_user_role() = 'management');
+drop policy if exists "mgmt read audit" on audit_log;
+create policy "mgmt read audit" on audit_log for select to authenticated using (current_user_role() = 'management');
 
 -- Notifications: users only see their own
-create policy if not exists "self read notifications"
-  on notifications for select to authenticated using (user_id = auth.uid());
-create policy if not exists "self update notifications"
-  on notifications for update to authenticated using (user_id = auth.uid());
+drop policy if exists "self read notifications" on notifications;
+create policy "self read notifications" on notifications for select to authenticated using (user_id = auth.uid());
+drop policy if exists "self update notifications" on notifications;
+create policy "self update notifications" on notifications for update to authenticated using (user_id = auth.uid());

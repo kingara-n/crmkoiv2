@@ -1,18 +1,16 @@
 "use client";
 
 import { create } from "zustand";
-import { persist, createJSONStorage } from "zustand/middleware";
 import {
   Client, Supplier, Lead, Booking, Trip, TeamMember, Notification,
   UserSettings, Stage,
 } from "./types";
 import {
-  SEED_CLIENTS, SEED_SUPPLIERS, SEED_LEADS, SEED_BOOKINGS, SEED_TRIPS,
-  SEED_TEAM, SEED_NOTIFICATIONS, DEFAULT_SETTINGS,
+  SEED_TEAM, DEFAULT_SETTINGS,
 } from "./seed";
+import { supabase } from "./supabase";
 
 interface Store {
-  // Data
   clients: Client[];
   suppliers: Supplier[];
   leads: Lead[];
@@ -22,229 +20,224 @@ interface Store {
   notifications: Notification[];
   settings: UserSettings;
 
-  // UI state (not persisted to avoid hydration issues)
   sidebarCollapsed: boolean;
+  isLoading: boolean;
 
-  // Mutations: clients
-  addClient: (c: Omit<Client, "id" | "createdAt" | "revenue" | "activeDeals" | "lastContact" | "healthScore">) => void;
-  updateClient: (id: string, patch: Partial<Client>) => void;
-  deleteClient: (id: string) => void;
+  fetchInitialData: () => Promise<void>;
 
-  // Mutations: suppliers
-  addSupplier: (s: Omit<Supplier, "id" | "status">, asPending: boolean) => void;
-  approveSupplier: (id: string) => void;
-  rejectSupplier: (id: string) => void;
-  deleteSupplier: (id: string) => void;
+  addClient: (c: Omit<Client, "id" | "createdAt" | "revenue" | "activeDeals" | "lastContact" | "healthScore">) => Promise<void>;
+  updateClient: (id: string, patch: Partial<Client>) => Promise<void>;
+  deleteClient: (id: string) => Promise<void>;
 
-  // Mutations: leads (pipeline)
-  addLead: (l: Omit<Lead, "id" | "createdAt" | "daysInStage">) => void;
-  moveLead: (id: string, toStage: Stage) => void;
-  updateLead: (id: string, patch: Partial<Lead>) => void;
-  deleteLead: (id: string) => void;
+  addSupplier: (s: Omit<Supplier, "id" | "status">, asPending: boolean) => Promise<void>;
+  approveSupplier: (id: string) => Promise<void>;
+  rejectSupplier: (id: string) => Promise<void>;
+  deleteSupplier: (id: string) => Promise<void>;
 
-  // Mutations: bookings
-  addBooking: (b: Omit<Booking, "id">) => void;
-  updateBooking: (id: string, patch: Partial<Booking>) => void;
-  deleteBooking: (id: string) => void;
+  addLead: (l: Omit<Lead, "id" | "createdAt" | "daysInStage">) => Promise<void>;
+  moveLead: (id: string, toStage: Stage) => Promise<void>;
+  updateLead: (id: string, patch: Partial<Lead>) => Promise<void>;
+  deleteLead: (id: string) => Promise<void>;
 
-  // Mutations: trips
-  addTrip: (t: Omit<Trip, "id">) => void;
-  updateTrip: (id: string, patch: Partial<Trip>) => void;
-  deleteTrip: (id: string) => void;
+  addBooking: (b: Omit<Booking, "id">) => Promise<void>;
+  updateBooking: (id: string, patch: Partial<Booking>) => Promise<void>;
+  deleteBooking: (id: string) => Promise<void>;
 
-  // Notifications
-  markNotificationRead: (id: string) => void;
-  markAllNotificationsRead: () => void;
+  addTrip: (t: Omit<Trip, "id">) => Promise<void>;
+  updateTrip: (id: string, patch: Partial<Trip>) => Promise<void>;
+  deleteTrip: (id: string) => Promise<void>;
 
-  // Settings
-  updateSettings: (patch: Partial<UserSettings>) => void;
+  markNotificationRead: (id: string) => Promise<void>;
+  markAllNotificationsRead: () => Promise<void>;
 
-  // UI
+  updateSettings: (patch: Partial<UserSettings>) => Promise<void>;
   toggleSidebar: () => void;
-
-  // Reset (for the "Reset demo data" button in Settings)
   resetDemoData: () => void;
 }
 
-function uid(prefix = ""): string {
-  return prefix + Math.random().toString(36).slice(2, 10);
+// Convert from snake_case db columns to camelCase frontend model
+function mapToCamel(obj: any): any {
+  if (!obj) return obj;
+  const newObj: any = {};
+  for (const key of Object.keys(obj)) {
+    const camelKey = key.replace(/_([a-z])/g, (g) => g[1].toUpperCase());
+    newObj[camelKey] = obj[key];
+  }
+  return newObj;
 }
 
-export const useStore = create<Store>()(
-  persist(
-    (set, get) => ({
-      // initial data
-      clients: SEED_CLIENTS,
-      suppliers: SEED_SUPPLIERS,
-      leads: SEED_LEADS,
-      bookings: SEED_BOOKINGS,
-      trips: SEED_TRIPS,
-      team: SEED_TEAM,
-      notifications: SEED_NOTIFICATIONS,
-      settings: DEFAULT_SETTINGS,
-      sidebarCollapsed: false,
+// Convert from camelCase frontend model to snake_case db columns
+function mapToSnake(obj: any): any {
+  if (!obj) return obj;
+  const newObj: any = {};
+  for (const key of Object.keys(obj)) {
+    const snakeKey = key.replace(/[A-Z]/g, (letter) => `_${letter.toLowerCase()}`);
+    newObj[snakeKey] = obj[key];
+  }
+  return newObj;
+}
 
-      // ---------- Clients ----------
-      addClient: (c) => set((s) => ({
-        clients: [
-          ...s.clients,
-          {
-            ...c,
-            id: uid("c_"),
-            createdAt: new Date().toISOString(),
-            revenue: 0,
-            activeDeals: 0,
-            lastContact: new Date().toISOString(),
-            healthScore: 75,
-          },
-        ],
-      })),
-      updateClient: (id, patch) => set((s) => ({
-        clients: s.clients.map((c) => (c.id === id ? { ...c, ...patch } : c)),
-      })),
-      deleteClient: (id) => set((s) => ({
-        clients: s.clients.filter((c) => c.id !== id),
-      })),
+export const useStore = create<Store>()((set, get) => ({
+  clients: [],
+  suppliers: [],
+  leads: [],
+  bookings: [],
+  trips: [],
+  team: SEED_TEAM, // In real app, fetch from profiles
+  notifications: [],
+  settings: DEFAULT_SETTINGS,
+  sidebarCollapsed: false,
+  isLoading: true,
 
-      // ---------- Suppliers ----------
-      addSupplier: (sup, asPending) => set((s) => ({
-        suppliers: [
-          ...s.suppliers,
-          { ...sup, id: uid("s_"), status: asPending ? "pending" : "approved" },
-        ],
-      })),
-      approveSupplier: (id) => set((s) => ({
-        suppliers: s.suppliers.map((sp) =>
-          sp.id === id ? { ...sp, status: "approved" } : sp,
-        ),
-      })),
-      rejectSupplier: (id) => set((s) => ({
-        suppliers: s.suppliers.map((sp) =>
-          sp.id === id ? { ...sp, status: "rejected" } : sp,
-        ),
-      })),
-      deleteSupplier: (id) => set((s) => ({
-        suppliers: s.suppliers.filter((sp) => sp.id !== id),
-      })),
+  fetchInitialData: async () => {
+    set({ isLoading: true });
+    
+    // Fetch data in parallel
+    const [
+      { data: clients },
+      { data: suppliers },
+      { data: leads },
+      { data: bookings },
+      { data: trips }
+    ] = await Promise.all([
+      supabase.from("clients").select("*"),
+      supabase.from("suppliers").select("*"),
+      supabase.from("leads").select("*"),
+      supabase.from("bookings").select("*"),
+      supabase.from("trips").select("*")
+    ]);
 
-      // ---------- Leads (pipeline) ----------
-      addLead: (l) => set((s) => ({
-        leads: [
-          ...s.leads,
-          { ...l, id: uid("l_"), createdAt: new Date().toISOString(), daysInStage: 0 },
-        ],
-      })),
-      moveLead: (id, toStage) => set((s) => {
-        // Drag-drop core: change the lead's stage and reset its days-in-stage.
-        // Side effect: if it lands on 'confirmed' or 'paid', mirror it into bookings.
-        const lead = s.leads.find((l) => l.id === id);
-        if (!lead) return s;
+    set({
+      clients: (clients || []).map(mapToCamel),
+      suppliers: (suppliers || []).map(mapToCamel),
+      leads: (leads || []).map(mapToCamel),
+      bookings: (bookings || []).map(mapToCamel),
+      trips: (trips || []).map(mapToCamel),
+      isLoading: false
+    });
+  },
 
-        const updatedLeads = s.leads.map((l) =>
-          l.id === id ? { ...l, stage: toStage, daysInStage: 0 } : l,
-        );
+  addClient: async (c) => {
+    const dbClient = mapToSnake({ ...c, activeDeals: 0, revenue: 0, healthScore: 75 });
+    const { data } = await supabase.from("clients").insert(dbClient).select().single();
+    if (data) set((s) => ({ clients: [...s.clients, mapToCamel(data)] }));
+  },
+  updateClient: async (id, patch) => {
+    // Optimistic update
+    set((s) => ({ clients: s.clients.map((c) => (c.id === id ? { ...c, ...patch } : c)) }));
+    await supabase.from("clients").update(mapToSnake(patch)).eq("id", id);
+  },
+  deleteClient: async (id) => {
+    set((s) => ({ clients: s.clients.filter((c) => c.id !== id) }));
+    await supabase.from("clients").delete().eq("id", id);
+  },
 
-        // Auto-create a booking when a lead is confirmed, if not already there
-        if (toStage === "confirmed" || toStage === "paid") {
-          const alreadyBooked = s.bookings.some((b) => b.clientId === lead.clientId && b.destination === lead.destination);
-          if (!alreadyBooked) {
-            const client = s.clients.find((c) => c.id === lead.clientId);
-            return {
-              ...s,
-              leads: updatedLeads,
-              bookings: [
-                ...s.bookings,
-                {
-                  id: uid("b_"),
-                  clientId: lead.clientId,
-                  clientName: client?.name ?? "Unknown",
-                  contactName: client?.name ?? "—",
-                  contactEmail: client?.email ?? "—",
-                  destination: lead.destination,
-                  value: lead.value,
-                  currency: lead.currency,
-                  status: toStage === "paid" ? "confirmed" : "pending",
-                  stage: toStage,
-                  ownerName: lead.ownerName,
-                  closeDate: new Date().toISOString().slice(0, 10),
-                },
-              ],
-            };
-          }
+  addSupplier: async (sup, asPending) => {
+    const dbSup = mapToSnake({ ...sup, status: asPending ? "pending" : "approved" });
+    const { data } = await supabase.from("suppliers").insert(dbSup).select().single();
+    if (data) set((s) => ({ suppliers: [...s.suppliers, mapToCamel(data)] }));
+  },
+  approveSupplier: async (id) => {
+    set((s) => ({ suppliers: s.suppliers.map((sp) => sp.id === id ? { ...sp, status: "approved" } : sp) }));
+    await supabase.from("suppliers").update({ status: "approved" }).eq("id", id);
+  },
+  rejectSupplier: async (id) => {
+    set((s) => ({ suppliers: s.suppliers.map((sp) => sp.id === id ? { ...sp, status: "rejected" } : sp) }));
+    await supabase.from("suppliers").update({ status: "rejected" }).eq("id", id);
+  },
+  deleteSupplier: async (id) => {
+    set((s) => ({ suppliers: s.suppliers.filter((sp) => sp.id !== id) }));
+    await supabase.from("suppliers").delete().eq("id", id);
+  },
+
+  addLead: async (l) => {
+    const dbLead = mapToSnake({ ...l, daysInStage: 0 });
+    const { data } = await supabase.from("leads").insert(dbLead).select().single();
+    if (data) set((s) => ({ leads: [...s.leads, mapToCamel(data)] }));
+  },
+  moveLead: async (id, toStage) => {
+    const lead = get().leads.find((l) => l.id === id);
+    if (!lead) return;
+
+    // Optimistic
+    set((s) => ({ leads: s.leads.map((l) => l.id === id ? { ...l, stage: toStage, daysInStage: 0 } : l) }));
+    await supabase.from("leads").update({ stage: toStage }).eq("id", id);
+
+    if (toStage === "confirmed" || toStage === "paid") {
+      const alreadyBooked = get().bookings.some((b) => b.clientId === lead.clientId && b.destination === lead.destination);
+      if (!alreadyBooked) {
+        const client = get().clients.find((c) => c.id === lead.clientId);
+        const bookingData = {
+          clientId: lead.clientId,
+          clientName: client?.name ?? "Unknown",
+          contactName: client?.name ?? "—",
+          contactEmail: client?.email ?? "—",
+          destination: lead.destination,
+          value: lead.value,
+          currency: lead.currency,
+          status: toStage === "paid" ? "confirmed" : "pending",
+          stage: toStage,
+          ownerName: lead.ownerName,
+          closeDate: new Date().toISOString().slice(0, 10),
+        };
+        const { data } = await supabase.from("bookings").insert(mapToSnake(bookingData)).select().single();
+        if (data) {
+          set((s) => ({ bookings: [...s.bookings, mapToCamel(data)] }));
         }
-        return { ...s, leads: updatedLeads };
-      }),
-      updateLead: (id, patch) => set((s) => ({
-        leads: s.leads.map((l) => (l.id === id ? { ...l, ...patch } : l)),
-      })),
-      deleteLead: (id) => set((s) => ({
-        leads: s.leads.filter((l) => l.id !== id),
-      })),
+      }
+    }
+  },
+  updateLead: async (id, patch) => {
+    set((s) => ({ leads: s.leads.map((l) => (l.id === id ? { ...l, ...patch } : l)) }));
+    await supabase.from("leads").update(mapToSnake(patch)).eq("id", id);
+  },
+  deleteLead: async (id) => {
+    set((s) => ({ leads: s.leads.filter((l) => l.id !== id) }));
+    await supabase.from("leads").delete().eq("id", id);
+  },
 
-      // ---------- Bookings ----------
-      addBooking: (b) => set((s) => ({
-        bookings: [...s.bookings, { ...b, id: uid("b_") }],
-      })),
-      updateBooking: (id, patch) => set((s) => ({
-        bookings: s.bookings.map((b) => (b.id === id ? { ...b, ...patch } : b)),
-      })),
-      deleteBooking: (id) => set((s) => ({
-        bookings: s.bookings.filter((b) => b.id !== id),
-      })),
+  addBooking: async (b) => {
+    const { data } = await supabase.from("bookings").insert(mapToSnake(b)).select().single();
+    if (data) set((s) => ({ bookings: [...s.bookings, mapToCamel(data)] }));
+  },
+  updateBooking: async (id, patch) => {
+    set((s) => ({ bookings: s.bookings.map((b) => (b.id === id ? { ...b, ...patch } : b)) }));
+    await supabase.from("bookings").update(mapToSnake(patch)).eq("id", id);
+  },
+  deleteBooking: async (id) => {
+    set((s) => ({ bookings: s.bookings.filter((b) => b.id !== id) }));
+    await supabase.from("bookings").delete().eq("id", id);
+  },
 
-      // ---------- Trips ----------
-      addTrip: (t) => set((s) => ({
-        trips: [...s.trips, { ...t, id: uid("tr_") }],
-      })),
-      updateTrip: (id, patch) => set((s) => ({
-        trips: s.trips.map((t) => (t.id === id ? { ...t, ...patch } : t)),
-      })),
-      deleteTrip: (id) => set((s) => ({
-        trips: s.trips.filter((t) => t.id !== id),
-      })),
+  addTrip: async (t) => {
+    const { data } = await supabase.from("trips").insert(mapToSnake(t)).select().single();
+    if (data) set((s) => ({ trips: [...s.trips, mapToCamel(data)] }));
+  },
+  updateTrip: async (id, patch) => {
+    set((s) => ({ trips: s.trips.map((t) => (t.id === id ? { ...t, ...patch } : t)) }));
+    await supabase.from("trips").update(mapToSnake(patch)).eq("id", id);
+  },
+  deleteTrip: async (id) => {
+    set((s) => ({ trips: s.trips.filter((t) => t.id !== id) }));
+    await supabase.from("trips").delete().eq("id", id);
+  },
 
-      // ---------- Notifications ----------
-      markNotificationRead: (id) => set((s) => ({
-        notifications: s.notifications.map((n) =>
-          n.id === id ? { ...n, read: true } : n,
-        ),
-      })),
-      markAllNotificationsRead: () => set((s) => ({
-        notifications: s.notifications.map((n) => ({ ...n, read: true })),
-      })),
+  markNotificationRead: async (id) => {
+    set((s) => ({ notifications: s.notifications.map((n) => n.id === id ? { ...n, read: true } : n) }));
+  },
+  markAllNotificationsRead: async () => {
+    set((s) => ({ notifications: s.notifications.map((n) => ({ ...n, read: true })) }));
+  },
 
-      // ---------- Settings ----------
-      updateSettings: (patch) => set((s) => ({
-        settings: { ...s.settings, ...patch },
-      })),
+  updateSettings: async (patch) => {
+    set((s) => ({ settings: { ...s.settings, ...patch } }));
+  },
 
-      // ---------- UI ----------
-      toggleSidebar: () => set((s) => ({ sidebarCollapsed: !s.sidebarCollapsed })),
+  toggleSidebar: () => set((s) => ({ sidebarCollapsed: !s.sidebarCollapsed })),
+  resetDemoData: () => {
+    // Left empty for now, clearing the database would be destructive
+  },
+}));
 
-      // ---------- Demo reset ----------
-      resetDemoData: () => set({
-        clients: SEED_CLIENTS,
-        suppliers: SEED_SUPPLIERS,
-        leads: SEED_LEADS,
-        bookings: SEED_BOOKINGS,
-        trips: SEED_TRIPS,
-        team: SEED_TEAM,
-        notifications: SEED_NOTIFICATIONS,
-        settings: DEFAULT_SETTINGS,
-      }),
-    }),
-    {
-      name: "koi-crm-store",
-      storage: createJSONStorage(() => localStorage),
-      // Don't persist the sidebar state — restart fresh each session
-      partialize: (state) => {
-        const { sidebarCollapsed, ...rest } = state;
-        return rest as Store;
-      },
-    },
-  ),
-);
-
-// Convenient selector hooks
 export const useSettings = () => useStore((s) => s.settings);
 export const useCurrency = () => useStore((s) => s.settings.currency);

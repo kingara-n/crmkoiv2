@@ -1,16 +1,36 @@
 "use client";
 
+import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { DollarSign, ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { Input, Label } from "@/components/ui/Field";
+import { supabase } from "@/lib/supabase";
 
 export default function LoginPage() {
   const router = useRouter();
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
 
-  function handleContinue(e: React.FormEvent) {
+  async function handleContinue(e: React.FormEvent) {
     e.preventDefault();
-    router.push("/");
+    setLoading(true);
+    setError("");
+    
+    const { error } = await supabase.auth.signInWithPassword({
+      email,
+      password,
+    });
+    
+    setLoading(false);
+    
+    if (error) {
+      setError(error.message);
+    } else {
+      router.push("/");
+    }
   }
 
   return (
@@ -25,21 +45,22 @@ export default function LoginPage() {
         </div>
 
         <form onSubmit={handleContinue} className="rounded-card border border-ink-700 bg-ink-900 p-6 space-y-4">
+          {error && <p className="text-red-500 text-sm">{error}</p>}
           <div>
             <Label htmlFor="login-email">Email</Label>
-            <Input id="login-email" type="email" defaultValue="john.doe@koitravel.com" />
+            <Input id="login-email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} required />
           </div>
           <div>
             <Label htmlFor="login-pass">Password</Label>
-            <Input id="login-pass" type="password" defaultValue="demo" />
+            <Input id="login-pass" type="password" value={password} onChange={(e) => setPassword(e.target.value)} required />
           </div>
-          <Button fullWidth icon={<ArrowRight className="h-4 w-4" />} type="submit">
-            Continue
+          <Button fullWidth icon={<ArrowRight className="h-4 w-4" />} type="submit" disabled={loading}>
+            {loading ? "Signing in..." : "Continue"}
           </Button>
         </form>
 
         <p className="mt-6 text-center text-xs text-neutral-500">
-          Demo mode — any credentials work. Wire to Supabase Auth via the README.
+          Ensure you have created a user in Supabase Auth to log in.
         </p>
       </div>
     </div>
