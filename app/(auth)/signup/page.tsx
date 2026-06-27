@@ -144,7 +144,7 @@ export default function SignupPage() {
         <button
           type="submit"
           disabled={loading}
-          className="w-full py-2.5 mt-2 rounded-xl bg-black text-white font-medium hover:bg-neutral-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-black transition-all disabled:opacity-70 flex items-center justify-center"
+          className="w-full py-2.5 mt-2 rounded-xl bg-accent-500 text-black font-semibold hover:bg-accent-400 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-accent-500 transition-all disabled:opacity-70 flex items-center justify-center"
         >
           {loading ? <Loader2 className="h-5 w-5 animate-spin" /> : "Sign Up"}
         </button>
