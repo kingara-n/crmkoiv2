@@ -103,12 +103,12 @@ export default function StaffActivityPage() {
                     <Avatar initials={m.initials} size="sm" />
                     <span className="text-sm font-medium text-white">{m.name}</span>
                   </div>
-                  <span className="text-sm font-semibold text-white">{m.quotaAttainment}%</span>
+                  <span className="text-sm font-semibold text-white">{m.quotaAttainment || 0}%</span>
                 </div>
-                <ProgressBar value={m.quotaAttainment} tone={m.quotaAttainment >= 100 ? "accent" : m.quotaAttainment > 75 ? "blue" : "amber"} />
+                <ProgressBar value={m.quotaAttainment || 0} tone={(m.quotaAttainment || 0) >= 100 ? "accent" : (m.quotaAttainment || 0) > 75 ? "blue" : "amber"} />
                 <div className="mt-2 flex justify-between text-xs text-neutral-500">
-                  <span>{formatMoney(m.revenue, currency)}</span>
-                  <span>{m.dealsClosed} deals</span>
+                  <span>{formatMoney(m.revenue || 0, currency)}</span>
+                  <span>{m.dealsClosed || 0} deals</span>
                 </div>
               </div>
             ))}
