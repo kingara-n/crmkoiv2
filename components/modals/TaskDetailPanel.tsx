@@ -1,12 +1,11 @@
 "use client";
 
-import { useState } from "react";
-import { X, Calendar, MoreHorizontal, User, Tag } from "lucide-react";
+import { useState, useRef, useEffect } from "react";
+import { X, Calendar, MoreHorizontal, User, Tag, CornerDownLeft } from "lucide-react";
 import { Task, TaskStatus } from "@/lib/types";
 import { useStore } from "@/lib/store";
 import { Avatar } from "@/components/ui/Avatar";
 import { formatDate } from "@/lib/format";
-import { Badge } from "@/components/ui/Badge";
 
 export function TaskDetailPanel({
   task,
@@ -16,21 +15,74 @@ export function TaskDetailPanel({
   onClose: () => void;
 }) {
   const [newComment, setNewComment] = useState("");
+  const [showMentions, setShowMentions] = useState(false);
+  const [mentionQuery, setMentionQuery] = useState("");
+  const inputRef = useRef<HTMLInputElement>(null);
+
   const updateTask = useStore((s) => s.updateTask);
   const addTaskComment = useStore((s) => s.addTaskComment);
+  const addNotification = useStore((s) => s.addNotification);
   const comments = useStore((s) => s.taskComments).filter((c) => c.taskId === task.id);
-  const settings = useStore((s) => s.settings);
+  const team = useStore((s) => s.team);
+
+  // Filter team based on query
+  const filteredTeam = team.filter(t => 
+    t.name.toLowerCase().includes(mentionQuery.toLowerCase())
+  );
+
+  useEffect(() => {
+    // Basic mention detection: if the user types "@" and a word
+    const match = newComment.match(/@(\w*)$/);
+    if (match) {
+      setShowMentions(true);
+      setMentionQuery(match[1]);
+    } else {
+      setShowMentions(false);
+    }
+  }, [newComment]);
+
+  function insertMention(user: any) {
+    const replacement = `@${user.name.replace(/\s+/g, '')} `;
+    const updated = newComment.replace(/@\w*$/, replacement);
+    setNewComment(updated);
+    setShowMentions(false);
+    inputRef.current?.focus();
+  }
 
   async function handleAddComment(e: React.FormEvent) {
     e.preventDefault();
     if (!newComment.trim()) return;
 
+    const authorName = "Local Admin";
+
     await addTaskComment({
       taskId: task.id,
-      userId: "local-user", // Since we don't have true auth here, hardcode ID
-      userName: `${settings.firstName} ${settings.lastName}`.trim() || "Local Admin",
+      userId: "local-user", 
+      userName: authorName,
       comment: newComment.trim(),
     });
+
+    // Check for mentions in the submitted comment
+    // Simple regex to find @Name
+    const mentions = newComment.match(/@([a-zA-Z]+)/g);
+    if (mentions) {
+      for (const mention of mentions) {
+        // e.g. "@JohnDoe" -> "JohnDoe"
+        const mentionedName = mention.substring(1).toLowerCase();
+        // find team member
+        const taggedUser = team.find(t => t.name.replace(/\s+/g, '').toLowerCase() === mentionedName);
+        if (taggedUser) {
+          // Send notification
+          await addNotification({
+            userId: taggedUser.id,
+            authorName: authorName,
+            authorInitials: "LA",
+            actionText: `Mentioned you in a comment on "${task.title}"`,
+          });
+        }
+      }
+    }
+
     setNewComment("");
   }
 
@@ -41,15 +93,15 @@ export function TaskDetailPanel({
   return (
     <>
       <div className="fixed inset-0 bg-black/40 backdrop-blur-sm z-40" onClick={onClose} />
-      <div className="fixed top-0 right-0 h-full w-[500px] bg-white text-ink-950 shadow-2xl z-50 flex flex-col animate-slide-in-right">
+      <div className="fixed top-0 right-0 h-full w-[500px] bg-ink-900 border-l border-ink-700 text-white shadow-2xl z-50 flex flex-col animate-slide-in-right">
         {/* Header */}
-        <div className="flex items-center justify-between border-b border-gray-200 px-6 py-4">
+        <div className="flex items-center justify-between border-b border-ink-700 px-6 py-4">
           <h2 className="text-lg font-semibold">Task Details</h2>
           <div className="flex items-center gap-2">
-            <button className="p-2 text-gray-500 hover:bg-gray-100 rounded-lg">
+            <button className="p-2 text-neutral-400 hover:text-white hover:bg-ink-800 rounded-lg transition-colors">
               <MoreHorizontal className="h-5 w-5" />
             </button>
-            <button onClick={onClose} className="p-2 text-gray-500 hover:bg-gray-100 rounded-lg">
+            <button onClick={onClose} className="p-2 text-neutral-400 hover:text-white hover:bg-ink-800 rounded-lg transition-colors">
               <X className="h-5 w-5" />
             </button>
           </div>
@@ -61,31 +113,33 @@ export function TaskDetailPanel({
 
           <div className="space-y-4 mb-8">
             <div className="grid grid-cols-[120px_1fr] items-center text-sm">
-              <div className="flex items-center gap-2 text-gray-500">
+              <div className="flex items-center gap-2 text-neutral-400">
                 <User className="h-4 w-4" />
                 <span>Assign to</span>
               </div>
               <div className="flex items-center gap-3">
                 <Avatar initials={task.assignedName?.substring(0, 2) || "??"} size="sm" />
                 <div>
-                  <span>{task.assignedName || "Unassigned"}</span>
+                  <span className="font-medium text-white">{task.assignedName || "Unassigned"}</span>
                 </div>
               </div>
             </div>
 
             <div className="grid grid-cols-[120px_1fr] items-center text-sm">
-              <div className="flex items-center gap-2 text-gray-500">
+              <div className="flex items-center gap-2 text-neutral-400">
                 <Tag className="h-4 w-4" />
                 <span>Opportunities</span>
               </div>
               <div className="font-medium">
                 {task.relatedOpportunity || "—"} 
-                <span className="text-blue-500 ml-2 cursor-pointer hover:underline text-xs">View Details</span>
+                {task.relatedOpportunity && (
+                  <span className="text-accent-500 ml-2 cursor-pointer hover:underline text-xs">View Details</span>
+                )}
               </div>
             </div>
 
             <div className="grid grid-cols-[120px_1fr] items-center text-sm">
-              <div className="flex items-center gap-2 text-gray-500">
+              <div className="flex items-center gap-2 text-neutral-400">
                 <Calendar className="h-4 w-4" />
                 <span>Due date</span>
               </div>
@@ -95,12 +149,12 @@ export function TaskDetailPanel({
             </div>
 
             <div className="grid grid-cols-[120px_1fr] items-center text-sm">
-              <div className="text-gray-500">Status</div>
+              <div className="text-neutral-400">Status</div>
               <div>
                 <select 
                   value={task.status} 
                   onChange={handleStatusChange}
-                  className="bg-gray-100 border-none text-sm font-medium rounded-lg px-3 py-1 outline-none"
+                  className="bg-ink-800 border border-ink-700 text-white text-sm font-medium rounded-lg px-3 py-1 outline-none focus:ring-1 focus:ring-accent-500"
                 >
                   <option value="to-do">To-do</option>
                   <option value="in-progress">In Progress</option>
@@ -110,42 +164,74 @@ export function TaskDetailPanel({
             </div>
           </div>
 
-          <div className="border-t border-gray-200 pt-6 mb-8">
+          <div className="border-t border-ink-700 pt-6 mb-8">
             <h3 className="font-semibold mb-3">Description</h3>
-            <p className="text-sm text-gray-600 leading-relaxed whitespace-pre-wrap">
+            <p className="text-sm text-neutral-300 leading-relaxed whitespace-pre-wrap">
               {task.description || "No description provided."}
             </p>
           </div>
 
-          <div className="border-t border-gray-200 pt-6">
+          <div className="border-t border-ink-700 pt-6">
             <h3 className="font-semibold mb-4">Comments</h3>
             
-            <form onSubmit={handleAddComment} className="mb-6">
-              <input
-                type="text"
-                placeholder="Add a comment..."
-                value={newComment}
-                onChange={(e) => setNewComment(e.target.value)}
-                className="w-full rounded-lg border border-gray-300 px-4 py-2.5 text-sm outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
-              />
+            <form onSubmit={handleAddComment} className="mb-6 relative">
+              <div className="relative flex items-center">
+                <input
+                  ref={inputRef}
+                  type="text"
+                  placeholder="Add a comment... (Type @ to tag someone)"
+                  value={newComment}
+                  onChange={(e) => setNewComment(e.target.value)}
+                  className="w-full bg-ink-950 rounded-lg border border-ink-700 pl-4 pr-10 py-2.5 text-sm text-white outline-none focus:border-accent-500 focus:ring-1 focus:ring-accent-500"
+                />
+                <button
+                  type="submit"
+                  disabled={!newComment.trim()}
+                  className="absolute right-2 p-1.5 text-neutral-400 hover:text-white hover:bg-ink-800 rounded transition-colors disabled:opacity-50 disabled:hover:bg-transparent"
+                >
+                  <CornerDownLeft className="h-4 w-4" />
+                </button>
+              </div>
+
+              {/* Mentions Dropdown */}
+              {showMentions && filteredTeam.length > 0 && (
+                <div className="absolute bottom-full left-0 mb-1 w-64 bg-ink-800 border border-ink-700 rounded-lg shadow-xl overflow-hidden z-10">
+                  {filteredTeam.map(user => (
+                    <button
+                      key={user.id}
+                      type="button"
+                      onClick={() => insertMention(user)}
+                      className="w-full text-left px-4 py-2 text-sm text-neutral-300 hover:bg-ink-700 hover:text-white flex items-center gap-2"
+                    >
+                      <Avatar initials={user.initials || "??"} size="sm" />
+                      {user.name}
+                    </button>
+                  ))}
+                </div>
+              )}
             </form>
 
-            <div className="space-y-6">
+            <div className="space-y-6 pb-12">
               {comments.map((comment) => (
                 <div key={comment.id} className="flex gap-3 text-sm">
                   <Avatar initials={comment.userName?.substring(0, 2) || "??"} size="sm" />
                   <div className="flex-1">
                     <div className="flex items-baseline justify-between mb-1">
                       <div className="flex items-baseline gap-2">
-                        <span className="font-semibold text-sm">{comment.userName}</span>
-                        <span className="text-xs text-gray-500">{formatDate(comment.createdAt)}</span>
+                        <span className="font-semibold text-white">{comment.userName}</span>
+                        <span className="text-xs text-neutral-500">{formatDate(comment.createdAt)}</span>
                       </div>
-                      <button className="text-gray-400 hover:text-gray-600">
+                      <button className="text-neutral-500 hover:text-white">
                         <MoreHorizontal className="h-4 w-4" />
                       </button>
                     </div>
-                    <p className="text-sm text-gray-700 leading-relaxed">{comment.comment}</p>
-                    <button className="text-blue-500 text-xs font-medium mt-1 hover:underline">Reply</button>
+                    <p className="text-sm text-neutral-300 leading-relaxed">
+                      {/* Highlight mentions in comment */}
+                      {comment.comment.split(/(@[a-zA-Z]+)/g).map((part, i) => 
+                        part.startsWith('@') ? <span key={i} className="text-accent-400 font-medium">{part}</span> : part
+                      )}
+                    </p>
+                    <button className="text-accent-500 text-xs font-medium mt-1 hover:underline">Reply</button>
                   </div>
                 </div>
               ))}

@@ -2,7 +2,7 @@
 
 import { create } from "zustand";
 import {
-  Client, Supplier, Lead, Booking, Trip, TeamMember, Notification,
+  Client, Supplier, Lead, Booking, Trip, TeamMember, AppNotification,
   UserSettings, Stage, ClientDocument, Invoice, InvoiceEditApproval, Transfer,
   Task,
   TaskComment,
@@ -20,7 +20,7 @@ interface Store {
   trips: Trip[];
   transfers: Transfer[];
   team: TeamMember[];
-  notifications: Notification[];
+  notifications: AppNotification[];
   settings: UserSettings;
   
   clientDocuments: ClientDocument[];
@@ -71,6 +71,7 @@ interface Store {
   updateTask: (id: string, patch: Partial<Task>) => Promise<void>;
   addTaskComment: (c: Omit<TaskComment, "id" | "createdAt">) => Promise<void>;
 
+  addNotification: (n: Omit<AppNotification, "id" | "createdAt" | "read">) => Promise<void>;
   dismissNotification: (id: string) => void;
   markNotificationRead: (id: string) => Promise<void>;
   markAllNotificationsRead: () => Promise<void>;
@@ -147,7 +148,9 @@ export const useStore = create<Store>()((set, get) => ({
         { data: invoices },
         { data: invoiceEditApprovals },
         { data: tasks },
-        { data: taskComments }
+        { data: taskComments },
+        { data: notifications },
+        { data: team }
       ] = await Promise.all([
       supabase.from("clients").select("*"),
       supabase.from("suppliers").select("*"),
@@ -158,24 +161,27 @@ export const useStore = create<Store>()((set, get) => ({
       supabase.from("client_documents").select("*"),
       supabase.from("invoices").select("*"),
       supabase.from("invoice_edit_approvals").select("*"),
-      // Handle missing tables gracefully in case SQL script wasn't run yet
       supabase.from("koi_tasks").select("*").then(res => ({ data: res.error ? [] : res.data })),
-      supabase.from("koi_task_comments").select("*").then(res => ({ data: res.error ? [] : res.data }))
+      supabase.from("koi_task_comments").select("*").then(res => ({ data: res.error ? [] : res.data })),
+      supabase.from("koi_notifications").select("*").then(res => ({ data: res.error ? [] : res.data })),
+      supabase.from("team_profiles").select("*").then(res => ({ data: res.error ? [] : res.data }))
     ]);
 
     set({
+      isLoading: false,
       clients: (clients || []).map(mapToCamel),
       suppliers: (suppliers || []).map(mapToCamel),
       leads: (leads || []).map(mapToCamel),
       bookings: (bookings || []).map(mapToCamel),
       trips: (trips || []).map(mapToCamel),
       transfers: (transfers || []).map(mapToCamel),
+      notifications: (notifications || []).map(mapToCamel),
+      team: team && team.length > 0 ? team.map(mapToCamel) : SEED_TEAM,
       clientDocuments: (clientDocuments || []).map(mapToCamel),
       invoices: (invoices || []).map(mapToCamel),
       invoiceEditApprovals: (invoiceEditApprovals || []).map(mapToCamel),
       tasks: (tasks || []).map(mapToCamel),
       taskComments: (taskComments || []).map(mapToCamel),
-      isLoading: false
     });
     } catch (error) {
       console.error("Error fetching initial data:", error);
@@ -330,13 +336,19 @@ export const useStore = create<Store>()((set, get) => ({
     if (data) set((s) => ({ taskComments: [...s.taskComments, mapToCamel(data)] }));
   },
 
+  addNotification: async (n) => {
+    const { data } = await supabase.from("koi_notifications").insert(mapToSnake(n)).select().single();
+    if (data) set((s) => ({ notifications: [mapToCamel(data), ...s.notifications] }));
+  },
   dismissNotification: (id) =>
     set((s) => ({ notifications: s.notifications.filter((n) => n.id !== id) })),
   markNotificationRead: async (id) => {
     set((s) => ({ notifications: s.notifications.map((n) => n.id === id ? { ...n, read: true } : n) }));
+    await supabase.from("koi_notifications").update({ read: true }).eq("id", id);
   },
   markAllNotificationsRead: async () => {
     set((s) => ({ notifications: s.notifications.map((n) => ({ ...n, read: true })) }));
+    await supabase.from("koi_notifications").update({ read: true }).neq("read", true);
   },
 
   updateSettings: async (patch) => {

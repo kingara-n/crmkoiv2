@@ -251,3 +251,15 @@ export interface TaskComment {
   comment: string;
   createdAt: string;
 }
+
+export interface AppNotification {
+  id: string;
+  userId: string;
+  authorName?: string;
+  authorInitials?: string;
+  actionText: string;
+  entityTitle?: string;
+  read: boolean;
+  createdAt: string;
+  link?: string;
+}

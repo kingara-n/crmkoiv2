@@ -36,10 +36,13 @@ export function TopBar() {
   const [dateOpen, setDateOpen] = useState(false);
   const [notifOpen, setNotifOpen] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
+  const [notifTab, setNotifTab] = useState<"all" | "unread">("all");
 
   const dateRef = useRef<HTMLDivElement>(null);
   const notifRef = useRef<HTMLDivElement>(null);
   const menuRef = useRef<HTMLDivElement>(null);
+
+  const displayedNotifs = notifTab === "unread" ? notifications.filter(n => !n.read) : notifications;
 
   useEffect(() => {
     const onClick = (e: MouseEvent) => {
@@ -90,35 +93,63 @@ export function TopBar() {
             )}
           </button>
           {notifOpen && (
-            <div className="absolute right-0 top-full mt-2 w-80 rounded-card border border-ink-700 bg-ink-900 shadow-xl z-50 overflow-hidden">
-              <div className="flex items-center justify-between border-b border-ink-700 px-4 py-3">
-                <p className="text-sm font-semibold text-white">Notifications</p>
+            <div className="absolute right-0 top-full mt-2 w-96 rounded-card border border-ink-700 bg-ink-900 shadow-xl z-50 overflow-hidden flex flex-col">
+              <div className="flex items-center justify-between px-4 pt-3 pb-1">
+                <p className="text-base font-semibold text-white">Notification</p>
                 {unreadCount > 0 && (
                   <button
                     onClick={markAllRead}
-                    className="text-xs text-accent-400 hover:underline"
+                    className="text-xs text-accent-500 hover:text-accent-400 font-medium"
                   >
-                    Mark all read
+                    Mark all as read
                   </button>
                 )}
               </div>
-              <div className="max-h-80 overflow-y-auto">
-                {notifications.length === 0 && (
-                  <p className="px-4 py-6 text-sm text-neutral-500 text-center">All caught up.</p>
+              
+              {/* Tabs */}
+              <div className="flex items-center justify-between border-b border-ink-700 px-4 mt-2">
+                <div className="flex items-center gap-4">
+                  <button 
+                    onClick={() => setNotifTab("all")}
+                    className={`pb-2 text-sm font-medium border-b-2 transition-colors ${notifTab === "all" ? "border-accent-500 text-white" : "border-transparent text-neutral-400 hover:text-neutral-300"}`}
+                  >
+                    All
+                  </button>
+                  <button 
+                    onClick={() => setNotifTab("unread")}
+                    className={`pb-2 text-sm font-medium border-b-2 transition-colors flex items-center gap-1 ${notifTab === "unread" ? "border-accent-500 text-white" : "border-transparent text-neutral-400 hover:text-neutral-300"}`}
+                  >
+                    Unread <span className="text-xs text-neutral-500">({unreadCount})</span>
+                  </button>
+                </div>
+                <button className="pb-2 text-neutral-400 hover:text-white transition-colors">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon></svg>
+                </button>
+              </div>
+
+              <div className="max-h-96 overflow-y-auto">
+                {displayedNotifs.length === 0 && (
+                  <div className="px-4 py-8 flex flex-col items-center justify-center">
+                    <p className="text-sm text-neutral-500">All caught up.</p>
+                  </div>
                 )}
-                {notifications.map((n) => (
+                {displayedNotifs.map((n) => (
                   <button
                     key={n.id}
                     onClick={() => markRead(n.id)}
-                    className={`w-full text-left px-4 py-3 hover:bg-ink-800 transition-colors border-b border-ink-700 last:border-0 ${
-                      !n.read ? "bg-ink-850/50" : ""
-                    }`}
+                    className="w-full text-left px-4 py-3 hover:bg-ink-800 transition-colors border-b border-ink-700/50 last:border-0 relative group"
                   >
-                    <div className="flex items-start gap-2">
-                      {!n.read && <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-accent-500" />}
-                      <div className="flex-1">
-                        <p className="text-sm text-neutral-200">{n.message}</p>
-                        <p className="mt-1 text-xs text-neutral-500">{relativeTime(n.createdAt)}</p>
+                    <div className="flex items-start gap-3">
+                      <Avatar initials={n.authorInitials || "??"} size="md" />
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm text-neutral-300 leading-snug">
+                          <span className="font-semibold text-white mr-1">{n.authorName || "System"}</span>
+                          {n.actionText}
+                        </p>
+                      </div>
+                      <div className="flex flex-col items-end gap-1 shrink-0">
+                        {!n.read && <span className="h-2 w-2 rounded-full bg-accent-500" />}
+                        <p className="text-[11px] text-neutral-500 whitespace-nowrap">{relativeTime(n.createdAt)}</p>
                       </div>
                     </div>
                   </button>

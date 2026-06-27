@@ -8,6 +8,7 @@ import { Avatar } from "@/components/ui/Avatar";
 import { Badge } from "@/components/ui/Badge";
 import { TaskStatus } from "@/lib/types";
 import { TaskDetailPanel } from "@/components/modals/TaskDetailPanel";
+import { TaskModal } from "@/components/modals/TaskModal";
 import { formatDate } from "@/lib/format";
 
 const COLUMNS: { id: TaskStatus; label: string; color: string }[] = [
@@ -22,6 +23,7 @@ export default function TasksPage() {
   const updateTask = useStore((s) => s.updateTask);
 
   const [activeTask, setActiveTask] = useState<string | null>(null);
+  const [taskModalOpen, setTaskModalOpen] = useState(false);
 
   if (!hydrated) return <div className="text-neutral-500 p-2">Loading…</div>;
 
@@ -30,18 +32,15 @@ export default function TasksPage() {
       {/* Header matching the image */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-4 border-b border-ink-700/50 mb-6 gap-4">
         <div className="flex items-center gap-4">
-          <h1 className="text-2xl font-bold text-white">Task</h1>
-          <MoreHorizontal className="h-5 w-5 text-neutral-500 cursor-pointer" />
+          <h1 className="text-2xl font-bold text-white">Tasks</h1>
         </div>
         <div className="flex items-center gap-3">
-          <button className="p-2 border border-ink-700 bg-ink-900 rounded-full hover:bg-ink-800 transition">
-            <Bell className="h-4 w-4 text-neutral-400" />
-          </button>
-          <button className="p-2 border border-ink-700 bg-ink-900 rounded-full hover:bg-ink-800 transition">
-            <span className="h-4 w-4 text-neutral-400 font-bold text-xs flex items-center justify-center">?</span>
-          </button>
-          <button className="p-2 bg-green-500 text-white rounded-full hover:bg-green-600 transition shadow-sm">
+          <button 
+            onClick={() => setTaskModalOpen(true)}
+            className="flex items-center gap-2 px-4 py-2 bg-accent-500 text-white rounded-lg hover:bg-accent-600 transition shadow-sm font-medium text-sm"
+          >
             <Plus className="h-4 w-4" />
+            New Task
           </button>
         </div>
       </div>
@@ -136,6 +135,8 @@ export default function TasksPage() {
           onClose={() => setActiveTask(null)} 
         />
       )}
+      {/* Task Modal */}
+      <TaskModal open={taskModalOpen} onClose={() => setTaskModalOpen(false)} />
     </div>
   );
 }
