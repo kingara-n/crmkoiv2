@@ -37,7 +37,7 @@ export default function TripsPage() {
 
   const totalTravellers = trips
     .filter((t) => t.status !== "completed")
-    .reduce((sum, t) => sum + t.travellerCount, 0);
+    .reduce((sum, t) => sum + (t.travellerCount || t.travelerCount || 0), 0);
 
   function startNow(t: Trip) {
     updateTrip(t.id, { status: "on_ground" });
@@ -164,7 +164,7 @@ function TripCard({
           {formatDate(trip.startDate)} → {formatDate(trip.endDate)} <span className="text-neutral-500">({days}d)</span>
         </p>
         <p className="flex items-center gap-2">
-          <Users className="h-4 w-4 text-neutral-500" />{trip.travellerCount} traveller{trip.travellerCount !== 1 ? "s" : ""}
+          <Users className="h-4 w-4 text-neutral-500" />{trip.travellerCount || trip.travelerCount || 0} traveller{(trip.travellerCount || trip.travelerCount || 0) !== 1 ? "s" : ""}
         </p>
         <p className="flex items-center gap-2">
           <User className="h-4 w-4 text-neutral-500" />{trip.ownerName}
