@@ -92,6 +92,8 @@ export interface PurchaseOrder {
   amount: number;
   currency: Currency;
   status: PurchaseOrderStatus;
+  issueDate?: string;
+  dueDate?: string;
   createdAt: string;
 }
 

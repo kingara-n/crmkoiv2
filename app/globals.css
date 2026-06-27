@@ -66,3 +66,12 @@ body.is-dragging {
 @media (prefers-reduced-motion: reduce) {
   * { transition-duration: 0.01ms !important; animation-duration: 0.01ms !important; }
 }
+
+@layer base {
+  button {
+    @apply transition-all duration-200 ease-in-out;
+  }
+  button:active {
+    @apply scale-[0.97];
+  }
+}

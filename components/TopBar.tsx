@@ -7,6 +7,7 @@ import { useStore } from "@/lib/store";
 import { useIsHydrated } from "@/lib/useIsHydrated";
 import { Avatar } from "./ui/Avatar";
 import { relativeTime } from "@/lib/format";
+import { motion, AnimatePresence } from "framer-motion";
 
 const TITLES: Record<string, string> = {
   "/": "Overview",
@@ -23,6 +24,24 @@ const TITLES: Record<string, string> = {
 };
 
 const DATE_RANGES = ["Last 7 days", "Last 30 days", "Last 90 days", "Year to date"];
+
+const playChime = () => {
+  try {
+    const ctx = new (window.AudioContext || (window as any).webkitAudioContext)();
+    const osc = ctx.createOscillator();
+    const gainNode = ctx.createGain();
+    osc.connect(gainNode);
+    gainNode.connect(ctx.destination);
+    osc.type = "sine";
+    osc.frequency.setValueAtTime(800, ctx.currentTime);
+    osc.frequency.exponentialRampToValueAtTime(1200, ctx.currentTime + 0.1);
+    gainNode.gain.setValueAtTime(0, ctx.currentTime);
+    gainNode.gain.linearRampToValueAtTime(0.5, ctx.currentTime + 0.05);
+    gainNode.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.5);
+    osc.start();
+    osc.stop(ctx.currentTime + 0.5);
+  } catch (e) {}
+};
 
 export function TopBar() {
   const pathname = usePathname();
@@ -150,8 +169,8 @@ export function TopBar() {
         {/* Notifications */}
         <div ref={notifRef} className="relative">
           <button
-            onClick={() => setNotifOpen((v) => !v)}
-            className="relative rounded-lg border border-ink-700 bg-ink-900 p-2 text-neutral-300 hover:bg-ink-850"
+            onClick={() => setNotifOpen((v) => { if (!v) playChime(); return !v; })}
+            className="relative rounded-lg border border-ink-700 bg-ink-900 p-2 text-neutral-300 hover:bg-ink-850 transition-colors"
             aria-label="Notifications"
           >
             <Bell className="h-4 w-4" />
@@ -159,10 +178,17 @@ export function TopBar() {
               <span className="absolute top-1 right-1 h-2 w-2 rounded-full bg-accent-500" />
             )}
           </button>
+          <AnimatePresence>
           {notifOpen && (
-            <div className="absolute right-0 top-full mt-2 w-96 rounded-card border border-ink-700 bg-ink-900 shadow-xl z-50 overflow-hidden flex flex-col">
+            <motion.div
+              initial={{ opacity: 0, y: -10, scale: 0.95 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, y: -10, scale: 0.95 }}
+              transition={{ duration: 0.2 }}
+              className="absolute right-0 top-full mt-2 w-96 rounded-card border border-ink-700 bg-ink-900 shadow-xl z-50 overflow-hidden flex flex-col"
+            >
               <div className="flex items-center justify-between px-4 pt-3 pb-1">
-                <p className="text-base font-semibold text-white">Notification</p>
+                <p className="text-base font-semibold text-white">Notifications</p>
                 {unreadCount > 0 && (
                   <button
                     onClick={markAllRead}
@@ -189,9 +215,6 @@ export function TopBar() {
                     Unread <span className="text-xs text-neutral-500">({unreadCount})</span>
                   </button>
                 </div>
-                <button className="pb-2 text-neutral-400 hover:text-white transition-colors">
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon></svg>
-                </button>
               </div>
 
               <div className="max-h-96 overflow-y-auto">
@@ -222,8 +245,9 @@ export function TopBar() {
                   </button>
                 ))}
               </div>
-            </div>
+            </motion.div>
           )}
+          </AnimatePresence>
         </div>
 
         {/* Avatar menu */}
