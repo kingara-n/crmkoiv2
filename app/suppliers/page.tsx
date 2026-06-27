@@ -3,10 +3,12 @@
 import { useState, useMemo } from "react";
 import {
   Search, Plus, MapPin, Mail, Phone, Building2, Users, Check, X,
-  DollarSign, AlertCircle, Calendar, FileText, ShoppingCart, PieChart
+  DollarSign, AlertCircle, Calendar, FileText, ShoppingCart
 } from "lucide-react";
+import { PieChart, Pie, Cell, Tooltip as RechartsTooltip, ResponsiveContainer } from "recharts";
 import { Card, StatCard } from "@/components/ui/Card";
 import { Badge } from "@/components/ui/Badge";
+import { Avatar } from "@/components/ui/Avatar";
 import { Button } from "@/components/ui/Button";
 import { SupplierModal } from "@/components/modals/SupplierModal";
 import { PurchaseOrderModal } from "@/components/modals/PurchaseOrderModal";
@@ -111,18 +113,47 @@ export default function SuppliersPage() {
       <div className="grid gap-4 lg:grid-cols-3">
         {/* Spend by Category */}
         <Card>
-          <div className="flex items-center justify-between mb-4">
+          <div className="flex items-center justify-between mb-2">
             <h3 className="text-sm font-medium text-white">Spend by Category</h3>
-            <PieChart className="h-4 w-4 text-neutral-500" />
           </div>
-          <div className="space-y-3">
-            {Object.entries(spendByCategory).map(([cat, val]) => (
+          <div className="h-48 w-full mt-2 relative">
+            {Object.keys(spendByCategory).length === 0 ? (
+              <div className="absolute inset-0 flex items-center justify-center text-sm text-neutral-500">
+                No spend recorded.
+              </div>
+            ) : (
+              <ResponsiveContainer width="100%" height="100%">
+                <PieChart>
+                  <Pie
+                    data={Object.entries(spendByCategory).map(([name, value]) => ({ name, value }))}
+                    innerRadius={45}
+                    outerRadius={70}
+                    paddingAngle={2}
+                    dataKey="value"
+                  >
+                    {Object.keys(spendByCategory).map((_, index) => (
+                      <Cell key={`cell-${index}`} fill={["#38bdf8", "#818cf8", "#34d399", "#fbbf24", "#f87171"][index % 5]} />
+                    ))}
+                  </Pie>
+                  <RechartsTooltip 
+                    contentStyle={{ backgroundColor: "#1e1e24", border: "1px solid #2d2d35", borderRadius: "0.5rem" }}
+                    itemStyle={{ color: "#fff", fontSize: "0.875rem" }}
+                    formatter={(value: number) => value.toLocaleString()}
+                  />
+                </PieChart>
+              </ResponsiveContainer>
+            )}
+          </div>
+          <div className="space-y-2 mt-4">
+            {Object.entries(spendByCategory).map(([cat, val], i) => (
               <div key={cat} className="flex justify-between items-center text-sm">
-                <span className="text-neutral-400">{cat}</span>
-                <span className="text-white font-medium">{val.toLocaleString()}</span>
+                <div className="flex items-center gap-2">
+                  <div className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: ["#38bdf8", "#818cf8", "#34d399", "#fbbf24", "#f87171"][i % 5] }} />
+                  <span className="text-neutral-400">{cat}</span>
+                </div>
+                <span className="text-white font-mono">{val.toLocaleString()}</span>
               </div>
             ))}
-            {Object.keys(spendByCategory).length === 0 && <span className="text-sm text-neutral-500">No spend recorded.</span>}
           </div>
         </Card>
 
@@ -149,11 +180,17 @@ export default function SuppliersPage() {
             <h3 className="text-sm font-medium text-white">Top Suppliers</h3>
             <Building2 className="h-4 w-4 text-neutral-500" />
           </div>
-          <div className="space-y-3">
+          <div className="space-y-4">
             {topSuppliers.map(s => (
-              <div key={s.id} className="flex justify-between items-center text-sm">
-                <span className="text-neutral-300 truncate max-w-[120px]" title={s.name}>{s.name}</span>
-                <span className="text-neutral-500">{s.spend > 0 ? s.spend.toLocaleString() : '—'}</span>
+              <div key={s.id} className="flex items-center gap-3">
+                <Avatar initials={s.name.substring(0, 2).toUpperCase()} size="sm" />
+                <div className="flex-1 min-w-0">
+                  <p className="truncate text-sm font-medium text-white">{s.name}</p>
+                  <p className="text-xs text-neutral-500">{TYPE_LABELS[s.type]}</p>
+                </div>
+                <div className="text-right">
+                  <span className="text-white font-mono text-sm">{s.spend > 0 ? s.spend.toLocaleString() : '—'}</span>
+                </div>
               </div>
             ))}
           </div>
