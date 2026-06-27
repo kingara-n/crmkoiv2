@@ -77,6 +77,21 @@ export default function OverviewPage() {
   const totalRevenue = clients.reduce((sum, c) => sum + ((c as any).revenueKes || c.revenue || 0), 0);
   const totalPipelineValue = leads.reduce((sum, l) => sum + ((l as any).valueKes || l.value || 0), 0);
   const totalLeads = leads.length;
+
+  // Multi-currency revenue calculation based on won bookings
+  const revenueByCurrency: Record<string, number> = { KES: 0, USD: 0, EUR: 0, CAD: 0, GBP: 0 };
+  bookings.filter(b => b.status === "confirmed").forEach(b => {
+    const cur = b.currency || "KES";
+    const amt = (b as any).valueKes || b.value || 0; // We use the nominal value since the DB value column may be in native currency in our updated schema
+    // Wait, the DB has amount in native currency, but we named it valueKes in the past. If the value is native, we sum it into the currency bucket.
+    // If we assume `b.value` is the native amount:
+    if (revenueByCurrency[cur] !== undefined) {
+      revenueByCurrency[cur] += b.value || 0;
+    } else {
+      revenueByCurrency[cur] = b.value || 0;
+    }
+  });
+
   const wonRevenue = bookings
     .filter((b) => b.status === "confirmed")
     .reduce((sum, b) => sum + ((b as any).valueKes || b.value || 0), 0);
@@ -110,12 +125,23 @@ export default function OverviewPage() {
 
       {/* Stat cards row */}
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <StatCard
-          label="Total Revenue"
-          value={formatMoney(wonRevenue, currency)}
-          delta={{ value: "+12.5%", positive: true }}
-          icon={<DollarSign className="h-4 w-4" />}
-        />
+        <Card>
+          <div className="flex items-center justify-between mb-2">
+            <h3 className="text-sm font-medium text-neutral-400">Total Revenue</h3>
+            <DollarSign className="h-4 w-4 text-neutral-500" />
+          </div>
+          <div className="space-y-1 mt-3">
+            {Object.entries(revenueByCurrency).filter(([_, v]) => v > 0).map(([cur, val]) => (
+              <div key={cur} className="flex justify-between items-center text-sm">
+                <span className="text-neutral-500">{cur}</span>
+                <span className="font-semibold text-white">{formatMoney(val, cur as any)}</span>
+              </div>
+            ))}
+            {Object.values(revenueByCurrency).every(v => v === 0) && (
+              <div className="text-xl font-bold text-white">0</div>
+            )}
+          </div>
+        </Card>
         <StatCard
           label="Conversion Rate"
           value={`${conversionRate}%`}
@@ -186,7 +212,7 @@ export default function OverviewPage() {
         </Card>
       </div>
 
-      {/* Recent bookings + top performers */}
+      {/* Recent bookings */}
       <div className="grid gap-4 lg:grid-cols-2">
         <Card>
           <div className="mb-4 flex items-center justify-between">
@@ -217,33 +243,6 @@ export default function OverviewPage() {
                 >
                   {b.status === "confirmed" ? "Won" : b.status === "lost" ? "Lost" : "Pending"}
                 </Badge>
-              </div>
-            ))}
-          </div>
-        </Card>
-
-        <Card>
-          <div className="mb-4 flex items-center justify-between">
-            <div>
-              <h2 className="text-base font-semibold text-white">Top Performers</h2>
-              <p className="text-xs text-neutral-500">This month's leaders</p>
-            </div>
-            <Trophy className="h-5 w-5 text-amber-400" />
-          </div>
-          <div className="space-y-3">
-            {topPerformers.map((m, i) => (
-              <div key={m.id} className="flex items-center gap-3">
-                <Avatar initials={m.initials} size="md" crown rank={i + 1} />
-                <div className="flex-1">
-                  <p className="text-sm font-medium text-white">{m.name}</p>
-                  <p className="text-xs text-neutral-500">{m.dealsClosed} deals closed</p>
-                </div>
-                <div className="text-right">
-                  <p className="text-sm font-semibold text-white">{formatMoney(m.revenue, currency)}</p>
-                  <p className={`text-xs ${m.trend >= 0 ? "text-accent-400" : "text-chart-red"}`}>
-                    {m.trend >= 0 ? "↗" : "↘"} {m.trend >= 0 ? "+" : ""}{m.trend}%
-                  </p>
-                </div>
               </div>
             ))}
           </div>

@@ -197,6 +197,14 @@ export const SEED_TEAM: TeamMember[] = [
     revenue: 2_670_000, dealsClosed: 14, quotaAttainment: 89, trend: 9 },
 ];
 
+export const SEED_POS: any[] = [
+  { id: "po1", poNumber: "PO-0042", supplierId: "s1", supplierName: "Voi Wildlife Lodge", linkedBookingId: "b1", amount: 420000, currency: "KES", status: "sent", createdAt: "2026-06-25T10:00:00Z" },
+  { id: "po2", poNumber: "PO-0041", supplierId: "s2", supplierName: "SafariLink Aviation", linkedBookingId: "b2", amount: 2100, currency: "USD", status: "received", createdAt: "2026-06-24T09:00:00Z" },
+  { id: "po3", poNumber: "PO-0040", supplierId: "s3", supplierName: "Nairobi Van Hire", linkedBookingId: "b3", amount: 96500, currency: "KES", status: "received", createdAt: "2026-06-22T14:00:00Z" },
+  { id: "po4", poNumber: "PO-0039", supplierId: "s4", supplierName: "Maasai Cultural Tours", linkedBookingId: "b3", amount: 54000, currency: "KES", status: "sent", createdAt: "2026-06-21T11:00:00Z" },
+  { id: "po5", poNumber: "PO-0038", supplierId: "s5", supplierName: "Coastal Cruises Ltd", amount: 1980, currency: "EUR", status: "draft", createdAt: "2026-06-20T16:00:00Z" },
+];
+
 export const SEED_NOTIFICATIONS: Notification[] = [
   { id: "n1", message: "Acme Corp quotation needs follow-up — sent 5 days ago",
     type: "warning", createdAt: "2026-06-27T08:30:00Z", read: false },

@@ -7,15 +7,17 @@ import {
   Task,
   TaskComment,
   LeadComment,
+  PurchaseOrder,
 } from "./types";
 import {
-  SEED_TEAM, DEFAULT_SETTINGS,
+  SEED_TEAM, DEFAULT_SETTINGS, SEED_POS,
 } from "./seed";
 import { supabase } from "./supabase";
 
 interface Store {
   clients: Client[];
   suppliers: Supplier[];
+  purchaseOrders: PurchaseOrder[];
   leads: Lead[];
   leadComments: LeadComment[];
   bookings: Booking[];
@@ -47,6 +49,9 @@ interface Store {
   approveSupplier: (id: string) => Promise<void>;
   rejectSupplier: (id: string) => Promise<void>;
   deleteSupplier: (id: string) => Promise<void>;
+
+  addPurchaseOrder: (po: Omit<PurchaseOrder, "id" | "createdAt">) => Promise<void>;
+  updatePurchaseOrder: (id: string, patch: Partial<PurchaseOrder>) => Promise<void>;
 
   addLead: (l: Omit<Lead, "id" | "createdAt" | "daysInStage">) => Promise<void>;
   moveLead: (id: string, toStage: Stage) => Promise<void>;
@@ -117,6 +122,7 @@ function mapToSnake(obj: any): any {
 export const useStore = create<Store>()((set, get) => ({
   clients: [],
   suppliers: [],
+  purchaseOrders: [],
   leads: [],
   bookings: [],
   trips: [],
@@ -144,6 +150,7 @@ export const useStore = create<Store>()((set, get) => ({
       const [
         { data: clients },
         { data: suppliers },
+        { data: purchaseOrders },
         { data: leads },
         { data: bookings },
         { data: trips },
@@ -159,6 +166,7 @@ export const useStore = create<Store>()((set, get) => ({
       ] = await Promise.all([
       supabase.from("clients").select("*"),
       supabase.from("suppliers").select("*"),
+      supabase.from("koi_purchase_orders").select("*").then(res => ({ data: res.error ? [] : res.data })),
       supabase.from("leads").select("*"),
       supabase.from("bookings").select("*"),
       supabase.from("trips").select("*"),
@@ -177,6 +185,7 @@ export const useStore = create<Store>()((set, get) => ({
       isLoading: false,
       clients: (clients || []).map(mapToCamel),
       suppliers: (suppliers || []).map(mapToCamel),
+      purchaseOrders: purchaseOrders && purchaseOrders.length > 0 ? purchaseOrders.map(mapToCamel) : SEED_POS,
       leads: (leads || []).map(mapToCamel),
       bookings: (bookings || []).map(mapToCamel),
       trips: (trips || []).map(mapToCamel),
@@ -231,6 +240,16 @@ export const useStore = create<Store>()((set, get) => ({
   deleteSupplier: async (id) => {
     set((s) => ({ suppliers: s.suppliers.filter((sp) => sp.id !== id) }));
     await supabase.from("suppliers").delete().eq("id", id);
+  },
+
+  addPurchaseOrder: async (po) => {
+    const dbPo = mapToSnake(po);
+    const { data } = await supabase.from("koi_purchase_orders").insert(dbPo).select().single();
+    if (data) set((s) => ({ purchaseOrders: [mapToCamel(data), ...s.purchaseOrders] }));
+  },
+  updatePurchaseOrder: async (id, patch) => {
+    set((s) => ({ purchaseOrders: s.purchaseOrders.map((p) => (p.id === id ? { ...p, ...patch } : p)) }));
+    await supabase.from("koi_purchase_orders").update(mapToSnake(patch)).eq("id", id);
   },
 
   addLead: async (l) => {

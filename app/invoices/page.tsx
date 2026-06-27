@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/Button";
 import { useStore, useSettings } from "@/lib/store";
 import { useIsHydrated } from "@/lib/useIsHydrated";
 import { InvoiceModal } from "@/components/modals/InvoiceModal";
+import { formatMoneyFull } from "@/lib/format";
 
 export default function InvoicesPage() {
   const hydrated = useIsHydrated();
@@ -41,8 +42,18 @@ export default function InvoicesPage() {
     return rows;
   }, [invoices, bookings, approvals, statusFilter, query]);
 
-  const totalPaid = invoices.filter(i => !!i.paidAt).reduce((sum, i) => sum + (i.amountKes || 0), 0);
-  const totalUnpaid = invoices.filter(i => !i.paidAt).reduce((sum, i) => sum + (i.amountKes || 0), 0);
+  const paidByCurrency: Record<string, number> = {};
+  const unpaidByCurrency: Record<string, number> = {};
+  
+  invoices.forEach(inv => {
+    const cur = inv.currency || "KES";
+    if (inv.paidAt) {
+      paidByCurrency[cur] = (paidByCurrency[cur] || 0) + (inv.amountKes || 0);
+    } else {
+      unpaidByCurrency[cur] = (unpaidByCurrency[cur] || 0) + (inv.amountKes || 0);
+    }
+  });
+
   const pendingApprovalsCount = approvals.filter(a => a.approverId === "pending").length;
 
   if (!hydrated) return <div className="text-neutral-500 p-2">Loading…</div>;
@@ -57,8 +68,38 @@ export default function InvoicesPage() {
       </div>
 
       <div className="grid gap-4 sm:grid-cols-3">
-        <StatCard label="Total Paid" value={`${settings.currency} ${totalPaid.toLocaleString()}`} icon={<CheckCircle2 className="h-4 w-4 text-success-500" />} />
-        <StatCard label="Total Outstanding" value={`${settings.currency} ${totalUnpaid.toLocaleString()}`} icon={<Clock className="h-4 w-4 text-amber-500" />} />
+        <Card>
+          <div className="flex items-center gap-2 mb-3">
+            <CheckCircle2 className="h-4 w-4 text-success-500" />
+            <h3 className="text-sm font-medium text-neutral-400">Total Paid</h3>
+          </div>
+          <div className="space-y-1">
+            {Object.keys(paidByCurrency).length === 0 && <div className="text-xl font-bold text-white">0</div>}
+            {Object.entries(paidByCurrency).map(([cur, val]) => (
+              <div key={cur} className="flex justify-between items-center text-sm">
+                <span className="text-neutral-500">{cur}</span>
+                <span className="font-semibold text-white">{formatMoneyFull(val, cur as any)}</span>
+              </div>
+            ))}
+          </div>
+        </Card>
+        
+        <Card>
+          <div className="flex items-center gap-2 mb-3">
+            <Clock className="h-4 w-4 text-amber-500" />
+            <h3 className="text-sm font-medium text-neutral-400">Total Outstanding</h3>
+          </div>
+          <div className="space-y-1">
+            {Object.keys(unpaidByCurrency).length === 0 && <div className="text-xl font-bold text-white">0</div>}
+            {Object.entries(unpaidByCurrency).map(([cur, val]) => (
+              <div key={cur} className="flex justify-between items-center text-sm">
+                <span className="text-neutral-500">{cur}</span>
+                <span className="font-semibold text-white">{formatMoneyFull(val, cur as any)}</span>
+              </div>
+            ))}
+          </div>
+        </Card>
+        
         <StatCard label="Pending Approvals" value={String(pendingApprovalsCount)} icon={<AlertTriangle className="h-4 w-4 text-red-400" />} />
       </div>
 
@@ -121,7 +162,7 @@ export default function InvoicesPage() {
                     <div className="text-xs text-neutral-500">{inv.booking?.destination || "—"}</div>
                   </td>
                   <td className="px-5 py-4">
-                    <div className="font-mono text-white">{inv.currency} {inv.amountKes.toLocaleString()}</div>
+                    <div className="font-mono text-white">{formatMoneyFull(inv.amountKes, inv.currency || "KES")}</div>
                   </td>
                   <td className="px-5 py-4 text-neutral-300">
                     {inv.dueDate || "—"}

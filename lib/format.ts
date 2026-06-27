@@ -8,6 +8,7 @@ export const RATES_TO_KES: Record<Currency, number> = {
   USD: 129,
   EUR: 140,
   GBP: 164,
+  CAD: 95,
 };
 
 export const CURRENCY_SYMBOLS: Record<Currency, string> = {
@@ -15,6 +16,7 @@ export const CURRENCY_SYMBOLS: Record<Currency, string> = {
   USD: "$",
   EUR: "€",
   GBP: "£",
+  CAD: "CA$",
 };
 
 export function convert(amountKes: number, target: Currency): number {

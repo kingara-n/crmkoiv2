@@ -26,7 +26,7 @@ export const STAGE_LABELS: Record<Stage, string> = {
   paid: "Paid",
 };
 
-export type Currency = "KES" | "USD" | "EUR" | "GBP";
+export type Currency = "KES" | "USD" | "EUR" | "GBP" | "CAD";
 
 export type BookingStatus = "confirmed" | "pending" | "lost";
 
@@ -79,6 +79,20 @@ export interface Supplier {
   amenities: string[];
   status: SupplierStatus;
   contractExpires?: string;
+}
+
+export type PurchaseOrderStatus = "draft" | "sent" | "received" | "closed";
+
+export interface PurchaseOrder {
+  id: string;
+  poNumber: string;
+  supplierId: string;
+  supplierName: string;
+  linkedBookingId?: string; // Optional booking / SO link
+  amount: number;
+  currency: Currency;
+  status: PurchaseOrderStatus;
+  createdAt: string;
 }
 
 export interface Lead {
