@@ -39,7 +39,7 @@ export default function OverviewPage() {
       const target = bookings
         .filter((b) => b.status === "confirmed")
         .filter((b) => {
-          const date = new Date(b.createdAt);
+          const date = new Date(b.closeDate || "2000-01-01");
           return date >= d && date < nextMonth;
         })
         .reduce((sum, b) => sum + ((b as any).valueKes || b.value || 0), 0);

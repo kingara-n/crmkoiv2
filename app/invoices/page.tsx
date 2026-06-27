@@ -127,14 +127,16 @@ export default function InvoicesPage() {
                     {inv.dueDate || "—"}
                   </td>
                   <td className="px-5 py-4">
-                    {inv.paidAt ? (
-                      <Badge tone="success">PAID</Badge>
-                    ) : (
-                      <Badge tone="warning">UNPAID</Badge>
-                    )}
-                    {inv.pendingEdits.length > 0 && (
-                      <Badge tone="danger" className="ml-2">EDIT PENDING</Badge>
-                    )}
+                    <div className="flex gap-2">
+                      {inv.paidAt ? (
+                        <Badge tone="success">PAID</Badge>
+                      ) : (
+                        <Badge tone="warning">UNPAID</Badge>
+                      )}
+                      {inv.pendingEdits.length > 0 && (
+                        <Badge tone="danger">EDIT PENDING</Badge>
+                      )}
+                    </div>
                   </td>
                   <td className="px-5 py-4 text-right">
                     <Button variant="secondary" className="text-xs py-1" onClick={() => setSelectedBookingId(inv.bookingId)}>

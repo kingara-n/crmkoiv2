@@ -214,10 +214,10 @@ export default function BookingsPage() {
                   </Badge>
                 </td>
                 <td className="px-5 py-4 text-neutral-300">{b.ownerName}</td>
-                <td className="px-5 py-4 text-neutral-300">{formatDate(b.closeDate)}</td>
+                <td className="px-5 py-4 text-neutral-300">{b.closeDate ? formatDate(b.closeDate) : "—"}</td>
                 <td className="px-5 py-4">
                   {b.costs && b.costs.length > 0 ? (
-                    <Badge color="green">
+                    <Badge tone="success">
                       {Math.round(((b.value - b.costs.reduce((sum, c) => sum + c.amount, 0)) / b.value) * 100)}%
                     </Badge>
                   ) : (

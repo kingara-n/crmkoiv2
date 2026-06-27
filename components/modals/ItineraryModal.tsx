@@ -17,7 +17,7 @@ export function ItineraryModal({
 }) {
   const booking = useStore((s) => s.bookings.find((b) => b.id === bookingId));
   const client = useStore((s) => s.clients.find((c) => c.id === booking?.clientId));
-  const trips = useStore((s) => s.trips.filter((t) => t.clientId === booking?.clientId && t.destination === booking?.destination));
+  const trips = useStore((s) => s.trips.filter((t) => t.destination === booking?.destination));
   
   if (!booking) return null;
 
@@ -28,7 +28,7 @@ export function ItineraryModal({
   }
 
   return (
-    <Modal open={open} onClose={onClose} title="" size="xl">
+    <Modal open={open} onClose={onClose} title="">
       <div className="flex justify-between items-center mb-6 print:hidden">
         <h2 className="text-xl font-semibold text-white">Booking Itinerary</h2>
         <div className="flex gap-2">

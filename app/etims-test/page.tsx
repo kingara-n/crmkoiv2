@@ -54,7 +54,9 @@ export default function ETimsTestPage() {
           <div className="flex items-center gap-2 mb-4 pb-4 border-b border-ink-700">
             <FileText className="h-5 w-5 text-neutral-400" />
             <h2 className="font-medium text-white">Approved Invoice</h2>
-            <Badge tone="success" className="ml-auto">Approved</Badge>
+            <div className="ml-auto">
+              <Badge tone="success">Active</Badge>
+            </div>
           </div>
 
           <div className="space-y-4 text-sm">

@@ -65,9 +65,11 @@ export function TaskDetailPanel({
                 <User className="h-4 w-4" />
                 <span>Assign to</span>
               </div>
-              <div className="flex items-center gap-2 font-medium">
-                <Avatar src="" initials={task.assignedName?.substring(0, 2) || "??"} size="sm" />
-                <span>{task.assignedName || "Unassigned"}</span>
+              <div className="flex items-center gap-3">
+                <Avatar initials={task.assignedName?.substring(0, 2) || "??"} size="sm" />
+                <div>
+                  <span>{task.assignedName || "Unassigned"}</span>
+                </div>
               </div>
             </div>
 
@@ -130,8 +132,8 @@ export function TaskDetailPanel({
 
             <div className="space-y-6">
               {comments.map((comment) => (
-                <div key={comment.id} className="flex gap-3">
-                  <Avatar src="" initials={comment.userName?.substring(0, 2).toUpperCase() || "??"} size="sm" />
+                <div key={comment.id} className="flex gap-3 text-sm">
+                  <Avatar initials={comment.userName?.substring(0, 2) || "??"} size="sm" />
                   <div className="flex-1">
                     <div className="flex items-baseline justify-between mb-1">
                       <div className="flex items-baseline gap-2">

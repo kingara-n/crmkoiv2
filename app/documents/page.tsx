@@ -110,7 +110,7 @@ export default function DocumentsPage() {
                         </div>
                       </td>
                       <td className="px-5 py-4">
-                        <Badge color={doc.docType === "passport" ? "blue" : doc.docType === "payment_receipt" ? "green" : "neutral"}>
+                        <Badge tone={doc.docType === "passport" ? "success" : doc.docType === "payment_receipt" ? "accent" : "neutral"}>
                           {(doc.docType || "Unknown").replace("_", " ")}
                         </Badge>
                       </td>

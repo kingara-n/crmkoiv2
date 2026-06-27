@@ -119,7 +119,7 @@ export default function TasksPage() {
                         ) : (
                           <div />
                         )}
-                        <Avatar src="" initials={task.assignedName?.substring(0, 2) || "??"} size="xs" />
+                        <Avatar initials={task.assignedName?.substring(0, 2) || "??"} size="sm" />
                       </div>
                     </div>
                   ))}

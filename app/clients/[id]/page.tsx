@@ -44,7 +44,7 @@ export default function ClientProfilePage() {
           <div>
             <h1 className="text-2xl font-bold text-white flex items-center gap-3">
               {client.name}
-              <Badge color={client.tier === "enterprise" ? "purple" : client.tier === "growth" ? "blue" : "neutral"}>
+              <Badge tone={client.tier === "enterprise" ? "accent" : client.tier === "growth" ? "success" : "neutral"}>
                 {client.tier.toUpperCase()}
               </Badge>
             </h1>
@@ -58,7 +58,9 @@ export default function ClientProfilePage() {
         <div className="space-y-6">
           <Card>
             <div className="flex flex-col items-center text-center pb-6 border-b border-ink-700/50 mb-6">
-              <Avatar src="" initials={client.name.substring(0, 2).toUpperCase()} size="lg" className="h-20 w-20 mb-4 text-xl" />
+              <div className="h-20 w-20 mb-4 text-xl">
+                <Avatar initials={client.name.substring(0, 2).toUpperCase()} />
+              </div>
               <h2 className="text-xl font-bold text-white">{client.name}</h2>
               <p className="text-sm text-neutral-400 capitalize">{client.type} Client</p>
             </div>
@@ -132,7 +134,7 @@ export default function ClientProfilePage() {
           <Card padding={false}>
             <div className="p-5 border-b border-ink-700/50 flex items-center justify-between">
               <h3 className="font-semibold text-white">Booking History</h3>
-              <Button variant="secondary" size="sm">New Booking</Button>
+              <Button variant="secondary">New Booking</Button>
             </div>
             {clientBookings.length === 0 ? (
               <div className="p-8 text-center text-neutral-500 text-sm">No bookings yet.</div>
@@ -145,7 +147,7 @@ export default function ClientProfilePage() {
                       <p className="text-xs text-neutral-400 mt-1">Booked on {formatDate(b.closeDate || "")} • Handled by {b.ownerName}</p>
                     </div>
                     <div className="flex items-center gap-4">
-                      <Badge color={b.status === "confirmed" ? "green" : b.status === "lost" ? "red" : "blue"}>
+                      <Badge tone={b.status === "confirmed" ? "success" : b.status === "lost" ? "danger" : "neutral"}>
                         {b.status.toUpperCase()}
                       </Badge>
                       <span className="font-medium text-white">{formatMoney(b.value, currency)}</span>
@@ -159,7 +161,7 @@ export default function ClientProfilePage() {
           <Card padding={false}>
             <div className="p-5 border-b border-ink-700/50 flex items-center justify-between">
               <h3 className="font-semibold text-white">Document Vault</h3>
-              <Button variant="secondary" size="sm" onClick={() => router.push('/documents')}>View All</Button>
+              <Button variant="secondary" onClick={() => router.push('/documents')}>View All</Button>
             </div>
             {clientDocs.length === 0 ? (
               <div className="p-8 text-center text-neutral-500 text-sm">No documents uploaded.</div>
@@ -176,7 +178,7 @@ export default function ClientProfilePage() {
                         <p className="text-xs text-neutral-500 mt-0.5">Uploaded {formatDate(doc.uploadedAt)}</p>
                       </div>
                     </div>
-                    <Badge color={doc.docType === "passport" ? "blue" : doc.docType === "payment_receipt" ? "green" : "neutral"}>
+                    <Badge tone={doc.docType === "passport" ? "success" : doc.docType === "payment_receipt" ? "accent" : "neutral"}>
                       {(doc.docType || "Unknown").replace("_", " ")}
                     </Badge>
                   </div>

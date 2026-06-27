@@ -3,7 +3,9 @@
 import { create } from "zustand";
 import {
   Client, Supplier, Lead, Booking, Trip, TeamMember, Notification,
-  UserSettings, Stage, ClientDocument, Invoice, InvoiceEditApproval, Transfer
+  UserSettings, Stage, ClientDocument, Invoice, InvoiceEditApproval, Transfer,
+  Task,
+  TaskComment,
 } from "./types";
 import {
   SEED_TEAM, DEFAULT_SETTINGS,
@@ -54,6 +56,7 @@ interface Store {
   deleteBooking: (id: string) => Promise<void>;
 
   addInvoice: (inv: Omit<Invoice, "id" | "createdAt">) => Promise<void>;
+  updateInvoice: (id: string, patch: Partial<Invoice>) => Promise<void>;
   proposeInvoiceEdit: (approval: Omit<InvoiceEditApproval, "id" | "approvedAt">) => Promise<void>;
 
   addTrip: (t: Omit<Trip, "id">) => Promise<void>;
@@ -131,20 +134,21 @@ export const useStore = create<Store>()((set, get) => ({
   fetchInitialData: async () => {
     set({ isLoading: true });
     
-    // Fetch data in parallel
-    const [
-      { data: clients },
-      { data: suppliers },
-      { data: leads },
-      { data: bookings },
-      { data: trips },
-      { data: transfers },
-      { data: clientDocuments },
-      { data: invoices },
-      { data: invoiceEditApprovals },
-      { data: tasks },
-      { data: taskComments }
-    ] = await Promise.all([
+    try {
+      // Fetch data in parallel
+      const [
+        { data: clients },
+        { data: suppliers },
+        { data: leads },
+        { data: bookings },
+        { data: trips },
+        { data: transfers },
+        { data: clientDocuments },
+        { data: invoices },
+        { data: invoiceEditApprovals },
+        { data: tasks },
+        { data: taskComments }
+      ] = await Promise.all([
       supabase.from("clients").select("*"),
       supabase.from("suppliers").select("*"),
       supabase.from("leads").select("*"),
@@ -173,6 +177,10 @@ export const useStore = create<Store>()((set, get) => ({
       taskComments: (taskComments || []).map(mapToCamel),
       isLoading: false
     });
+    } catch (error) {
+      console.error("Error fetching initial data:", error);
+      set({ isLoading: false });
+    }
   },
 
   addClient: async (c) => {
@@ -273,6 +281,10 @@ export const useStore = create<Store>()((set, get) => ({
   addInvoice: async (inv) => {
     const { data } = await supabase.from("invoices").insert(mapToSnake(inv)).select().single();
     if (data) set((s) => ({ invoices: [...s.invoices, mapToCamel(data)] }));
+  },
+  updateInvoice: async (id, patch) => {
+    set((s) => ({ invoices: s.invoices.map((inv) => (inv.id === id ? { ...inv, ...patch } : inv)) }));
+    await supabase.from("invoices").update(mapToSnake(patch)).eq("id", id);
   },
   proposeInvoiceEdit: async (approval) => {
     const { data } = await supabase.from("invoice_edit_approvals").insert(mapToSnake(approval)).select().single();
