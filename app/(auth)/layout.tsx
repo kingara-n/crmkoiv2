@@ -4,29 +4,15 @@ import { ReactNode } from "react";
 
 export default function AuthLayout({ children }: { children: ReactNode }) {
   return (
-    <div className="relative min-h-screen w-full overflow-hidden bg-ink-950 flex items-center justify-center">
-      {/* Graceful Fallback Gradient Background */}
-      <div className="absolute inset-0 z-0 bg-gradient-to-br from-ink-950 via-[#0a1128] to-ink-950" />
-      
-      {/* Video Background (if present, overlays the gradient) */}
-      <video
-        autoPlay
-        loop
-        muted
-        playsInline
-        className="absolute inset-0 z-0 h-full w-full object-cover opacity-60 mix-blend-screen"
-        poster="/videos/auth-background-poster.jpg"
-      >
-        <source src="/videos/auth-background.mp4" type="video/mp4" />
-      </video>
-
-      {/* Dark overlay to ensure text readability */}
-      <div className="absolute inset-0 z-0 bg-black/40" />
+    <div className="relative min-h-screen w-full overflow-hidden bg-neutral-50 flex items-center justify-center">
+      {/* Clean Gradient Background matching logo colors (Red, White, Gray) */}
+      <div className="absolute inset-0 z-0 bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-red-500/10 via-white to-neutral-200" />
+      <div className="absolute inset-0 z-0 bg-[radial-gradient(ellipse_at_bottom_left,_var(--tw-gradient-stops))] from-neutral-200 via-transparent to-transparent" />
 
       {/* Back to Home Link */}
       <Link 
         href="/" 
-        className="absolute top-6 left-6 z-10 flex items-center gap-2 text-sm font-medium text-neutral-300 hover:text-white transition-colors"
+        className="absolute top-6 left-6 z-10 flex items-center gap-2 text-sm font-medium text-neutral-500 hover:text-black transition-colors"
       >
         <ArrowLeft className="h-4 w-4" />
         Back to home
