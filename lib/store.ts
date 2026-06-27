@@ -8,6 +8,7 @@ import {
   TaskComment,
   LeadComment,
   PurchaseOrder,
+  DocumentTemplate,
 } from "./types";
 import {
   SEED_TEAM, DEFAULT_SETTINGS, SEED_POS, SEED_CLIENTS, SEED_SUPPLIERS, SEED_LEADS, SEED_BOOKINGS, SEED_TRIPS, SEED_TASKS, SEED_INVOICES
@@ -28,6 +29,7 @@ interface Store {
   settings: UserSettings;
   
   clientDocuments: ClientDocument[];
+  documentTemplates: DocumentTemplate[];
   invoices: Invoice[];
   invoiceEditApprovals: InvoiceEditApproval[];
   
@@ -44,6 +46,7 @@ interface Store {
   deleteClient: (id: string) => Promise<void>;
   
   addClientDocument: (doc: Omit<ClientDocument, "id" | "uploadedAt">) => Promise<void>;
+  addDocumentTemplate: (doc: Omit<DocumentTemplate, "id" | "createdAt">) => Promise<void>;
 
   addSupplier: (s: Omit<Supplier, "id" | "status">, asPending: boolean) => Promise<void>;
   approveSupplier: (id: string) => Promise<void>;
@@ -132,6 +135,10 @@ export const useStore = create<Store>()((set, get) => ({
   settings: DEFAULT_SETTINGS,
   
   clientDocuments: [],
+  documentTemplates: [
+    { id: "tmpl_1", name: "Standard Invoice", type: "invoice", imageUrl: "/koi-logo.png", createdAt: new Date().toISOString() },
+    { id: "tmpl_2", name: "Standard PO", type: "purchase_order", imageUrl: "/koi-logo.png", createdAt: new Date().toISOString() }
+  ],
   invoices: [],
   invoiceEditApprovals: [],
   
@@ -146,7 +153,7 @@ export const useStore = create<Store>()((set, get) => ({
     set({ isLoading: true });
 
     // Helper: resolve with seed data immediately if Supabase is unavailable
-    const withFallback = async <T>(promise: Promise<{data: T[] | null}>, fallback: T[]): Promise<T[]> => {
+    const withFallback = async <T>(promise: any, fallback: T[]): Promise<T[]> => {
       try {
         const { data } = await promise;
         return data && data.length > 0 ? data : fallback;
@@ -251,6 +258,12 @@ export const useStore = create<Store>()((set, get) => ({
   addClientDocument: async (doc) => {
     const { data } = await supabase.from("client_documents").insert(mapToSnake(doc)).select().single();
     if (data) set((s) => ({ clientDocuments: [...s.clientDocuments, mapToCamel(data)] }));
+  },
+
+  addDocumentTemplate: async (doc) => {
+    // For now, save locally in state (would go to Supabase table in reality)
+    const newDoc: DocumentTemplate = { ...doc, id: `dt_${Date.now()}`, createdAt: new Date().toISOString() };
+    set((s) => ({ documentTemplates: [...s.documentTemplates, newDoc] }));
   },
 
   addSupplier: async (sup, asPending) => {

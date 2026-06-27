@@ -37,6 +37,7 @@ import { PurchaseOrderModal } from "@/components/modals/PurchaseOrderModal";
 import { BookingInvoiceModal } from "@/components/modals/BookingInvoiceModal";
 import { formatMoneyFull, formatDate } from "@/lib/format";
 import { SupplierType } from "@/lib/types";
+import { generateInvoicePDF, generatePOPDF } from "@/lib/pdfGenerator";
 
 const TYPE_LABELS: Record<SupplierType, string> = {
   hotel: "Hotel",
@@ -52,6 +53,8 @@ export default function FinancialsPage() {
   const invoices = useStore((s) => s.invoices);
   const bookings = useStore((s) => s.bookings);
   const approvals = useStore((s) => s.invoiceEditApprovals);
+  const clients = useStore((s) => s.clients);
+  const templates = useStore((s) => s.documentTemplates);
 
   const suppliers = useStore((s) => s.suppliers);
   const purchaseOrders = useStore((s) => s.purchaseOrders);
@@ -96,6 +99,18 @@ export default function FinancialsPage() {
     });
     setEtimsSynced(true);
     setEtimsLoading(false);
+  };
+
+  const handleGeneratePDF = async (inv: any) => {
+    const template = templates.find(t => t.type === "invoice") || { id: "default", name: "Default", type: "invoice", imageUrl: "/koi-logo.png", createdAt: new Date().toISOString() };
+    const client = clients.find(c => c.id === inv.booking?.clientId);
+    await generateInvoicePDF(inv, template as any, client, inv.booking);
+  };
+
+  const handleGeneratePOPDF = async (po: any) => {
+    const template = templates.find(t => t.type === "purchase_order") || { id: "default", name: "Default", type: "purchase_order", imageUrl: "/koi-logo.png", createdAt: new Date().toISOString() };
+    const supplier = suppliers.find(s => s.id === po.supplierId);
+    await generatePOPDF(po, template as any, supplier);
   };
 
   const filteredInvoices = useMemo(() => {
@@ -361,13 +376,22 @@ export default function FinancialsPage() {
                       </div>
                     </td>
                     <td className="px-5 py-4 text-right">
-                      <Button
-                        variant="secondary"
-                        className="text-xs py-1"
-                        onClick={() => setSelectedBookingId(inv.bookingId)}
-                      >
-                        Manage
-                      </Button>
+                      <div className="flex justify-end gap-2">
+                        <Button
+                          variant="secondary"
+                          className="text-xs py-1"
+                          onClick={() => handleGeneratePDF(inv)}
+                        >
+                          <FileText className="h-3 w-3 mr-1" /> PDF
+                        </Button>
+                        <Button
+                          variant="secondary"
+                          className="text-xs py-1"
+                          onClick={() => setSelectedBookingId(inv.bookingId)}
+                        >
+                          Manage
+                        </Button>
+                      </div>
                     </td>
                   </tr>
                 ))}
@@ -585,8 +609,17 @@ export default function FinancialsPage() {
                         {po.status.toUpperCase()}
                       </Badge>
                     </td>
-                    <td className="px-5 py-4 text-right text-neutral-500">
-                      {formatDate(po.createdAt)}
+                    <td className="px-5 py-4 text-right">
+                      <div className="flex justify-end gap-2 items-center">
+                        <span className="text-neutral-500 mr-2">{formatDate(po.createdAt)}</span>
+                        <Button
+                          variant="secondary"
+                          className="text-xs py-1"
+                          onClick={() => handleGeneratePOPDF(po)}
+                        >
+                          <FileText className="h-3 w-3 mr-1" /> PDF
+                        </Button>
+                      </div>
                     </td>
                   </tr>
                 ))}

@@ -41,15 +41,14 @@ export function Sidebar() {
       } flex flex-col`}
     >
       {/* Brand */}
-      <div className="px-3 py-4 flex items-center gap-2 border-b border-ink-700/50">
-        <div className="shrink-0 flex items-center justify-center" style={{ width: collapsed ? 36 : 40, height: collapsed ? 36 : 40 }}>
+      <div className="px-2 py-4 flex items-center justify-center border-b border-ink-700/50">
+        <div className="shrink-0 flex items-center justify-center" style={{ width: collapsed ? 44 : 160, height: collapsed ? 44 : 64 }}>
           <Image
             src="/koi-logo.png"
             alt="Koi CRM"
-            width={collapsed ? 36 : 120}
-            height={collapsed ? 36 : 40}
-            className={`object-contain transition-all duration-200 ${collapsed ? "w-9 h-9" : "w-28 h-10"}`}
-            style={{ filter: "drop-shadow(0 1px 4px rgba(0,0,0,0.4))" }}
+            width={collapsed ? 44 : 160}
+            height={collapsed ? 44 : 64}
+            className={`object-contain transition-all duration-200 ${collapsed ? "w-11 h-11" : "w-40 h-16"}`}
           />
         </div>
       </div>

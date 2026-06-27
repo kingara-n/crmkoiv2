@@ -213,6 +213,14 @@ export interface ClientDocument {
   uploadedAt: string;
 }
 
+export interface DocumentTemplate {
+  id: string;
+  name: string;
+  type: "invoice" | "purchase_order";
+  imageUrl: string;
+  createdAt: string;
+}
+
 export interface Invoice {
   id: string;
   bookingId: string;
