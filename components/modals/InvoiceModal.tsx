@@ -105,7 +105,7 @@ export function InvoiceModal({
                   <p>Requested change: {JSON.stringify(pendingEdits[0].diffJson)}</p>
                   <p className="mt-1">{invApprovals.filter(a => a.approverId !== "pending").length} / 3 Manager Approvals</p>
                   {settings.role === "management" && (
-                    <Button size="sm" className="mt-2" onClick={() => alert("Approval logic wired to Supabase trigger.")}>
+                    <Button className="mt-2 text-xs py-1 px-2" onClick={() => alert("Approval logic wired to Supabase trigger.")}>
                       Approve Edit
                     </Button>
                   )}
@@ -113,7 +113,7 @@ export function InvoiceModal({
               )}
 
               {editingId !== inv.id && pendingEdits.length === 0 && (
-                <Button size="sm" variant="secondary" className="mt-3" onClick={() => {
+                <Button variant="secondary" className="mt-3 text-xs py-1 px-2" onClick={() => {
                   setEditingId(inv.id);
                   setAmount(inv.amountKes.toString());
                   setDueDate(inv.dueDate || "");
@@ -136,8 +136,8 @@ export function InvoiceModal({
                     </div>
                   </div>
                   <div className="flex gap-2">
-                    <Button size="sm" onClick={handleProposeEdit}>Submit to Managers</Button>
-                    <Button size="sm" variant="secondary" onClick={() => setEditingId(null)}>Cancel</Button>
+                    <Button className="text-xs py-1 px-2" onClick={handleProposeEdit}>Submit to Managers</Button>
+                    <Button variant="secondary" className="text-xs py-1 px-2" onClick={() => setEditingId(null)}>Cancel</Button>
                   </div>
                 </div>
               )}
