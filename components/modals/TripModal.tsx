@@ -33,14 +33,14 @@ export function TripModal({
   useEffect(() => {
     if (!open) return;
     if (editing) {
-      setName(editing.name);
+      setName(editing.name || "");
       setDestination(editing.destination);
-      setClientName(editing.clientName);
-      setOwnerName(editing.ownerName);
+      setClientName(editing.clientName || "");
+      setOwnerName(editing.ownerName || "");
       setStartDate(editing.startDate);
       setEndDate(editing.endDate);
       setStatus(editing.status);
-      setTravellerCount(String(editing.travellerCount));
+      setTravellerCount(String(editing.travellerCount || editing.travelerCount || 0));
     } else {
       setName(""); setDestination("");
       setClientName(clients[0]?.name ?? "");
