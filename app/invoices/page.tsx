@@ -387,7 +387,7 @@ export default function FinancialsPage() {
                         <Button
                           variant="secondary"
                           className="text-xs py-1"
-                          onClick={() => setSelectedBookingId(inv.bookingId)}
+                          onClick={() => setSelectedBookingId(inv.bookingId ?? null)}
                         >
                           Manage
                         </Button>

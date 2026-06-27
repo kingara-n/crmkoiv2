@@ -223,7 +223,7 @@ export interface DocumentTemplate {
 
 export interface Invoice {
   id: string;
-  bookingId: string;
+  bookingId?: string;
   clientId?: string;
   number: string;
   amountKes: number;
