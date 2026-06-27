@@ -12,8 +12,8 @@ export type Stage =
 
 export const STAGE_ORDER: Stage[] = [
   "new_lead",
-  "in_discussion",
   "quoted",
+  "in_discussion",
   "confirmed",
   "paid",
 ];

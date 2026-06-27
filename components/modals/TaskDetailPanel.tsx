@@ -22,12 +22,14 @@ export function TaskDetailPanel({
   const updateTask = useStore((s) => s.updateTask);
   const addTaskComment = useStore((s) => s.addTaskComment);
   const addNotification = useStore((s) => s.addNotification);
-  const comments = useStore((s) => s.taskComments).filter((c) => c.taskId === task.id);
+  const comments = useStore((s) => s.taskComments).filter(
+    (c) => c.taskId === task.id,
+  );
   const team = useStore((s) => s.team);
 
   // Filter team based on query
-  const filteredTeam = team.filter(t => 
-    t.name.toLowerCase().includes(mentionQuery.toLowerCase())
+  const filteredTeam = team.filter((t) =>
+    t.name.toLowerCase().includes(mentionQuery.toLowerCase()),
   );
 
   useEffect(() => {
@@ -42,7 +44,7 @@ export function TaskDetailPanel({
   }, [newComment]);
 
   function insertMention(user: any) {
-    const replacement = `@${user.name.replace(/\s+/g, '')} `;
+    const replacement = `@${user.name.replace(/\s+/g, "")} `;
     const updated = newComment.replace(/@\w*$/, replacement);
     setNewComment(updated);
     setShowMentions(false);
@@ -57,7 +59,7 @@ export function TaskDetailPanel({
 
     await addTaskComment({
       taskId: task.id,
-      userId: "local-user", 
+      userId: "local-user",
       userName: authorName,
       comment: newComment.trim(),
     });
@@ -70,7 +72,9 @@ export function TaskDetailPanel({
         // e.g. "@JohnDoe" -> "JohnDoe"
         const mentionedName = mention.substring(1).toLowerCase();
         // find team member
-        const taggedUser = team.find(t => t.name.replace(/\s+/g, '').toLowerCase() === mentionedName);
+        const taggedUser = team.find(
+          (t) => t.name.replace(/\s+/g, "").toLowerCase() === mentionedName,
+        );
         if (taggedUser) {
           // Send notification
           await addNotification({
@@ -99,7 +103,10 @@ export function TaskDetailPanel({
 
   return (
     <>
-      <div className="fixed inset-0 bg-black/40 backdrop-blur-sm z-40" onClick={onClose} />
+      <div
+        className="fixed inset-0 bg-black/40 backdrop-blur-sm z-40"
+        onClick={onClose}
+      />
       <div className="fixed top-0 right-0 h-full w-[500px] bg-ink-900 border-l border-ink-700 text-white shadow-2xl z-50 flex flex-col animate-slide-in-right">
         {/* Header */}
         <div className="flex items-center justify-between border-b border-ink-700 px-6 py-4">
@@ -108,7 +115,10 @@ export function TaskDetailPanel({
             <button className="p-2 text-neutral-400 hover:text-white hover:bg-ink-800 rounded-lg transition-colors">
               <MoreHorizontal className="h-5 w-5" />
             </button>
-            <button onClick={onClose} className="p-2 text-neutral-400 hover:text-white hover:bg-ink-800 rounded-lg transition-colors">
+            <button
+              onClick={onClose}
+              className="p-2 text-neutral-400 hover:text-white hover:bg-ink-800 rounded-lg transition-colors"
+            >
               <X className="h-5 w-5" />
             </button>
           </div>
@@ -125,9 +135,14 @@ export function TaskDetailPanel({
                 <span>Assign to</span>
               </div>
               <div className="flex items-center gap-3">
-                <Avatar initials={task.assignedName?.substring(0, 2) || "??"} size="sm" />
+                <Avatar
+                  initials={task.assignedName?.substring(0, 2) || "??"}
+                  size="sm"
+                />
                 <div>
-                  <span className="font-medium text-white">{task.assignedName || "Unassigned"}</span>
+                  <span className="font-medium text-white">
+                    {task.assignedName || "Unassigned"}
+                  </span>
                 </div>
               </div>
             </div>
@@ -135,12 +150,14 @@ export function TaskDetailPanel({
             <div className="grid grid-cols-[120px_1fr] items-center text-sm">
               <div className="flex items-center gap-2 text-neutral-400">
                 <Tag className="h-4 w-4" />
-                <span>Opportunities</span>
+                <span>Project</span>
               </div>
               <div className="font-medium">
-                {task.relatedOpportunity || "—"} 
+                {task.relatedOpportunity || "—"}
                 {task.relatedOpportunity && (
-                  <span className="text-accent-500 ml-2 cursor-pointer hover:underline text-xs">View Details</span>
+                  <span className="text-accent-500 ml-2 cursor-pointer hover:underline text-xs">
+                    View Details
+                  </span>
                 )}
               </div>
             </div>
@@ -158,8 +175,8 @@ export function TaskDetailPanel({
             <div className="grid grid-cols-[120px_1fr] items-center text-sm">
               <div className="text-neutral-400">Status</div>
               <div>
-                <select 
-                  value={task.status} 
+                <select
+                  value={task.status}
                   onChange={handleStatusChange}
                   className="bg-ink-800 border border-ink-700 text-white text-sm font-medium rounded-lg px-3 py-1 outline-none focus:ring-1 focus:ring-accent-500"
                 >
@@ -180,7 +197,7 @@ export function TaskDetailPanel({
 
           <div className="border-t border-ink-700 pt-6">
             <h3 className="font-semibold mb-4">Comments</h3>
-            
+
             <form onSubmit={handleAddComment} className="mb-6 relative">
               <div className="relative flex items-center">
                 <input
@@ -204,7 +221,7 @@ export function TaskDetailPanel({
               {/* Mentions Dropdown */}
               {showMentions && filteredTeam.length > 0 && (
                 <div className="absolute bottom-full left-0 mb-1 w-64 bg-ink-800 border border-ink-700 rounded-lg shadow-xl overflow-hidden z-10">
-                  {filteredTeam.map(user => (
+                  {filteredTeam.map((user) => (
                     <button
                       key={user.id}
                       type="button"
@@ -222,24 +239,33 @@ export function TaskDetailPanel({
             <div className="space-y-6 pb-12">
               {comments.map((comment) => (
                 <div key={comment.id} className="flex gap-3 text-sm">
-                  <Avatar initials={comment.userName?.substring(0, 2) || "??"} size="sm" />
+                  <Avatar
+                    initials={comment.userName?.substring(0, 2) || "??"}
+                    size="sm"
+                  />
                   <div className="flex-1">
                     <div className="flex items-baseline justify-between mb-1">
                       <div className="flex items-baseline gap-2">
-                        <span className="font-semibold text-white">{comment.userName}</span>
-                        <span className="text-xs text-neutral-500">{formatDate(comment.createdAt)}</span>
+                        <span className="font-semibold text-white">
+                          {comment.userName}
+                        </span>
+                        <span className="text-xs text-neutral-500">
+                          {formatDate(comment.createdAt)}
+                        </span>
                       </div>
-                      <button className="text-neutral-500 hover:text-white">
-                        <MoreHorizontal className="h-4 w-4" />
-                      </button>
                     </div>
                     <p className="text-sm text-neutral-300 leading-relaxed">
                       {/* Highlight mentions in comment */}
-                      {comment.comment.split(/(@[a-zA-Z]+)/g).map((part, i) => 
-                        part.startsWith('@') ? <span key={i} className="text-accent-400 font-medium">{part}</span> : part
+                      {comment.comment.split(/(@[a-zA-Z]+)/g).map((part, i) =>
+                        part.startsWith("@") ? (
+                          <span key={i} className="text-accent-400 font-medium">
+                            {part}
+                          </span>
+                        ) : (
+                          part
+                        ),
                       )}
                     </p>
-                    <button className="text-accent-500 text-xs font-medium mt-1 hover:underline">Reply</button>
                   </div>
                 </div>
               ))}
@@ -247,8 +273,10 @@ export function TaskDetailPanel({
           </div>
         </div>
       </div>
-      
-      <style dangerouslySetInnerHTML={{__html: `
+
+      <style
+        dangerouslySetInnerHTML={{
+          __html: `
         @keyframes slideInRight {
           from { transform: translateX(100%); }
           to { transform: translateX(0); }
@@ -256,7 +284,9 @@ export function TaskDetailPanel({
         .animate-slide-in-right {
           animation: slideInRight 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
         }
-      `}} />
+      `,
+        }}
+      />
     </>
   );
 }

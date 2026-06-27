@@ -21,7 +21,15 @@ export function KanbanColumn({
 }) {
   const { setNodeRef, isOver } = useDroppable({ id: stage });
   const currency = useCurrency();
-  const total = leads.reduce((sum, l) => sum + l.value, 0);
+  const total = leads.reduce((sum, l) => {
+    let converted = l.value;
+    if (l.currency !== currency) {
+      if (l.currency === 'USD' && currency === 'KES') converted *= 130;
+      else if (l.currency === 'KES' && currency === 'USD') converted /= 130;
+      else if (l.currency === 'EUR' && currency === 'KES') converted *= 140;
+    }
+    return sum + converted;
+  }, 0);
 
   return (
     <div className="flex w-72 shrink-0 flex-col">

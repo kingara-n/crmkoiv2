@@ -3,17 +3,25 @@
 import { useState } from "react";
 import { useStore } from "@/lib/store";
 import { useIsHydrated } from "@/lib/useIsHydrated";
-import { Plus, MoreHorizontal, Calendar, Bell, Search, Filter } from "lucide-react";
+import {
+  Plus,
+  MoreHorizontal,
+} from "lucide-react";
 import { Avatar } from "@/components/ui/Avatar";
 import { Badge } from "@/components/ui/Badge";
 import { TaskStatus } from "@/lib/types";
 import { TaskDetailPanel } from "@/components/modals/TaskDetailPanel";
 import { TaskModal } from "@/components/modals/TaskModal";
 import { formatDate } from "@/lib/format";
+import { Button } from "@/components/ui/Button";
 
 const COLUMNS: { id: TaskStatus; label: string; color: string }[] = [
   { id: "to-do", label: "To-do", color: "bg-blue-100 text-blue-800" },
-  { id: "in-progress", label: "In Progress", color: "bg-yellow-100 text-yellow-800" },
+  {
+    id: "in-progress",
+    label: "In Progress",
+    color: "bg-yellow-100 text-yellow-800",
+  },
   { id: "done", label: "Done", color: "bg-green-100 text-green-800" },
 ];
 
@@ -35,26 +43,12 @@ export default function TasksPage() {
           <h1 className="text-2xl font-bold text-white">Tasks</h1>
         </div>
         <div className="flex items-center gap-3">
-          <button 
-            onClick={() => setTaskModalOpen(true)}
-            className="flex items-center gap-2 px-4 py-2 bg-accent-500 text-white rounded-lg hover:bg-accent-600 transition shadow-sm font-medium text-sm"
-          >
-            <Plus className="h-4 w-4" />
+          <Button icon={<Plus className="h-4 w-4" />} onClick={() => setTaskModalOpen(true)}>
             New Task
-          </button>
+          </Button>
         </div>
       </div>
 
-      <div className="flex items-center gap-3 mb-6">
-        <button className="flex items-center gap-2 border border-ink-700 bg-ink-900 px-3 py-1.5 rounded-lg text-sm text-neutral-300 hover:bg-ink-850">
-          <Filter className="h-4 w-4" />
-          Priority: <span className="text-blue-400">All Tasks</span>
-        </button>
-        <button className="flex items-center gap-2 border border-ink-700 bg-ink-900 px-3 py-1.5 rounded-lg text-sm text-neutral-300 hover:bg-ink-850">
-          <Calendar className="h-4 w-4" />
-          All Assignee
-        </button>
-      </div>
 
       {/* Kanban Board */}
       <div className="flex-1 overflow-x-auto">
@@ -65,7 +59,9 @@ export default function TasksPage() {
               <div key={col.id} className="w-[320px] flex flex-col">
                 <div className="flex items-center justify-between mb-4">
                   <div className="flex items-center gap-2">
-                    <span className={`text-xs font-semibold px-2 py-0.5 rounded ${col.color}`}>
+                    <span
+                      className={`text-xs font-semibold px-2 py-0.5 rounded ${col.color}`}
+                    >
                       {col.label}
                     </span>
                     <span className="text-xs text-neutral-500 bg-ink-800 px-2 py-0.5 rounded-full font-medium">
@@ -97,28 +93,41 @@ export default function TasksPage() {
                       </div>
 
                       <div className="mb-4 space-y-1">
-                        <p className="text-xs text-neutral-500">Opportunities</p>
-                        <p className="text-sm text-neutral-300">{task.relatedOpportunity || "—"}</p>
+                        <p className="text-xs text-neutral-500">
+                          Project
+                        </p>
+                        <p className="text-sm text-neutral-300">
+                          {task.relatedOpportunity || "—"}
+                        </p>
                       </div>
 
                       <div className="mb-4 space-y-1">
                         <p className="text-xs text-neutral-500">Due Date</p>
-                        <p className="text-sm font-medium text-white">{task.dueDate ? formatDate(task.dueDate) : "—"}</p>
+                        <p className="text-sm font-medium text-white">
+                          {task.dueDate ? formatDate(task.dueDate) : "—"}
+                        </p>
                       </div>
 
                       <div className="flex items-center justify-between pt-2">
                         {task.priority ? (
-                          <span className={`text-[10px] font-semibold px-2 py-1 rounded-md uppercase tracking-wider ${
-                            task.priority === "Marketing" ? "bg-purple-500/20 text-purple-400" :
-                            task.priority === "Sales-Oriented" ? "bg-blue-500/20 text-blue-400" :
-                            "bg-green-500/20 text-green-400"
-                          }`}>
+                          <span
+                            className={`text-[10px] font-semibold px-2 py-1 rounded-md uppercase tracking-wider ${
+                              task.priority === "Marketing"
+                                ? "bg-purple-500/20 text-purple-400"
+                                : task.priority === "Sales-Oriented"
+                                  ? "bg-blue-500/20 text-blue-400"
+                                  : "bg-green-500/20 text-green-400"
+                            }`}
+                          >
                             {task.priority}
                           </span>
                         ) : (
                           <div />
                         )}
-                        <Avatar initials={task.assignedName?.substring(0, 2) || "??"} size="sm" />
+                        <Avatar
+                          initials={task.assignedName?.substring(0, 2) || "??"}
+                          size="sm"
+                        />
                       </div>
                     </div>
                   ))}
@@ -130,9 +139,9 @@ export default function TasksPage() {
       </div>
 
       {activeTask && (
-        <TaskDetailPanel 
-          task={tasks.find(t => t.id === activeTask)!} 
-          onClose={() => setActiveTask(null)} 
+        <TaskDetailPanel
+          task={tasks.find((t) => t.id === activeTask)!}
+          onClose={() => setActiveTask(null)}
         />
       )}
       {/* Task Modal */}

@@ -5,7 +5,7 @@ import { Modal } from "@/components/ui/Modal";
 import { Button } from "@/components/ui/Button";
 import { Input, Select, Label } from "@/components/ui/Field";
 import { useStore } from "@/lib/store";
-import { Stage, STAGE_LABELS, STAGE_ORDER, Lead } from "@/lib/types";
+import { Stage, STAGE_LABELS, STAGE_ORDER, Lead, Currency } from "@/lib/types";
 
 export function LeadModal({
   open,
@@ -28,6 +28,7 @@ export function LeadModal({
   const [clientId, setClientId] = useState("");
   const [destination, setDestination] = useState("");
   const [value, setValue] = useState("");
+  const [currency, setCurrency] = useState<Currency>("KES");
   const [stage, setStage] = useState<Stage>(defaultStage ?? "new_lead");
   const [ownerId, setOwnerId] = useState("");
   const [probability, setProbability] = useState("50");
@@ -41,6 +42,7 @@ export function LeadModal({
       setClientId(editing.clientId);
       setDestination(editing.destination);
       setValue(String(editing.value));
+      setCurrency(editing.currency || "KES");
       setStage(editing.stage);
       setOwnerId(editing.ownerId);
       setProbability(String(editing.probability));
@@ -50,6 +52,7 @@ export function LeadModal({
       setClientId(clients[0]?.id ?? "");
       setDestination("");
       setValue("");
+      setCurrency("KES");
       setStage(defaultStage ?? "new_lead");
       setOwnerId(team[0]?.id ?? "");
       setProbability("50");
@@ -68,6 +71,7 @@ export function LeadModal({
         clientId,
         destination,
         value: numValue,
+        currency,
         stage,
         probability: Number(probability),
         ownerId,
@@ -80,7 +84,7 @@ export function LeadModal({
         title,
         destination,
         value: numValue,
-        currency: "KES",
+        currency,
         stage,
         probability: Number(probability),
         ownerId,
@@ -148,14 +152,24 @@ export function LeadModal({
 
         <div className="grid grid-cols-2 gap-3">
           <div>
-            <Label htmlFor="value">Value (KES)</Label>
-            <Input
-              id="value"
-              type="number"
-              value={value}
-              onChange={(e) => setValue(e.target.value)}
-              placeholder="580000"
-            />
+            <Label htmlFor="value">Value</Label>
+            <div className="flex gap-2">
+              <Select id="currency" value={currency} onChange={(e) => setCurrency(e.target.value as Currency)} className="w-24">
+                <option value="KES">KES</option>
+                <option value="USD">USD</option>
+                <option value="EUR">EUR</option>
+                <option value="GBP">GBP</option>
+                <option value="CAD">CAD</option>
+              </Select>
+              <Input
+                id="value"
+                type="number"
+                value={value}
+                onChange={(e) => setValue(e.target.value)}
+                placeholder="580000"
+                className="flex-1"
+              />
+            </div>
           </div>
           <div>
             <Label htmlFor="stage">Stage</Label>
@@ -197,7 +211,10 @@ export function LeadModal({
             max={100}
             value={probability}
             onChange={(e) => setProbability(e.target.value)}
-            className="w-full accent-accent-500"
+            className="w-full accent-accent-500 rounded-lg appearance-none h-2"
+            style={{
+              background: `linear-gradient(to right, #ef4444 0%, #eab308 50%, #22c55e 100%)`
+            }}
           />
         </div>
       </div>
