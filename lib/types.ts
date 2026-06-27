@@ -4,24 +4,24 @@
 export type UserRole = "management" | "sales" | "accounts" | "operations";
 
 export type Stage =
-  | "new_enquiry"
-  | "quoted"
+  | "new_lead"
   | "in_discussion"
+  | "quoted"
   | "confirmed"
   | "paid";
 
 export const STAGE_ORDER: Stage[] = [
-  "new_enquiry",
-  "quoted",
+  "new_lead",
   "in_discussion",
+  "quoted",
   "confirmed",
   "paid",
 ];
 
 export const STAGE_LABELS: Record<Stage, string> = {
-  new_enquiry: "New enquiry",
-  quoted: "Quoted",
+  new_lead: "New Lead",
   in_discussion: "In discussion",
+  quoted: "Quoted",
   confirmed: "Confirmed",
   paid: "Paid",
 };
@@ -95,6 +95,15 @@ export interface Lead {
   ownerName: string;
   daysInStage: number;
   source: string;          // 'referral', 'website', 'corporate', ...
+  createdAt: string;
+}
+
+export interface LeadComment {
+  id: string;
+  leadId: string;
+  userId?: string;
+  userName?: string;
+  comment: string;
   createdAt: string;
 }
 

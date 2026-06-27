@@ -60,17 +60,20 @@ export default function OverviewPage() {
 
   // Live pipeline totals — recompute from current leads
   const pipelineByStage: Record<Stage, { count: number; value: number }> = {
-    new_enquiry: { count: 0, value: 0 },
+    new_lead: { count: 0, value: 0 },
     quoted: { count: 0, value: 0 },
     in_discussion: { count: 0, value: 0 },
     confirmed: { count: 0, value: 0 },
     paid: { count: 0, value: 0 },
   };
   leads.forEach((l) => {
-    pipelineByStage[l.stage].count++;
-    pipelineByStage[l.stage].value += (l as any).valueKes || l.value || 0;
+    // legacy migration
+    const stage = l.stage === "new_enquiry" as any ? "new_lead" : l.stage;
+    if (pipelineByStage[stage]) {
+      pipelineByStage[stage].count++;
+      pipelineByStage[stage].value += (l as any).valueKes || l.value || 0;
+    }
   });
-
   const totalRevenue = clients.reduce((sum, c) => sum + ((c as any).revenueKes || c.revenue || 0), 0);
   const totalPipelineValue = leads.reduce((sum, l) => sum + ((l as any).valueKes || l.value || 0), 0);
   const totalLeads = leads.length;

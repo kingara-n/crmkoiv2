@@ -1,28 +1,29 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
-import { X, Calendar, MoreHorizontal, User, Tag, Send } from "lucide-react";
-import { Task, TaskStatus } from "@/lib/types";
-import { useStore } from "@/lib/store";
+import { X, Send, MoreHorizontal, User, MapPin, Building2 } from "lucide-react";
+import { Lead, Stage, STAGE_LABELS } from "@/lib/types";
+import { useStore, useCurrency } from "@/lib/store";
 import { Avatar } from "@/components/ui/Avatar";
-import { formatDate } from "@/lib/format";
+import { formatDate, formatMoney } from "@/lib/format";
 
-export function TaskDetailPanel({
-  task,
+export function LeadDetailPanel({
+  lead,
   onClose,
 }: {
-  task: Task;
+  lead: Lead;
   onClose: () => void;
 }) {
+  const currency = useCurrency();
   const [newComment, setNewComment] = useState("");
   const [showMentions, setShowMentions] = useState(false);
   const [mentionQuery, setMentionQuery] = useState("");
   const inputRef = useRef<HTMLInputElement>(null);
 
-  const updateTask = useStore((s) => s.updateTask);
-  const addTaskComment = useStore((s) => s.addTaskComment);
+  const updateLead = useStore((s) => s.updateLead);
+  const addLeadComment = useStore((s) => s.addLeadComment);
   const addNotification = useStore((s) => s.addNotification);
-  const comments = useStore((s) => s.taskComments).filter((c) => c.taskId === task.id);
+  const comments = useStore((s) => s.leadComments).filter((c) => c.leadId === lead.id);
   const team = useStore((s) => s.team);
 
   // Filter team based on query
@@ -55,8 +56,8 @@ export function TaskDetailPanel({
 
     const authorName = "Local Admin";
 
-    await addTaskComment({
-      taskId: task.id,
+    await addLeadComment({
+      leadId: lead.id,
       userId: "local-user", 
       userName: authorName,
       comment: newComment.trim(),
@@ -77,7 +78,7 @@ export function TaskDetailPanel({
             userId: taggedUser.id,
             authorName: authorName,
             authorInitials: "LA",
-            actionText: `Mentioned you in a comment on "${task.title}"`,
+            actionText: `Mentioned you in a lead comment on "${lead.title}"`,
           });
         }
       }
@@ -93,9 +94,23 @@ export function TaskDetailPanel({
     }
   }
 
-  function handleStatusChange(e: React.ChangeEvent<HTMLSelectElement>) {
-    updateTask(task.id, { status: e.target.value as TaskStatus });
+  function handleStageChange(e: React.ChangeEvent<HTMLSelectElement>) {
+    updateLead(lead.id, { stage: e.target.value as Stage });
   }
+
+  function handleProbabilityChange(e: React.ChangeEvent<HTMLInputElement>) {
+    updateLead(lead.id, { probability: parseInt(e.target.value, 10) });
+  }
+
+  // Dynamic probability color mapping
+  // 0 -> Red, 50 -> Yellow, 100 -> Green
+  const getProbabilityColor = (prob: number) => {
+    if (prob < 30) return "text-red-400";
+    if (prob < 70) return "text-yellow-400";
+    return "text-green-400";
+  };
+
+  const probColorClass = getProbabilityColor(lead.probability);
 
   return (
     <>
@@ -103,7 +118,7 @@ export function TaskDetailPanel({
       <div className="fixed top-0 right-0 h-full w-[500px] bg-ink-900 border-l border-ink-700 text-white shadow-2xl z-50 flex flex-col animate-slide-in-right">
         {/* Header */}
         <div className="flex items-center justify-between border-b border-ink-700 px-6 py-4">
-          <h2 className="text-lg font-semibold">Task Details</h2>
+          <h2 className="text-lg font-semibold">Lead Details</h2>
           <div className="flex items-center gap-2">
             <button className="p-2 text-neutral-400 hover:text-white hover:bg-ink-800 rounded-lg transition-colors">
               <MoreHorizontal className="h-5 w-5" />
@@ -116,7 +131,7 @@ export function TaskDetailPanel({
 
         {/* Content */}
         <div className="flex-1 overflow-y-auto px-6 py-6">
-          <h1 className="text-2xl font-bold mb-6">{task.title}</h1>
+          <h1 className="text-2xl font-bold mb-6">{lead.title}</h1>
 
           <div className="space-y-4 mb-8">
             <div className="grid grid-cols-[120px_1fr] items-center text-sm">
@@ -125,57 +140,62 @@ export function TaskDetailPanel({
                 <span>Assign to</span>
               </div>
               <div className="flex items-center gap-3">
-                <Avatar initials={task.assignedName?.substring(0, 2) || "??"} size="sm" />
+                <Avatar initials={lead.ownerName?.substring(0, 2) || "??"} size="sm" />
                 <div>
-                  <span className="font-medium text-white">{task.assignedName || "Unassigned"}</span>
+                  <span className="font-medium text-white">{lead.ownerName || "Unassigned"}</span>
                 </div>
               </div>
             </div>
 
             <div className="grid grid-cols-[120px_1fr] items-center text-sm">
               <div className="flex items-center gap-2 text-neutral-400">
-                <Tag className="h-4 w-4" />
-                <span>Opportunities</span>
+                <MapPin className="h-4 w-4" />
+                <span>Destination</span>
               </div>
-              <div className="font-medium">
-                {task.relatedOpportunity || "—"} 
-                {task.relatedOpportunity && (
-                  <span className="text-accent-500 ml-2 cursor-pointer hover:underline text-xs">View Details</span>
-                )}
+              <div className="font-medium text-white">
+                {lead.destination || "—"}
               </div>
             </div>
 
             <div className="grid grid-cols-[120px_1fr] items-center text-sm">
               <div className="flex items-center gap-2 text-neutral-400">
-                <Calendar className="h-4 w-4" />
-                <span>Due date</span>
+                <Building2 className="h-4 w-4" />
+                <span>Value</span>
               </div>
-              <div className="font-medium">
-                {task.dueDate ? formatDate(task.dueDate) : "No due date"}
+              <div className="font-medium text-accent-400">
+                {formatMoney(lead.value, currency)}
               </div>
             </div>
 
             <div className="grid grid-cols-[120px_1fr] items-center text-sm">
-              <div className="text-neutral-400">Status</div>
+              <div className="text-neutral-400">Stage</div>
               <div>
                 <select 
-                  value={task.status} 
-                  onChange={handleStatusChange}
+                  value={lead.stage} 
+                  onChange={handleStageChange}
                   className="bg-ink-800 border border-ink-700 text-white text-sm font-medium rounded-lg px-3 py-1 outline-none focus:ring-1 focus:ring-accent-500"
                 >
-                  <option value="to-do">To-do</option>
-                  <option value="in-progress">In Progress</option>
-                  <option value="done">Done</option>
+                  {Object.entries(STAGE_LABELS).map(([key, label]) => (
+                    <option key={key} value={key}>{label}</option>
+                  ))}
                 </select>
               </div>
             </div>
-          </div>
 
-          <div className="border-t border-ink-700 pt-6 mb-8">
-            <h3 className="font-semibold mb-3">Description</h3>
-            <p className="text-sm text-neutral-300 leading-relaxed whitespace-pre-wrap">
-              {task.description || "No description provided."}
-            </p>
+            <div className="pt-4">
+              <div className="flex items-center justify-between text-sm mb-2">
+                <span className="text-neutral-400">Probability</span>
+                <span className={`font-semibold ${probColorClass}`}>{lead.probability}%</span>
+              </div>
+              <input
+                type="range"
+                min="0"
+                max="100"
+                value={lead.probability}
+                onChange={handleProbabilityChange}
+                className="w-full accent-accent-500 h-2 bg-ink-800 rounded-lg appearance-none cursor-pointer"
+              />
+            </div>
           </div>
 
           <div className="border-t border-ink-700 pt-6">

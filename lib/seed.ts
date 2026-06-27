@@ -101,11 +101,11 @@ export const SEED_SUPPLIERS: Supplier[] = [
 export const SEED_LEADS: Lead[] = [
   // New enquiry (within 24-hour SLA window)
   { id: "l1", clientId: "c5", title: "Wanjiru honeymoon · Zanzibar", destination: "Zanzibar",
-    value: 580_000, currency: "KES", stage: "new_enquiry", probability: 20,
+    value: 580_000, currency: "KES", stage: "new_lead", probability: 20,
     ownerId: "t1", ownerName: "Sarah Chen", daysInStage: 0, source: "Referral",
     createdAt: "2026-06-26" },
   { id: "l2", clientId: "c1", title: "Acme team offsite · Naivasha", destination: "Naivasha",
-    value: 1_240_000, currency: "KES", stage: "new_enquiry", probability: 25,
+    value: 1_240_000, currency: "KES", stage: "new_lead", probability: 25,
     ownerId: "t2", ownerName: "Mike Johnson", daysInStage: 1, source: "Corporate tender",
     createdAt: "2026-06-25" },
 
@@ -156,7 +156,7 @@ export const SEED_BOOKINGS: Booking[] = [
     closeDate: "2026-07-02" },
   { id: "b5", clientId: "c5", clientName: "Amani Wanjiru", contactName: "Amani W.",
     contactEmail: "amani.w@gmail.com", destination: "Zanzibar", value: 580_000,
-    currency: "KES", status: "pending", stage: "new_enquiry", ownerName: "Sarah Chen",
+    currency: "KES", status: "pending", stage: "new_lead", ownerName: "Sarah Chen",
     closeDate: "2026-07-20" },
   { id: "b6", clientId: "c6", clientName: "Otieno Family", contactName: "David O.",
     contactEmail: "d.otieno@gmail.com", destination: "Mombasa", value: 320_000,

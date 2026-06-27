@@ -2,11 +2,11 @@
 
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
-import { Building2, User, Clock } from "lucide-react";
+import { MoreHorizontal } from "lucide-react";
 import { Lead } from "@/lib/types";
-import { ProgressBar } from "@/components/ui/ProgressBar";
 import { formatMoney } from "@/lib/format";
 import { useCurrency } from "@/lib/store";
+import { Avatar } from "@/components/ui/Avatar";
 
 export function KanbanCard({ lead, onClick }: { lead: Lead; onClick?: () => void }) {
   const currency = useCurrency();
@@ -19,6 +19,14 @@ export function KanbanCard({ lead, onClick }: { lead: Lead; onClick?: () => void
     opacity: isDragging ? 0.4 : 1,
   };
 
+  // Dynamic probability color mapping
+  // 0 -> Red, 50 -> Yellow, 100 -> Green
+  const getProbabilityColor = (prob: number) => {
+    if (prob < 30) return "bg-red-500/20 text-red-400";
+    if (prob < 70) return "bg-yellow-500/20 text-yellow-400";
+    return "bg-green-500/20 text-green-400";
+  };
+
   return (
     <div
       ref={setNodeRef}
@@ -26,37 +34,30 @@ export function KanbanCard({ lead, onClick }: { lead: Lead; onClick?: () => void
       {...attributes}
       {...listeners}
       onClick={onClick}
-      className="group cursor-grab active:cursor-grabbing rounded-card border border-ink-700 bg-ink-850 p-4 hover:border-ink-600 hover:bg-ink-800 transition-colors"
+      className="bg-ink-900 border border-ink-700 rounded-xl p-4 cursor-grab active:cursor-grabbing hover:border-ink-600 hover:shadow-lg transition-all group mb-3"
     >
-      <div className="mb-3 flex items-start gap-2">
-        <Building2 className="h-4 w-4 mt-0.5 shrink-0 text-neutral-500" />
-        <p className="text-sm font-medium text-white truncate" title={lead.title}>
+      <div className="flex items-start justify-between mb-3">
+        <h3 className="font-semibold text-white group-hover:text-accent-400 transition-colors">
           {lead.title}
-        </p>
+        </h3>
+        <MoreHorizontal className="h-4 w-4 text-neutral-500 flex-shrink-0" />
       </div>
 
-      <div className="mb-3 flex items-center gap-1.5 text-accent-400">
-        <span className="text-xs">$</span>
-        <p className="text-base font-semibold">{formatMoney(lead.value, currency)}</p>
+      <div className="mb-4 space-y-1">
+        <p className="text-xs text-neutral-500">Destination</p>
+        <p className="text-sm text-neutral-300">{lead.destination || "—"}</p>
       </div>
 
-      <div className="mb-3 flex items-center justify-between text-xs text-neutral-400">
-        <div className="flex items-center gap-1.5">
-          <User className="h-3 w-3" />
-          <span>{(lead.ownerName || "Unassigned").split(" ").map((n, i) => i === 0 ? n : n[0] + ".").join(" ")}</span>
-        </div>
-        <div className="flex items-center gap-1.5">
-          <Clock className="h-3 w-3" />
-          <span>{lead.daysInStage}d</span>
-        </div>
+      <div className="mb-4 space-y-1">
+        <p className="text-xs text-neutral-500">Value</p>
+        <p className="text-sm font-medium text-white">{formatMoney(lead.value, currency)}</p>
       </div>
 
-      <div>
-        <div className="mb-1.5 flex items-center justify-between text-xs">
-          <span className="text-neutral-500">Probability</span>
-          <span className="font-medium text-white">{lead.probability}%</span>
-        </div>
-        <ProgressBar value={lead.probability} tone="accent" />
+      <div className="flex items-center justify-between pt-2">
+        <span className={`text-[10px] font-semibold px-2 py-1 rounded-md uppercase tracking-wider ${getProbabilityColor(lead.probability)}`}>
+          {lead.probability}% Prob
+        </span>
+        <Avatar initials={lead.ownerName?.substring(0, 2) || "??"} size="sm" />
       </div>
     </div>
   );

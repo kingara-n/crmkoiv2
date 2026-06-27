@@ -10,6 +10,7 @@ import { Button } from "@/components/ui/Button";
 import { KanbanColumn } from "@/components/kanban/KanbanColumn";
 import { KanbanCard } from "@/components/kanban/KanbanCard";
 import { LeadModal } from "@/components/modals/LeadModal";
+import { LeadDetailPanel } from "@/components/modals/LeadDetailPanel";
 import { useStore } from "@/lib/store";
 import { useIsHydrated } from "@/lib/useIsHydrated";
 import { Stage, STAGE_ORDER, Lead } from "@/lib/types";
@@ -28,13 +29,17 @@ export default function PipelinePage() {
   // Group leads by stage. Memoised so columns recompute only when leads change.
   const leadsByStage = useMemo(() => {
     const map: Record<Stage, Lead[]> = {
-      new_enquiry: [],
-      quoted: [],
+      new_lead: [],
       in_discussion: [],
+      quoted: [],
       confirmed: [],
       paid: [],
     };
-    leads.forEach((l) => map[l.stage].push(l));
+    leads.forEach((l) => {
+      // Handle legacy leads that might have old stage names during migration
+      if (l.stage === "new_enquiry" as any) l.stage = "new_lead";
+      map[l.stage]?.push(l);
+    });
     return map;
   }, [leads]);
 
@@ -92,8 +97,7 @@ export default function PipelinePage() {
 
   function openEdit(lead: Lead) {
     setEditing(lead);
-    setModalStage(undefined);
-    setModalOpen(true);
+    // Don't open the modal for edit, instead the presence of `editing` opens LeadDetailPanel
   }
 
   if (!hydrated) {
@@ -134,11 +138,17 @@ export default function PipelinePage() {
         </DragOverlay>
       </DndContext>
 
+      {editing && (
+        <LeadDetailPanel
+          lead={editing}
+          onClose={() => setEditing(null)}
+        />
+      )}
+
       <LeadModal
         open={modalOpen}
         onClose={() => setModalOpen(false)}
         defaultStage={modalStage}
-        editing={editing}
       />
     </div>
   );

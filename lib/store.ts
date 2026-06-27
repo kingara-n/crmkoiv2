@@ -6,6 +6,7 @@ import {
   UserSettings, Stage, ClientDocument, Invoice, InvoiceEditApproval, Transfer,
   Task,
   TaskComment,
+  LeadComment,
 } from "./types";
 import {
   SEED_TEAM, DEFAULT_SETTINGS,
@@ -16,6 +17,7 @@ interface Store {
   clients: Client[];
   suppliers: Supplier[];
   leads: Lead[];
+  leadComments: LeadComment[];
   bookings: Booking[];
   trips: Trip[];
   transfers: Transfer[];
@@ -50,6 +52,7 @@ interface Store {
   moveLead: (id: string, toStage: Stage) => Promise<void>;
   updateLead: (id: string, patch: Partial<Lead>) => Promise<void>;
   deleteLead: (id: string) => Promise<void>;
+  addLeadComment: (c: Omit<LeadComment, "id" | "createdAt">) => Promise<void>;
 
   addBooking: (b: Omit<Booking, "id">) => Promise<void>;
   updateBooking: (id: string, patch: Partial<Booking>) => Promise<void>;
@@ -128,6 +131,7 @@ export const useStore = create<Store>()((set, get) => ({
   
   tasks: [],
   taskComments: [],
+  leadComments: [],
 
   sidebarCollapsed: false,
   isLoading: true,
@@ -149,6 +153,7 @@ export const useStore = create<Store>()((set, get) => ({
         { data: invoiceEditApprovals },
         { data: tasks },
         { data: taskComments },
+        { data: leadComments },
         { data: notifications },
         { data: team }
       ] = await Promise.all([
@@ -163,6 +168,7 @@ export const useStore = create<Store>()((set, get) => ({
       supabase.from("invoice_edit_approvals").select("*"),
       supabase.from("koi_tasks").select("*").then(res => ({ data: res.error ? [] : res.data })),
       supabase.from("koi_task_comments").select("*").then(res => ({ data: res.error ? [] : res.data })),
+      supabase.from("koi_lead_comments").select("*").then(res => ({ data: res.error ? [] : res.data })),
       supabase.from("koi_notifications").select("*").then(res => ({ data: res.error ? [] : res.data })),
       supabase.from("team_profiles").select("*").then(res => ({ data: res.error ? [] : res.data }))
     ]);
@@ -182,6 +188,7 @@ export const useStore = create<Store>()((set, get) => ({
       invoiceEditApprovals: (invoiceEditApprovals || []).map(mapToCamel),
       tasks: (tasks || []).map(mapToCamel),
       taskComments: (taskComments || []).map(mapToCamel),
+      leadComments: (leadComments || []).map(mapToCamel),
     });
     } catch (error) {
       console.error("Error fetching initial data:", error);
@@ -269,6 +276,10 @@ export const useStore = create<Store>()((set, get) => ({
   deleteLead: async (id) => {
     set((s) => ({ leads: s.leads.filter((l) => l.id !== id) }));
     await supabase.from("leads").delete().eq("id", id);
+  },
+  addLeadComment: async (c) => {
+    const { data } = await supabase.from("koi_lead_comments").insert(mapToSnake(c)).select().single();
+    if (data) set((s) => ({ leadComments: [...s.leadComments, mapToCamel(data)] }));
   },
 
   addBooking: async (b) => {
