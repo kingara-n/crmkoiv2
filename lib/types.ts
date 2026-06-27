@@ -139,6 +139,7 @@ export interface Booking {
   closeDate?: string;      // ISO
   travefyUrl?: string;
   costs?: BookingCost[];
+  createdAt?: string;
 }
 
 export interface BookingCost {
@@ -149,14 +150,18 @@ export interface BookingCost {
 
 export interface Trip {
   id: string;
-  name: string;
+  name?: string;
+  bookingId?: string;
+  bookingName?: string;
   destination: string;
   startDate: string;
   endDate: string;
   status: TripStatus;
-  travellerCount: number;
-  clientName: string;
-  ownerName: string;
+  travellerCount?: number;
+  travelerCount?: number;
+  clientName?: string;
+  ownerName?: string;
+  createdAt?: string;
 }
 
 export interface TeamMember {

@@ -27,6 +27,7 @@ const dOffset = (days: number) => {
 
 export const SEED_POS: PurchaseOrder[] = Array.from({length: 20}).map((_, i) => ({
   id: `po${i}`,
+  poNumber: `PO-100${i}`,
   supplierId: `s${i}`,
   supplierName: `Safari Lodge ${i+1}`,
   bookingId: `b${i}`,
@@ -47,10 +48,21 @@ export const SEED_CLIENTS: Client[] = Array.from({length: 20}).map((_, i) => ({
 }));
 
 export const SEED_SUPPLIERS: Supplier[] = Array.from({length: 20}).map((_, i) => ({
-  id: `s${i}`, name: `Luxury Camp ${i+1}`, type: i % 3 === 0 ? "flight" : "hotel", status: "approved",
-  city: "Masai Mara", country: "Kenya", email: `reservations${i}@camp.com`, phone: `+254 800 00000${i}`,
+  id: `s${i}`, name: `Luxury Camp ${i+1}`,
+  type: i % 5 === 0 ? "airline" : i % 5 === 1 ? "camp" : i % 5 === 2 ? "transport" : i % 5 === 3 ? "dmc" : "hotel",
+  category: i % 2 === 0 ? "Luxury · Safari" : "Mid-range · Beach",
+  status: "approved",
+  city: "Masai Mara", country: "Kenya",
+  accountsEmail: `accounts${i}@camp.com`,
+  bookingsEmail: `bookings${i}@camp.com`,
+  phone: `+254 800 00000${i}`,
+  cancellationPolicy: "48 hours notice required",
+  paymentTerms: "Net 30",
+  residentRate: 15000 + i * 1000,
+  nonResidentRateUsd: 200 + i * 20,
+  capacity: 20 + i,
+  amenities: ["WiFi", "Pool", "Safari"],
   contractExpires: dOffset((i % 30) - 5),
-  createdAt: dOffset(-400 + i)
 }));
 
 export const SEED_LEADS: Lead[] = Array.from({length: 20}).map((_, i) => ({
