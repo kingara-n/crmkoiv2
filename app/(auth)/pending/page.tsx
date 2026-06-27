@@ -5,18 +5,6 @@ import { Clock } from "lucide-react";
 export default function PendingPage() {
   return (
     <div className="w-full max-w-md bg-white rounded-2xl shadow-[0_8px_30px_rgb(0,0,0,0.12)] p-8 sm:p-10 flex flex-col my-8">
-      {/* Brand Logo */}
-      <div className="flex justify-center mb-8">
-        <Image
-          src="/images/koi-crm-logo.png"
-          alt="Koi CRM"
-          width={180}
-          height={64}
-          className="object-contain"
-          priority
-        />
-      </div>
-
       <div className="text-center space-y-6">
         <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-amber-50">
           <Clock className="h-8 w-8 text-amber-500" />

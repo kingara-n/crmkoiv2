@@ -60,19 +60,7 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="w-full max-w-md bg-white rounded-2xl shadow-[0_8px_30px_rgb(0,0,0,0.12)] p-8 sm:p-10 flex flex-col">
-      {/* Brand Logo */}
-      <div className="flex justify-center mb-8">
-        <Image
-          src="/images/koi-crm-logo.png"
-          alt="Koi CRM"
-          width={180}
-          height={64}
-          className="object-contain"
-          priority
-        />
-      </div>
-
+    <div className="w-full max-w-md bg-white rounded-2xl shadow-[0_8px_30px_rgb(0,0,0,0.12)] p-8 sm:p-10 flex flex-col my-8">
       {/* Heading */}
       <div className="text-center mb-8">
         <h1 className="text-2xl font-bold text-neutral-900 tracking-tight">Welcome back</h1>
