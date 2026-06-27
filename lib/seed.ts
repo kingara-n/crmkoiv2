@@ -7,9 +7,14 @@ export const SEED_TEAM: TeamMember[] = [
 ];
 
 export const DEFAULT_SETTINGS: UserSettings = {
-  id: "s1", userId: "u1",
-  currency: "KES", notificationsEnabled: true, emailAlerts: true,
-  createdAt: "2024-01-01"
+  firstName: "Local",
+  lastName: "Admin",
+  email: "admin@koitravel.com",
+  role: "management",
+  timezone: "Africa/Nairobi",
+  darkMode: true,
+  currency: "KES",
+  compactView: false,
 };
 
 export const SEED_POS: PurchaseOrder[] = Array.from({length: 10}).map((_, i) => ({

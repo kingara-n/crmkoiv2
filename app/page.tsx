@@ -1,11 +1,11 @@
 "use client";
 
-import { useMemo, useEffect } from "react";
+import { useMemo, useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
   Banknote, TrendingUp, Target, Users, Trophy, CheckCircle2, Clock, XCircle, Calendar,
-  ArrowRight
+  ArrowRight, PlaneTakeoff, AlertCircle, Briefcase, Activity, CheckSquare, PieChart
 } from "lucide-react";
 import { Card, StatCard } from "@/components/ui/Card";
 import { Badge } from "@/components/ui/Badge";
@@ -39,36 +39,116 @@ export default function OverviewPage() {
     }
   }, [hydrated, settings.role, router]);
 
+  const [chartPeriod, setChartPeriod] = useState<"daily" | "weekly" | "monthly">("monthly");
+
   const revenueTrend = useMemo(() => {
     const trend = [];
     const now = new Date();
-    for (let i = 11; i >= 0; i--) {
-      const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
-      const monthName = d.toLocaleString("default", { month: "short" });
-      const nextMonth = new Date(now.getFullYear(), now.getMonth() - i + 1, 1);
+    
+    if (chartPeriod === "monthly") {
+      for (let i = 11; i >= 0; i--) {
+        const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+        const monthName = d.toLocaleString("default", { month: "short" });
+        const nextMonth = new Date(now.getFullYear(), now.getMonth() - i + 1, 1);
 
-      // Bookings confirmed within this month (using createdAt as a proxy for closeDate if missing)
-      const target = settings.revenueTarget || bookings
-        .filter((b) => b.status === "confirmed")
-        .filter((b) => {
-          const date = new Date(b.closeDate || "2000-01-01");
-          return date >= d && date < nextMonth;
-        })
-        .reduce((sum, b) => sum + ((b as any).valueKes || b.value || 0), 0);
+        const target = settings.revenueTarget || 0;
+        const revenue = invoices
+          .filter((inv) => !!inv.paidAt)
+          .filter((inv) => {
+            const date = new Date(inv.paidAt!);
+            return date >= d && date < nextMonth;
+          })
+          .reduce((sum, inv) => sum + (inv.amountKes || 0), 0);
 
-      // Invoices paid within this month
-      const revenue = invoices
-        .filter((inv) => !!inv.paidAt)
-        .filter((inv) => {
-          const date = new Date(inv.paidAt!);
-          return date >= d && date < nextMonth;
-        })
-        .reduce((sum, inv) => sum + (inv.amountKes || 0), 0);
+        trend.push({ month: monthName, revenue, target });
+      }
+    } else if (chartPeriod === "weekly") {
+      for (let i = 11; i >= 0; i--) {
+        const d = new Date(now.getTime() - i * 7 * 24 * 60 * 60 * 1000);
+        d.setHours(0,0,0,0);
+        d.setDate(d.getDate() - d.getDay());
+        const weekName = `W${Math.ceil((d.getDate())/7)} ${d.toLocaleString("default", { month: "short" })}`;
+        const nextWeek = new Date(d.getTime() + 7 * 24 * 60 * 60 * 1000);
 
-      trend.push({ month: monthName, revenue, target });
+        const target = (settings.revenueTarget || 0) / 4;
+        const revenue = invoices
+          .filter((inv) => !!inv.paidAt)
+          .filter((inv) => {
+            const date = new Date(inv.paidAt!);
+            return date >= d && date < nextWeek;
+          })
+          .reduce((sum, inv) => sum + (inv.amountKes || 0), 0);
+
+        trend.push({ month: weekName, revenue, target });
+      }
+    } else {
+      for (let i = 29; i >= 0; i--) {
+        const d = new Date(now.getTime() - i * 24 * 60 * 60 * 1000);
+        d.setHours(0,0,0,0);
+        const dayName = `${d.getDate()} ${d.toLocaleString("default", { month: "short" })}`;
+        const nextDay = new Date(d.getTime() + 24 * 60 * 60 * 1000);
+
+        const target = (settings.revenueTarget || 0) / 30;
+        const revenue = invoices
+          .filter((inv) => !!inv.paidAt)
+          .filter((inv) => {
+            const date = new Date(inv.paidAt!);
+            return date >= d && date < nextDay;
+          })
+          .reduce((sum, inv) => sum + (inv.amountKes || 0), 0);
+
+        trend.push({ month: dayName, revenue, target });
+      }
     }
     return trend;
-  }, [bookings, invoices]);
+  }, [invoices, chartPeriod, settings.revenueTarget]);
+
+  // Today Panel Math
+  const today = new Date();
+  today.setHours(0,0,0,0);
+  const todayStr = today.toISOString().split("T")[0];
+  
+  const in3Days = new Date(today);
+  in3Days.setDate(today.getDate() + 3);
+  const in3DaysStr = in3Days.toISOString().split("T")[0];
+
+  const in14Days = new Date(today);
+  in14Days.setDate(today.getDate() + 14);
+  const in14DaysStr = in14Days.toISOString().split("T")[0];
+
+  const tripsToday = useStore.getState().trips.filter(t => (t.startDate && t.startDate.startsWith(todayStr)) || (t.endDate && t.endDate.startsWith(todayStr)));
+  const posDueSoon = useStore.getState().purchaseOrders?.filter(po => po.dueDate && po.dueDate >= todayStr && po.dueDate <= in3DaysStr && po.status !== "closed") || [];
+  const invoicesDueSoon = invoices.filter(inv => inv.dueDate && inv.dueDate >= todayStr && inv.dueDate <= in3DaysStr && !inv.paidAt);
+  const contractsExpiringSoon = useStore.getState().suppliers?.filter(s => s.contractExpires && s.contractExpires >= todayStr && s.contractExpires <= in14DaysStr) || [];
+  
+  const todayItems: any[] = [];
+  tripsToday.forEach(t => todayItems.push({ id: t.id, icon: <PlaneTakeoff className="h-4 w-4 text-accent-400" />, title: `Trip: ${t.clientName}`, subtitle: `Departing/Returning today` }));
+  if (settings.role !== "operations") {
+    invoicesDueSoon.forEach(inv => todayItems.push({ id: inv.id, icon: <AlertCircle className="h-4 w-4 text-amber-500" />, title: `Invoice Due: ${inv.number}`, subtitle: `Due by ${inv.dueDate}` }));
+    posDueSoon.forEach(po => todayItems.push({ id: po.id, icon: <AlertCircle className="h-4 w-4 text-amber-500" />, title: `PO Due: ${po.supplierName}`, subtitle: `Due by ${po.dueDate}` }));
+  }
+  contractsExpiringSoon.forEach(s => todayItems.push({ id: s.id, icon: <Briefcase className="h-4 w-4 text-neutral-400" />, title: `Contract Expiring: ${s.name}`, subtitle: `Expires ${s.contractExpires}` }));
+  const displayTodayItems = todayItems.slice(0, 4);
+
+  // Gauge Math
+  const currentMonth = new Date(today.getFullYear(), today.getMonth(), 1);
+  const revenueThisMonth = invoices.filter(inv => inv.paidAt && new Date(inv.paidAt) >= currentMonth).reduce((s, inv) => s + (inv.amountKes || 0), 0);
+  const revTarget = settings.revenueTarget || 0;
+  const targetPct = revTarget > 0 ? Math.min(Math.round((revenueThisMonth / revTarget) * 100), 100) : 0;
+
+  // Department Row Math
+  const opsDeparturesToday = tripsToday.length;
+  const opsTripsInProgress = useStore.getState().trips.filter(t => t.status === "in-progress" || t.status === "active").length;
+  const mktContractsExpiring = contractsExpiringSoon.length;
+  
+  const accOverdueAR = invoices.filter(inv => inv.dueDate && inv.dueDate < todayStr && !inv.paidAt).reduce((sum, inv) => sum + (inv.amountKes || 0), 0);
+  const endOfWeek = new Date(today);
+  endOfWeek.setDate(today.getDate() + (7 - today.getDay()));
+  const eowStr = endOfWeek.toISOString().split("T")[0];
+  const accPosDueThisWeek = useStore.getState().purchaseOrders?.filter(po => po.dueDate && po.dueDate >= todayStr && po.dueDate <= eowStr && po.status !== "closed").length || 0;
+
+  const mgtNetMargin = revenueThisMonth - (useStore.getState().purchaseOrders?.filter(po => po.status === "closed" && po.dueDate && new Date(po.dueDate) >= currentMonth).reduce((s, po) => s + (po.amount || 0), 0) || 0);
+  const mgtPendingApprovals = useStore.getState().invoiceEditApprovals?.filter(a => a.status === "pending").length || 0;
 
   // Live pipeline totals — recompute from current leads
   const pipelineByStage: Record<Stage, { count: number; value: number }> = {
@@ -174,13 +254,89 @@ export default function OverviewPage() {
         />
       </div>
 
+      {/* NEW: Today panel + Monthly revenue goal gauge */}
+      <div className="grid gap-4 lg:grid-cols-3">
+        {/* Today Panel */}
+        <Card className="lg:col-span-2">
+          <div className="mb-4">
+            <h2 className="text-base font-semibold text-white">Today</h2>
+            <p className="text-xs text-neutral-500">Urgent items</p>
+          </div>
+          {displayTodayItems.length === 0 ? (
+            <div className="flex h-32 items-center justify-center text-sm text-neutral-500">
+              Nothing urgent today
+            </div>
+          ) : (
+            <div className="space-y-3">
+              {displayTodayItems.map((item, i) => (
+                <div key={i} className="flex items-start gap-3">
+                  <div className="mt-0.5 rounded-full bg-ink-850 p-2 border border-ink-700">
+                    {item.icon}
+                  </div>
+                  <div>
+                    <p className="text-sm font-medium text-white">{item.title}</p>
+                    <p className="text-xs text-neutral-500">{item.subtitle}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </Card>
+
+        {/* Monthly Revenue Goal Gauge */}
+        <Card>
+          <div className="mb-4">
+            <h2 className="text-base font-semibold text-white">Monthly Target</h2>
+            <p className="text-xs text-neutral-500">Revenue against goal</p>
+          </div>
+          {revTarget === 0 ? (
+            <div className="flex h-32 flex-col items-center justify-center gap-2">
+              <p className="text-sm text-neutral-500">No monthly target set</p>
+              <Link href="/settings" className="text-xs font-medium text-accent-400 hover:text-accent-300">
+                Set a target ↗
+              </Link>
+            </div>
+          ) : (
+            <div className="flex flex-col items-center justify-center py-4">
+              <div className="relative flex h-32 w-32 items-center justify-center rounded-full border-[12px] border-ink-800">
+                <svg className="absolute inset-0 h-full w-full -rotate-90">
+                  <circle cx="50%" cy="50%" r="44%" fill="transparent" strokeWidth="12" className="stroke-accent-500" strokeDasharray={`${targetPct * 2.76} 276`} />
+                </svg>
+                <div className="flex flex-col items-center justify-center">
+                  <span className="text-2xl font-bold text-white">{targetPct}%</span>
+                </div>
+              </div>
+              <div className="mt-4 text-center">
+                <p className="text-lg font-semibold text-white">{formatMoney(revenueThisMonth, currency)}</p>
+                <p className="text-xs text-neutral-500">of {formatMoney(revTarget, currency)}</p>
+              </div>
+            </div>
+          )}
+        </Card>
+      </div>
+
       {/* Revenue trend + pipeline stages */}
       <div className="grid gap-4 lg:grid-cols-3">
         <Card className="lg:col-span-2">
           <div className="mb-4 flex items-start justify-between">
             <div>
               <h2 className="text-base font-semibold text-white">Revenue Trend</h2>
-              <p className="text-xs text-neutral-500">Monthly performance vs target</p>
+              <p className="text-xs text-neutral-500">Performance vs target</p>
+            </div>
+            <div className="flex items-center gap-1 rounded-lg border border-ink-700 bg-ink-900 p-1">
+              {(["daily", "weekly", "monthly"] as const).map((p) => (
+                <button
+                  key={p}
+                  onClick={() => setChartPeriod(p)}
+                  className={`px-3 py-1 text-xs rounded-md transition-colors ${
+                    chartPeriod === p
+                      ? "bg-ink-700 text-white font-medium"
+                      : "text-neutral-400 hover:text-white"
+                  }`}
+                >
+                  {p.charAt(0).toUpperCase() + p.slice(1)}
+                </button>
+              ))}
             </div>
           </div>
           <RevenueTrendChart data={revenueTrend} />
@@ -222,6 +378,95 @@ export default function OverviewPage() {
             </div>
           </div>
         </Card>
+      </div>
+
+      {/* NEW: By Department row */}
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        {/* Operations */}
+        <Card>
+          <div className="flex items-center gap-2 mb-3 text-neutral-400">
+            <PlaneTakeoff className="h-4 w-4" />
+            <h3 className="text-xs font-semibold uppercase tracking-wider">Operations</h3>
+          </div>
+          <div className="space-y-3">
+            <div className="flex items-center justify-between">
+              <span className="text-sm text-neutral-400">Departing Today</span>
+              <span className="text-base font-semibold text-white">{opsDeparturesToday}</span>
+            </div>
+            <div className="flex items-center justify-between">
+              <span className="text-sm text-neutral-400">Trips in Progress</span>
+              <span className="text-base font-semibold text-white">{opsTripsInProgress}</span>
+            </div>
+          </div>
+        </Card>
+
+        {/* Marketing & Sales */}
+        <Card>
+          <div className="flex items-center gap-2 mb-3 text-neutral-400">
+            <Target className="h-4 w-4" />
+            <h3 className="text-xs font-semibold uppercase tracking-wider">Sales</h3>
+          </div>
+          <div className="space-y-3">
+            <div className="flex items-center justify-between">
+              <span className="text-sm text-neutral-400">Pipeline Value</span>
+              <span className="text-base font-semibold text-white">{formatMoney(totalPipelineValue, currency)}</span>
+            </div>
+            <div className="flex items-center justify-between">
+              <span className="text-sm text-neutral-400">Contracts Expiring</span>
+              <span className="text-base font-semibold text-white">{mktContractsExpiring}</span>
+            </div>
+          </div>
+        </Card>
+
+        {/* Accounts */}
+        {(settings.role === "management" || settings.role === "Sales Manager" || settings.role === "Director") ? (
+          <Card>
+            <div className="flex items-center gap-2 mb-3 text-neutral-400">
+              <Banknote className="h-4 w-4" />
+              <h3 className="text-xs font-semibold uppercase tracking-wider">Accounts</h3>
+            </div>
+            <div className="space-y-3">
+              <div className="flex items-center justify-between">
+                <span className="text-sm text-neutral-400">Overdue AR</span>
+                <span className="text-base font-semibold text-amber-500">{formatMoney(accOverdueAR, currency)}</span>
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="text-sm text-neutral-400">POs Due This Week</span>
+                <span className="text-base font-semibold text-white">{accPosDueThisWeek}</span>
+              </div>
+            </div>
+          </Card>
+        ) : (
+          <Card className="flex flex-col items-center justify-center opacity-50">
+            <Banknote className="h-4 w-4 mb-2 text-neutral-600" />
+            <p className="text-xs text-neutral-500">Accounts detail hidden</p>
+          </Card>
+        )}
+
+        {/* Management */}
+        {(settings.role === "management" || settings.role === "Director") ? (
+          <Card>
+            <div className="flex items-center gap-2 mb-3 text-neutral-400">
+              <PieChart className="h-4 w-4" />
+              <h3 className="text-xs font-semibold uppercase tracking-wider">Management</h3>
+            </div>
+            <div className="space-y-3">
+              <div className="flex items-center justify-between">
+                <span className="text-sm text-neutral-400">Net Margin (Mtd)</span>
+                <span className="text-base font-semibold text-white">{formatMoney(mgtNetMargin, currency)}</span>
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="text-sm text-neutral-400">Pending Approvals</span>
+                <span className="text-base font-semibold text-white">{mgtPendingApprovals}</span>
+              </div>
+            </div>
+          </Card>
+        ) : (
+          <Card className="flex flex-col items-center justify-center opacity-50">
+            <PieChart className="h-4 w-4 mb-2 text-neutral-600" />
+            <p className="text-xs text-neutral-500">Management detail hidden</p>
+          </Card>
+        )}
       </div>
 
       {/* Recent bookings */}
