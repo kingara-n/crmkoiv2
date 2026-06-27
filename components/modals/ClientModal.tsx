@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/Button";
 import { Input, Select, Label, Textarea } from "@/components/ui/Field";
 import { useStore } from "@/lib/store";
 import { Client, Tier } from "@/lib/types";
+import { ClientDocuments } from "@/components/ui/ClientDocuments";
 
 export function ClientModal({
   open,
@@ -187,6 +188,8 @@ export function ClientModal({
             </div>
           </>
         )}
+        
+        {editing && <ClientDocuments clientId={editing.id} />}
       </div>
     </Modal>
   );

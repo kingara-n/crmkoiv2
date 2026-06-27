@@ -1,10 +1,11 @@
 "use client";
 
 import { useState, useMemo } from "react";
-import { Search, Filter, ChevronUp, ChevronDown, ArrowUpDown, CheckCircle2, Clock, XCircle, Edit2, Trash2 } from "lucide-react";
+import { Search, Filter, ChevronUp, ChevronDown, ArrowUpDown, CheckCircle2, Clock, XCircle, Edit2, Trash2, FileText } from "lucide-react";
 import { Card } from "@/components/ui/Card";
 import { Badge } from "@/components/ui/Badge";
 import { RowMenu } from "@/components/ui/RowMenu";
+import { InvoiceModal } from "@/components/modals/InvoiceModal";
 import { useStore } from "@/lib/store";
 import { useIsHydrated } from "@/lib/useIsHydrated";
 import { formatMoney, formatDate } from "@/lib/format";
@@ -35,6 +36,8 @@ export default function BookingsPage() {
   const [sortKey, setSortKey] = useState<SortKey>("closeDate");
   const [sortDir, setSortDir] = useState<SortDir>("desc");
   const [page, setPage] = useState(1);
+  const [invoiceModalOpen, setInvoiceModalOpen] = useState(false);
+  const [selectedBookingId, setSelectedBookingId] = useState<string | null>(null);
 
   const filtered = useMemo(() => {
     let rows = bookings;
@@ -198,6 +201,7 @@ export default function BookingsPage() {
                 <td className="px-5 py-4">
                   <RowMenu
                     items={[
+                      { label: "Manage Invoices", onClick: () => { setSelectedBookingId(b.id); setInvoiceModalOpen(true); }, icon: <FileText className="h-3.5 w-3.5" /> },
                       { label: "Cycle status", onClick: () => handleStatusToggle(b), icon: <Edit2 className="h-3.5 w-3.5" /> },
                       { label: "Delete", onClick: () => handleDelete(b), destructive: true, icon: <Trash2 className="h-3.5 w-3.5" /> },
                     ]}
@@ -242,6 +246,13 @@ export default function BookingsPage() {
           </div>
         </div>
       </Card>
+      {selectedBookingId && (
+        <InvoiceModal
+          open={invoiceModalOpen}
+          onClose={() => setInvoiceModalOpen(false)}
+          bookingId={selectedBookingId}
+        />
+      )}
     </div>
   );
 }

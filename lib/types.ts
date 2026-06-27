@@ -158,3 +158,36 @@ export interface UserSettings {
   currency: Currency;
   compactView: boolean;
 }
+
+export interface ClientDocument {
+  id: string;
+  clientId: string;
+  filename: string;
+  storageUrl: string;
+  docType?: string;
+  expiresAt?: string;
+  uploadedBy?: string;
+  uploadedAt: string;
+}
+
+export interface Invoice {
+  id: string;
+  bookingId: string;
+  clientId?: string;
+  number: string;
+  amountKes: number;
+  currency: Currency;
+  dueDate?: string;
+  paidAt?: string;
+  notes?: string;
+  createdAt: string;
+}
+
+export interface InvoiceEditApproval {
+  id: string;
+  invoiceId: string;
+  requestedBy: string;
+  approverId: string;
+  approvedAt: string;
+  diffJson?: any;
+}
