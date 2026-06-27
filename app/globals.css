@@ -1,0 +1,64 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  color-scheme: dark;
+}
+
+html, body {
+  background-color: #0a0a0a;
+  color: #ededed;
+  min-height: 100vh;
+}
+
+html.light, html.light body {
+  background-color: #fafafa;
+  color: #0a0a0a;
+}
+
+/* Light-mode overrides for the dark Tailwind palette.
+   These let the Dark Mode toggle in Settings flip the whole UI without
+   us having to dual-class every component. */
+html.light .bg-ink-950 { background-color: #f5f5f5 !important; }
+html.light .bg-ink-900 { background-color: #ffffff !important; }
+html.light .bg-ink-850, html.light .bg-ink-850\/40, html.light .bg-ink-850\/30 { background-color: #fafafa !important; }
+html.light .bg-ink-800 { background-color: #f4f4f5 !important; }
+html.light .bg-ink-700 { background-color: #e5e5e5 !important; }
+html.light .border-ink-700, html.light .border-ink-700\/60, html.light .border-ink-700\/70 { border-color: #e5e5e5 !important; }
+html.light .border-ink-600 { border-color: #d4d4d4 !important; }
+html.light .text-white { color: #0a0a0a !important; }
+html.light .text-neutral-200 { color: #1f1f1f !important; }
+html.light .text-neutral-300 { color: #404040 !important; }
+html.light .text-neutral-400 { color: #525252 !important; }
+html.light .text-neutral-500 { color: #737373 !important; }
+html.light .bg-ink-950\/80 { background-color: rgba(255,255,255,0.8) !important; }
+html.light input, html.light select, html.light textarea { color: #0a0a0a !important; }
+html.light input::placeholder { color: #a3a3a3 !important; }
+
+/* Subtle scrollbar in dark mode */
+::-webkit-scrollbar { width: 10px; height: 10px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: #2a2a2a; border-radius: 9999px; }
+::-webkit-scrollbar-thumb:hover { background: #3a3a3a; }
+html.light ::-webkit-scrollbar-thumb { background: #d4d4d4; }
+html.light ::-webkit-scrollbar-thumb:hover { background: #a3a3a3; }
+
+/* Inputs in dark theme */
+input, select, textarea {
+  color-scheme: dark;
+}
+html.light input, html.light select, html.light textarea {
+  color-scheme: light;
+}
+
+/* When dnd-kit is dragging, prevent text selection on the whole page */
+body.is-dragging {
+  cursor: grabbing !important;
+  user-select: none;
+}
+
+/* Reduce motion */
+@media (prefers-reduced-motion: reduce) {
+  * { transition-duration: 0.01ms !important; animation-duration: 0.01ms !important; }
+}
