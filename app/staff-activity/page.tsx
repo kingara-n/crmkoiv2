@@ -68,9 +68,9 @@ export default function StaffActivityPage() {
     );
   }
 
-  const averageQuotaAttainment = team.length ? Math.round(team.reduce((sum, m) => sum + m.quotaAttainment, 0) / team.length) : 0;
-  const totalDealsClosed = team.reduce((sum, m) => sum + m.dealsClosed, 0);
-  const teamRevenue = team.reduce((sum, m) => sum + m.revenue, 0);
+  const averageQuotaAttainment = team.length ? Math.round(team.reduce((sum, m) => sum + (m.quotaAttainment || 0), 0) / team.length) : 0;
+  const totalDealsClosed = team.reduce((sum, m) => sum + (m.dealsClosed || 0), 0);
+  const teamRevenue = team.reduce((sum, m) => sum + (m.revenue || 0), 0);
 
   return (
     <div className="space-y-6 pt-4">
