@@ -60,6 +60,7 @@ export function BookingInvoiceModal({
       invoiceId: editingId,
       requestedBy: "current-user-id", // Note: In real app, get from auth session
       approverId: "pending",
+      status: "pending",
       diffJson: { amountKes: Number(amount), dueDate },
     });
     setEditingId(null);
