@@ -222,6 +222,7 @@ export interface InvoiceEditApproval {
   invoiceId: string;
   requestedBy: string;
   approverId: string;
+  status: "pending" | "approved" | "rejected";
   approvedAt: string;
   diffJson?: any;
 }
