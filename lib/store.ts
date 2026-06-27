@@ -3,7 +3,7 @@
 import { create } from "zustand";
 import {
   Client, Supplier, Lead, Booking, Trip, TeamMember, Notification,
-  UserSettings, Stage, ClientDocument, Invoice, InvoiceEditApproval
+  UserSettings, Stage, ClientDocument, Invoice, InvoiceEditApproval, Transfer
 } from "./types";
 import {
   SEED_TEAM, DEFAULT_SETTINGS,
@@ -16,6 +16,7 @@ interface Store {
   leads: Lead[];
   bookings: Booking[];
   trips: Trip[];
+  transfers: Transfer[];
   team: TeamMember[];
   notifications: Notification[];
   settings: UserSettings;
@@ -56,6 +57,10 @@ interface Store {
   updateTrip: (id: string, patch: Partial<Trip>) => Promise<void>;
   deleteTrip: (id: string) => Promise<void>;
 
+  addTransfer: (t: Omit<Transfer, "id" | "createdAt">) => Promise<void>;
+  updateTransfer: (id: string, patch: Partial<Transfer>) => Promise<void>;
+  deleteTransfer: (id: string) => Promise<void>;
+
   markNotificationRead: (id: string) => Promise<void>;
   markAllNotificationsRead: () => Promise<void>;
 
@@ -92,6 +97,7 @@ export const useStore = create<Store>()((set, get) => ({
   leads: [],
   bookings: [],
   trips: [],
+  transfers: [],
   team: SEED_TEAM, // In real app, fetch from profiles
   notifications: [],
   settings: DEFAULT_SETTINGS,
@@ -113,6 +119,7 @@ export const useStore = create<Store>()((set, get) => ({
       { data: leads },
       { data: bookings },
       { data: trips },
+      { data: transfers },
       { data: clientDocuments },
       { data: invoices },
       { data: invoiceEditApprovals }
@@ -122,6 +129,7 @@ export const useStore = create<Store>()((set, get) => ({
       supabase.from("leads").select("*"),
       supabase.from("bookings").select("*"),
       supabase.from("trips").select("*"),
+      supabase.from("transfers").select("*"),
       supabase.from("client_documents").select("*"),
       supabase.from("invoices").select("*"),
       supabase.from("invoice_edit_approvals").select("*")
@@ -133,6 +141,7 @@ export const useStore = create<Store>()((set, get) => ({
       leads: (leads || []).map(mapToCamel),
       bookings: (bookings || []).map(mapToCamel),
       trips: (trips || []).map(mapToCamel),
+      transfers: (transfers || []).map(mapToCamel),
       clientDocuments: (clientDocuments || []).map(mapToCamel),
       invoices: (invoices || []).map(mapToCamel),
       invoiceEditApprovals: (invoiceEditApprovals || []).map(mapToCamel),
@@ -255,6 +264,19 @@ export const useStore = create<Store>()((set, get) => ({
   deleteTrip: async (id) => {
     set((s) => ({ trips: s.trips.filter((t) => t.id !== id) }));
     await supabase.from("trips").delete().eq("id", id);
+  },
+
+  addTransfer: async (t) => {
+    const { data } = await supabase.from("transfers").insert(mapToSnake(t)).select().single();
+    if (data) set((s) => ({ transfers: [...s.transfers, mapToCamel(data)] }));
+  },
+  updateTransfer: async (id, patch) => {
+    set((s) => ({ transfers: s.transfers.map((t) => (t.id === id ? { ...t, ...patch } : t)) }));
+    await supabase.from("transfers").update(mapToSnake(patch)).eq("id", id);
+  },
+  deleteTransfer: async (id) => {
+    set((s) => ({ transfers: s.transfers.filter((t) => t.id !== id) }));
+    await supabase.from("transfers").delete().eq("id", id);
   },
 
   markNotificationRead: async (id) => {

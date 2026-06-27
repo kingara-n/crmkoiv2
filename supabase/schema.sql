@@ -1,7 +1,14 @@
 -- Koi Travel CRM · Supabase schema
 -- Run in Supabase SQL Editor (or via supabase db push) after creating a project.
--- Designed to be re-runnable; uses IF NOT EXISTS / CREATE OR REPLACE where it
--- can. Drop manually if you need to start over.
+
+DROP TYPE IF EXISTS user_role CASCADE;
+DROP TYPE IF EXISTS stage CASCADE;
+DROP TYPE IF EXISTS currency CASCADE;
+DROP TYPE IF EXISTS booking_status CASCADE;
+DROP TYPE IF EXISTS tier CASCADE;
+DROP TYPE IF EXISTS supplier_type CASCADE;
+DROP TYPE IF EXISTS supplier_status CASCADE;
+DROP TYPE IF EXISTS trip_status CASCADE;
 
 -- =====================================================================
 -- Enums

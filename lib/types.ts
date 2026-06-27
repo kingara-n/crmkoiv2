@@ -202,3 +202,20 @@ export interface AuditLog {
   createdAt: string;
   actorName?: string; // We'll map this from the joined profiles table
 }
+
+export type TransferStatus = 'pending' | 'on_time' | 'late' | 'missed';
+
+export interface Transfer {
+  id: string;
+  clientId: string;
+  clientName?: string;
+  supplierId?: string;
+  flightTime: string;
+  location: string;
+  driverName?: string;
+  carType?: string;
+  regPlate?: string;
+  status: TransferStatus;
+  ownerId?: string;
+  createdAt: string;
+}
