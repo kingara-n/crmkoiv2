@@ -191,3 +191,14 @@ export interface InvoiceEditApproval {
   approvedAt: string;
   diffJson?: any;
 }
+
+export interface AuditLog {
+  id: string;
+  actorId: string;
+  action: string;
+  entityType: string;
+  entityId: string;
+  diff: any;
+  createdAt: string;
+  actorName?: string; // We'll map this from the joined profiles table
+}

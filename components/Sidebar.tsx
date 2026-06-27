@@ -5,8 +5,9 @@ import { usePathname } from "next/navigation";
 import {
   LayoutDashboard, GitBranch, Handshake, Users, Building2,
   Plane, BarChart3, Settings as SettingsIcon, ChevronLeft, DollarSign,
+  FileText,
 } from "lucide-react";
-import { useStore } from "@/lib/store";
+import { useStore, useSettings } from "@/lib/store";
 
 const NAV = [
   { href: "/", label: "Overview", icon: LayoutDashboard },
@@ -23,6 +24,13 @@ export function Sidebar() {
   const pathname = usePathname();
   const collapsed = useStore((s) => s.sidebarCollapsed);
   const toggle = useStore((s) => s.toggleSidebar);
+  const settings = useSettings();
+
+  const activeNav = [...NAV];
+  if (settings.role === "management") {
+    activeNav.push({ href: "/staff-activity", label: "Staff Activity", icon: Users });
+    activeNav.push({ href: "/etims-test", label: "eTIMS Sandbox", icon: FileText });
+  }
 
   return (
     <aside
@@ -42,7 +50,7 @@ export function Sidebar() {
 
       {/* Nav */}
       <nav className="flex-1 px-3 space-y-1">
-        {NAV.map(({ href, label, icon: Icon }) => {
+        {activeNav.map(({ href, label, icon: Icon }) => {
           const active = href === "/" ? pathname === "/" : pathname.startsWith(href);
           return (
             <Link
