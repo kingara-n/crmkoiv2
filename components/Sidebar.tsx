@@ -19,7 +19,7 @@ const NAV = [
   { href: "/transfers", label: "Transfers", icon: Car },
   { href: "/clients", label: "Clients", icon: Users },
   { href: "/documents", label: "Documents", icon: FolderOpen },
-  { href: "/suppliers", label: "Suppliers", icon: Building2 },
+  { href: "/suppliers", label: "Purchasing", icon: Building2 },
   { href: "/reports", label: "Reports", icon: BarChart3 },
   { href: "/settings", label: "Settings", icon: SettingsIcon },
 ];
@@ -31,7 +31,7 @@ export function Sidebar() {
   const settings = useSettings();
 
   const activeNav = [...NAV];
-  activeNav.push({ href: "/staff-activity", label: "Staff Activity", icon: Users });
+  activeNav.push({ href: "/staff-activity", label: "Performance", icon: Users });
   activeNav.push({ href: "/etims-test", label: "eTIMS Sandbox", icon: FileText });
 
   return (
