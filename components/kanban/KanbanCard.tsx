@@ -43,7 +43,7 @@ export function KanbanCard({ lead, onClick }: { lead: Lead; onClick?: () => void
       <div className="mb-3 flex items-center justify-between text-xs text-neutral-400">
         <div className="flex items-center gap-1.5">
           <User className="h-3 w-3" />
-          <span>{lead.ownerName.split(" ").map((n, i) => i === 0 ? n : n[0] + ".").join(" ")}</span>
+          <span>{(lead.ownerName || "Unassigned").split(" ").map((n, i) => i === 0 ? n : n[0] + ".").join(" ")}</span>
         </div>
         <div className="flex items-center gap-1.5">
           <Clock className="h-3 w-3" />

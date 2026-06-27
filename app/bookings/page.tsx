@@ -1,11 +1,12 @@
 "use client";
 
 import { useState, useMemo } from "react";
-import { Search, Filter, ChevronUp, ChevronDown, ArrowUpDown, CheckCircle2, Clock, XCircle, Edit2, Trash2, FileText } from "lucide-react";
+import { Search, Filter, ChevronUp, ChevronDown, ArrowUpDown, CheckCircle2, Clock, XCircle, Edit2, Trash2, FileText, Plane, DollarSign } from "lucide-react";
 import { Card } from "@/components/ui/Card";
 import { Badge } from "@/components/ui/Badge";
 import { RowMenu } from "@/components/ui/RowMenu";
 import { InvoiceModal } from "@/components/modals/InvoiceModal";
+import { ItineraryModal } from "@/components/modals/ItineraryModal";
 import { useStore } from "@/lib/store";
 import { useIsHydrated } from "@/lib/useIsHydrated";
 import { formatMoney, formatDate } from "@/lib/format";
@@ -30,6 +31,7 @@ export default function BookingsPage() {
   const updateBooking = useStore((s) => s.updateBooking);
   const deleteBooking = useStore((s) => s.deleteBooking);
   const currency = useStore((s) => s.settings.currency);
+  const documents = useStore((s) => s.clientDocuments);
 
   const [filter, setFilter] = useState<Filter>("all");
   const [query, setQuery] = useState("");
@@ -37,6 +39,7 @@ export default function BookingsPage() {
   const [sortDir, setSortDir] = useState<SortDir>("desc");
   const [page, setPage] = useState(1);
   const [invoiceModalOpen, setInvoiceModalOpen] = useState(false);
+  const [itineraryModalOpen, setItineraryModalOpen] = useState(false);
   const [selectedBookingId, setSelectedBookingId] = useState<string | null>(null);
 
   const filtered = useMemo(() => {
@@ -55,7 +58,7 @@ export default function BookingsPage() {
     rows = [...rows].sort((a, b) => {
       let cmp = 0;
       if (sortKey === "value") cmp = a.value - b.value;
-      else if (sortKey === "closeDate") cmp = a.closeDate.localeCompare(b.closeDate);
+      else if (sortKey === "closeDate") cmp = (a.closeDate || '').localeCompare(b.closeDate || '');
       else cmp = a.clientName.localeCompare(b.clientName);
       return sortDir === "asc" ? cmp : -cmp;
     });
@@ -83,6 +86,19 @@ export default function BookingsPage() {
     const next: BookingStatus =
       b.status === "pending" ? "confirmed" :
       b.status === "confirmed" ? "lost" : "pending";
+
+    // GATEKEEPER LOGIC
+    if (next === "confirmed") {
+      const clientDocs = documents.filter((d) => d.clientId === b.clientId);
+      const hasPassport = clientDocs.some((d) => d.docType === "passport");
+      const hasReceipt = clientDocs.some((d) => d.docType === "payment_receipt");
+
+      if (!hasPassport || !hasReceipt) {
+        alert("Gatekeeper Blocked: Cannot confirm this booking. Missing a Passport and Payment Receipt for this client. Please upload them in the Document Vault.");
+        return;
+      }
+    }
+
     updateBooking(b.id, { status: next });
   }
 
@@ -157,6 +173,7 @@ export default function BookingsPage() {
                   Close date {sortIcon("closeDate")}
                 </button>
               </th>
+              <th className="px-5 py-3">Margin</th>
               <th className="w-10"></th>
             </tr>
           </thead>
@@ -199,10 +216,43 @@ export default function BookingsPage() {
                 <td className="px-5 py-4 text-neutral-300">{b.ownerName}</td>
                 <td className="px-5 py-4 text-neutral-300">{formatDate(b.closeDate)}</td>
                 <td className="px-5 py-4">
+                  {b.costs && b.costs.length > 0 ? (
+                    <Badge color="green">
+                      {Math.round(((b.value - b.costs.reduce((sum, c) => sum + c.amount, 0)) / b.value) * 100)}%
+                    </Badge>
+                  ) : (
+                    <span className="text-neutral-500 text-xs">—</span>
+                  )}
+                </td>
+                <td className="px-5 py-4">
                   <RowMenu
                     items={[
+                      { 
+                        label: b.travefyUrl ? "View Travefy Itinerary" : "Link Travefy", 
+                        onClick: () => {
+                          if (b.travefyUrl) {
+                            window.open(b.travefyUrl, '_blank');
+                          } else {
+                            const url = prompt("Enter Travefy Share URL for this booking:");
+                            if (url) updateBooking(b.id, { travefyUrl: url });
+                          }
+                        }, 
+                        icon: <Plane className="h-3.5 w-3.5 text-blue-400" /> 
+                      },
+                      { 
+                        label: "Manage Supplier Costs", 
+                        onClick: () => {
+                          const amountStr = prompt(`Enter supplier cost for ${b.clientName} (in KES):`);
+                          if (amountStr && !isNaN(Number(amountStr))) {
+                            const newCost = { id: Date.now().toString(), description: 'Supplier Bill', amount: Number(amountStr) };
+                            updateBooking(b.id, { costs: [...(b.costs || []), newCost] });
+                          }
+                        }, 
+                        icon: <DollarSign className="h-3.5 w-3.5 text-green-400" /> 
+                      },
+                      { label: "Generate Itinerary", onClick: () => { setSelectedBookingId(b.id); setItineraryModalOpen(true); }, icon: <FileText className="h-3.5 w-3.5" /> },
                       { label: "Manage Invoices", onClick: () => { setSelectedBookingId(b.id); setInvoiceModalOpen(true); }, icon: <FileText className="h-3.5 w-3.5" /> },
-                      { label: "Cycle status", onClick: () => handleStatusToggle(b), icon: <Edit2 className="h-3.5 w-3.5" /> },
+                      { label: b.status === "pending" ? "Mark Confirmed" : "Revert to Pending", onClick: () => handleStatusToggle(b), icon: <CheckCircle2 className="h-3.5 w-3.5" /> },
                       { label: "Delete", onClick: () => handleDelete(b), destructive: true, icon: <Trash2 className="h-3.5 w-3.5" /> },
                     ]}
                   />
@@ -250,6 +300,13 @@ export default function BookingsPage() {
         <InvoiceModal
           open={invoiceModalOpen}
           onClose={() => setInvoiceModalOpen(false)}
+          bookingId={selectedBookingId}
+        />
+      )}
+      {selectedBookingId && (
+        <ItineraryModal
+          open={itineraryModalOpen}
+          onClose={() => setItineraryModalOpen(false)}
           bookingId={selectedBookingId}
         />
       )}

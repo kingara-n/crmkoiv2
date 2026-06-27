@@ -23,7 +23,8 @@ export function convert(amountKes: number, target: Currency): number {
 }
 
 export function formatMoney(amountKes: number, target: Currency = "KES"): string {
-  const value = convert(amountKes, target);
+  const safeAmount = amountKes || 0;
+  const value = convert(safeAmount, target);
   const symbol = CURRENCY_SYMBOLS[target];
 
   if (Math.abs(value) >= 1_000_000) {
@@ -36,7 +37,8 @@ export function formatMoney(amountKes: number, target: Currency = "KES"): string
 }
 
 export function formatMoneyFull(amountKes: number, target: Currency = "KES"): string {
-  const value = convert(amountKes, target);
+  const safeAmount = amountKes || 0;
+  const value = convert(safeAmount, target);
   const symbol = CURRENCY_SYMBOLS[target];
   return `${symbol} ${value.toLocaleString("en-US", { maximumFractionDigits: 0 })}`;
 }

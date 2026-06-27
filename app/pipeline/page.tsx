@@ -18,6 +18,7 @@ export default function PipelinePage() {
   const hydrated = useIsHydrated();
   const leads = useStore((s) => s.leads);
   const moveLead = useStore((s) => s.moveLead);
+  const documents = useStore((s) => s.clientDocuments);
 
   const [activeId, setActiveId] = useState<string | null>(null);
   const [modalOpen, setModalOpen] = useState(false);
@@ -67,6 +68,18 @@ export default function PipelinePage() {
     }
     if (!targetStage) return;
     if (activeLead.stage === targetStage) return;
+
+    // GATEKEEPER LOGIC: Block moving to confirmed if missing documents
+    if (targetStage === "confirmed") {
+      const clientDocs = documents.filter((d) => d.clientId === activeLead.clientId);
+      const hasPassport = clientDocs.some((d) => d.docType === "passport");
+      const hasReceipt = clientDocs.some((d) => d.docType === "payment_receipt");
+
+      if (!hasPassport || !hasReceipt) {
+        alert("Gatekeeper Blocked: Cannot confirm this deal. Missing a Passport and Payment Receipt for this client. Please upload them in the Document Vault.");
+        return;
+      }
+    }
 
     moveLead(activeLead.id, targetStage);
   }

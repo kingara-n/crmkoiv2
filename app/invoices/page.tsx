@@ -41,8 +41,8 @@ export default function InvoicesPage() {
     return rows;
   }, [invoices, bookings, approvals, statusFilter, query]);
 
-  const totalPaid = invoices.filter(i => !!i.paidAt).reduce((sum, i) => sum + i.amountKes, 0);
-  const totalUnpaid = invoices.filter(i => !i.paidAt).reduce((sum, i) => sum + i.amountKes, 0);
+  const totalPaid = invoices.filter(i => !!i.paidAt).reduce((sum, i) => sum + (i.amountKes || 0), 0);
+  const totalUnpaid = invoices.filter(i => !i.paidAt).reduce((sum, i) => sum + (i.amountKes || 0), 0);
   const pendingApprovalsCount = approvals.filter(a => a.approverId === "pending").length;
 
   if (!hydrated) return <div className="text-neutral-500 p-2">Loading…</div>;

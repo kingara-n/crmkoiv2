@@ -59,33 +59,11 @@ export function TopBar() {
 
   return (
     <header className="sticky top-0 z-30 flex items-center justify-between border-b border-ink-700/70 bg-ink-950/80 backdrop-blur-md px-6 py-4">
-      {/* Left: page title + date range */}
+      {/* Left: page title */}
       <div className="flex items-center gap-4">
-        <h1 className="text-xl font-semibold text-white">{title}</h1>
-        <div ref={dateRef} className="relative">
-          <button
-            onClick={() => setDateOpen((v) => !v)}
-            className="flex items-center gap-2 rounded-lg border border-ink-700 bg-ink-900 px-3 py-1.5 text-sm text-neutral-300 hover:bg-ink-850"
-          >
-            <Calendar className="h-4 w-4" />
-            {dateRange}
-          </button>
-          {dateOpen && (
-            <div className="absolute left-0 top-full mt-1 w-48 rounded-lg border border-ink-700 bg-ink-900 p-1 shadow-xl z-50">
-              {DATE_RANGES.map((r) => (
-                <button
-                  key={r}
-                  onClick={() => { setDateRange(r); setDateOpen(false); }}
-                  className={`w-full rounded px-3 py-1.5 text-left text-sm hover:bg-ink-800 ${
-                    r === dateRange ? "text-accent-400" : "text-neutral-300"
-                  }`}
-                >
-                  {r}
-                </button>
-              ))}
-            </div>
-          )}
-        </div>
+        <h1 className="text-2xl font-semibold text-white">
+          {pathname === "/" ? `Welcome back, ${settings.firstName || "Admin"}` : title}
+        </h1>
       </div>
 
       {/* Right: search + notifications + avatar */}

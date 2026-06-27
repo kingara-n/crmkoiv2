@@ -24,6 +24,9 @@ interface Store {
   clientDocuments: ClientDocument[];
   invoices: Invoice[];
   invoiceEditApprovals: InvoiceEditApproval[];
+  
+  tasks: Task[];
+  taskComments: TaskComment[];
 
   sidebarCollapsed: boolean;
   isLoading: boolean;
@@ -61,6 +64,11 @@ interface Store {
   updateTransfer: (id: string, patch: Partial<Transfer>) => Promise<void>;
   deleteTransfer: (id: string) => Promise<void>;
 
+  addTask: (t: Omit<Task, "id" | "createdAt">) => Promise<void>;
+  updateTask: (id: string, patch: Partial<Task>) => Promise<void>;
+  addTaskComment: (c: Omit<TaskComment, "id" | "createdAt">) => Promise<void>;
+
+  dismissNotification: (id: string) => void;
   markNotificationRead: (id: string) => Promise<void>;
   markAllNotificationsRead: () => Promise<void>;
 
@@ -77,6 +85,10 @@ function mapToCamel(obj: any): any {
     const camelKey = key.replace(/_([a-z])/g, (g) => g[1].toUpperCase());
     newObj[camelKey] = obj[key];
   }
+  // Custom overrides for schema mismatches
+  if ('revenueKes' in newObj) { newObj.revenue = newObj.revenueKes; }
+  if ('valueKes' in newObj) { newObj.value = newObj.valueKes; }
+  if ('residentRateKes' in newObj) { newObj.residentRate = newObj.residentRateKes; }
   return newObj;
 }
 
@@ -88,6 +100,10 @@ function mapToSnake(obj: any): any {
     const snakeKey = key.replace(/[A-Z]/g, (letter) => `_${letter.toLowerCase()}`);
     newObj[snakeKey] = obj[key];
   }
+  // Reverse overrides
+  if ('revenue' in newObj && !('revenue_kes' in newObj)) { newObj.revenue_kes = newObj.revenue; delete newObj.revenue; }
+  if ('value' in newObj && !('value_kes' in newObj)) { newObj.value_kes = newObj.value; delete newObj.value; }
+  if ('resident_rate' in newObj && !('resident_rate_kes' in newObj)) { newObj.resident_rate_kes = newObj.resident_rate; delete newObj.resident_rate; }
   return newObj;
 }
 
@@ -105,6 +121,9 @@ export const useStore = create<Store>()((set, get) => ({
   clientDocuments: [],
   invoices: [],
   invoiceEditApprovals: [],
+  
+  tasks: [],
+  taskComments: [],
 
   sidebarCollapsed: false,
   isLoading: true,
@@ -122,7 +141,9 @@ export const useStore = create<Store>()((set, get) => ({
       { data: transfers },
       { data: clientDocuments },
       { data: invoices },
-      { data: invoiceEditApprovals }
+      { data: invoiceEditApprovals },
+      { data: tasks },
+      { data: taskComments }
     ] = await Promise.all([
       supabase.from("clients").select("*"),
       supabase.from("suppliers").select("*"),
@@ -132,7 +153,10 @@ export const useStore = create<Store>()((set, get) => ({
       supabase.from("transfers").select("*"),
       supabase.from("client_documents").select("*"),
       supabase.from("invoices").select("*"),
-      supabase.from("invoice_edit_approvals").select("*")
+      supabase.from("invoice_edit_approvals").select("*"),
+      // Handle missing tables gracefully in case SQL script wasn't run yet
+      supabase.from("koi_tasks").select("*").then(res => ({ data: res.error ? [] : res.data })),
+      supabase.from("koi_task_comments").select("*").then(res => ({ data: res.error ? [] : res.data }))
     ]);
 
     set({
@@ -145,6 +169,8 @@ export const useStore = create<Store>()((set, get) => ({
       clientDocuments: (clientDocuments || []).map(mapToCamel),
       invoices: (invoices || []).map(mapToCamel),
       invoiceEditApprovals: (invoiceEditApprovals || []).map(mapToCamel),
+      tasks: (tasks || []).map(mapToCamel),
+      taskComments: (taskComments || []).map(mapToCamel),
       isLoading: false
     });
   },
@@ -279,6 +305,21 @@ export const useStore = create<Store>()((set, get) => ({
     await supabase.from("transfers").delete().eq("id", id);
   },
 
+  addTask: async (t) => {
+    const { data } = await supabase.from("koi_tasks").insert(mapToSnake(t)).select().single();
+    if (data) set((s) => ({ tasks: [...s.tasks, mapToCamel(data)] }));
+  },
+  updateTask: async (id, patch) => {
+    set((s) => ({ tasks: s.tasks.map((t) => (t.id === id ? { ...t, ...patch } : t)) }));
+    await supabase.from("koi_tasks").update(mapToSnake(patch)).eq("id", id);
+  },
+  addTaskComment: async (c) => {
+    const { data } = await supabase.from("koi_task_comments").insert(mapToSnake(c)).select().single();
+    if (data) set((s) => ({ taskComments: [...s.taskComments, mapToCamel(data)] }));
+  },
+
+  dismissNotification: (id) =>
+    set((s) => ({ notifications: s.notifications.filter((n) => n.id !== id) })),
   markNotificationRead: async (id) => {
     set((s) => ({ notifications: s.notifications.map((n) => n.id === id ? { ...n, read: true } : n) }));
   },

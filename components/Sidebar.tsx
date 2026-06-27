@@ -5,18 +5,20 @@ import { usePathname } from "next/navigation";
 import {
   LayoutDashboard, GitBranch, Handshake, Users, Building2,
   Plane, BarChart3, Settings as SettingsIcon, ChevronLeft, DollarSign,
-  FileText, Car, Receipt,
+  FileText, Car, Receipt, FolderOpen, CheckCircle2
 } from "lucide-react";
 import { useStore, useSettings } from "@/lib/store";
 
 const NAV = [
-  { href: "/", label: "Overview", icon: LayoutDashboard },
+  { href: "/", label: "Dashboard", icon: LayoutDashboard },
+  { href: "/tasks", label: "Tasks", icon: CheckCircle2 },
   { href: "/pipeline", label: "Pipeline", icon: GitBranch },
   { href: "/bookings", label: "Bookings", icon: Handshake },
   { href: "/invoices", label: "Invoices", icon: Receipt },
   { href: "/trips", label: "Trips", icon: Plane },
   { href: "/transfers", label: "Transfers", icon: Car },
   { href: "/clients", label: "Clients", icon: Users },
+  { href: "/documents", label: "Documents", icon: FolderOpen },
   { href: "/suppliers", label: "Suppliers", icon: Building2 },
   { href: "/reports", label: "Reports", icon: BarChart3 },
   { href: "/settings", label: "Settings", icon: SettingsIcon },
@@ -29,10 +31,8 @@ export function Sidebar() {
   const settings = useSettings();
 
   const activeNav = [...NAV];
-  if (settings.role === "management") {
-    activeNav.push({ href: "/staff-activity", label: "Staff Activity", icon: Users });
-    activeNav.push({ href: "/etims-test", label: "eTIMS Sandbox", icon: FileText });
-  }
+  activeNav.push({ href: "/staff-activity", label: "Staff Activity", icon: Users });
+  activeNav.push({ href: "/etims-test", label: "eTIMS Sandbox", icon: FileText });
 
   return (
     <aside

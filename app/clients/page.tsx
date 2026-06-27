@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useMemo } from "react";
+import Link from "next/link";
 import {
   Search, Filter, Plus, MapPin, Mail, Phone, Calendar, ExternalLink, Star,
   TrendingUp, DollarSign, Building2,
@@ -185,12 +186,12 @@ export default function ClientsPage() {
 
             {/* Actions */}
             <div className="flex gap-2">
-              <button
-                onClick={() => alert(`Scheduled a call with ${c.name} — this would open the calendar in v2.`)}
-                className="flex-1 inline-flex items-center justify-center gap-2 rounded-lg border border-ink-700 bg-ink-850 px-3 py-2 text-sm text-neutral-300 hover:bg-ink-800"
+              <Link
+                href={`/clients/${c.id}`}
+                className="flex-1 inline-flex items-center justify-center gap-2 rounded-lg border border-ink-700 bg-ink-850 px-3 py-2 text-sm text-neutral-300 hover:bg-ink-800 transition"
               >
-                <Calendar className="h-4 w-4" /> Schedule
-              </button>
+                View Profile
+              </Link>
               <a
                 href={`mailto:${c.email}`}
                 className="flex-1 inline-flex items-center justify-center gap-2 rounded-lg border border-ink-700 bg-ink-850 px-3 py-2 text-sm text-neutral-300 hover:bg-ink-800"

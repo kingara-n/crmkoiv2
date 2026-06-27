@@ -111,7 +111,15 @@ export interface Booking {
   status: BookingStatus;
   stage: Stage;            // mirrors lead.stage; useful for filtering
   ownerName: string;
-  closeDate: string;       // ISO
+  closeDate?: string;      // ISO
+  travefyUrl?: string;
+  costs?: BookingCost[];
+}
+
+export interface BookingCost {
+  id: string;
+  description: string;
+  amount: number;
 }
 
 export interface Trip {
@@ -217,5 +225,29 @@ export interface Transfer {
   regPlate?: string;
   status: TransferStatus;
   ownerId?: string;
+  createdAt: string;
+}
+
+export type TaskStatus = "to-do" | "in-progress" | "done";
+
+export interface Task {
+  id: string;
+  title: string;
+  description?: string;
+  status: TaskStatus;
+  dueDate?: string;
+  assignedTo?: string;
+  assignedName?: string;
+  relatedOpportunity?: string;
+  priority?: string;
+  createdAt: string;
+}
+
+export interface TaskComment {
+  id: string;
+  taskId: string;
+  userId?: string;
+  userName?: string;
+  comment: string;
   createdAt: string;
 }

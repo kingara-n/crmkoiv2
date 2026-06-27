@@ -1,8 +1,10 @@
 "use client";
 
+import { useMemo } from "react";
 import Link from "next/link";
 import {
-  DollarSign, TrendingUp, Target, Users, Trophy, CheckCircle2, Clock, XCircle,
+  DollarSign, TrendingUp, Target, Users, Trophy, CheckCircle2, Clock, XCircle, Calendar,
+  ArrowRight
 } from "lucide-react";
 import { Card, StatCard } from "@/components/ui/Card";
 import { Badge } from "@/components/ui/Badge";
@@ -14,29 +16,47 @@ import { useIsHydrated } from "@/lib/useIsHydrated";
 import { formatMoney, relativeTime } from "@/lib/format";
 import { STAGE_LABELS, Stage } from "@/lib/types";
 
-// Twelve months of demo revenue (KES). Calibrated to roughly match
-// the screenshot's curve (slow climb, slight dip in spring, sharp rise H2).
-const REVENUE_TREND = [
-  { month: "Jan", revenue: 1_800_000, target: 1_800_000 },
-  { month: "Feb", revenue: 1_900_000, target: 1_950_000 },
-  { month: "Mar", revenue: 2_400_000, target: 2_100_000 },
-  { month: "Apr", revenue: 2_200_000, target: 2_250_000 },
-  { month: "May", revenue: 2_300_000, target: 2_400_000 },
-  { month: "Jun", revenue: 2_900_000, target: 2_550_000 },
-  { month: "Jul", revenue: 3_300_000, target: 2_700_000 },
-  { month: "Aug", revenue: 3_700_000, target: 2_850_000 },
-  { month: "Sep", revenue: 4_000_000, target: 3_000_000 },
-  { month: "Oct", revenue: 4_300_000, target: 3_150_000 },
-  { month: "Nov", revenue: 4_600_000, target: 3_300_000 },
-  { month: "Dec", revenue: 4_900_000, target: 3_450_000 },
-];
+// Dynamic calculation happens inside the component based on store data.
 
 export default function OverviewPage() {
   const hydrated = useIsHydrated();
   const leads = useStore((s) => s.leads);
   const bookings = useStore((s) => s.bookings);
   const team = useStore((s) => s.team);
+  const clients = useStore((s) => s.clients);
+  const invoices = useStore((s) => s.invoices);
   const currency = useStore((s) => s.settings.currency);
+
+  const revenueTrend = useMemo(() => {
+    const trend = [];
+    const now = new Date();
+    for (let i = 11; i >= 0; i--) {
+      const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+      const monthName = d.toLocaleString("default", { month: "short" });
+      const nextMonth = new Date(now.getFullYear(), now.getMonth() - i + 1, 1);
+
+      // Bookings confirmed within this month (using createdAt as a proxy for closeDate if missing)
+      const target = bookings
+        .filter((b) => b.status === "confirmed")
+        .filter((b) => {
+          const date = new Date(b.createdAt);
+          return date >= d && date < nextMonth;
+        })
+        .reduce((sum, b) => sum + ((b as any).valueKes || b.value || 0), 0);
+
+      // Invoices paid within this month
+      const revenue = invoices
+        .filter((inv) => !!inv.paidAt)
+        .filter((inv) => {
+          const date = new Date(inv.paidAt!);
+          return date >= d && date < nextMonth;
+        })
+        .reduce((sum, inv) => sum + (inv.amountKes || 0), 0);
+
+      trend.push({ month: monthName, revenue, target });
+    }
+    return trend;
+  }, [bookings, invoices]);
 
   // Live pipeline totals — recompute from current leads
   const pipelineByStage: Record<Stage, { count: number; value: number }> = {
@@ -48,25 +68,26 @@ export default function OverviewPage() {
   };
   leads.forEach((l) => {
     pipelineByStage[l.stage].count++;
-    pipelineByStage[l.stage].value += l.value;
+    pipelineByStage[l.stage].value += (l as any).valueKes || l.value || 0;
   });
 
-  const totalPipelineValue = leads.reduce((sum, l) => sum + l.value, 0);
+  const totalRevenue = clients.reduce((sum, c) => sum + ((c as any).revenueKes || c.revenue || 0), 0);
+  const totalPipelineValue = leads.reduce((sum, l) => sum + ((l as any).valueKes || l.value || 0), 0);
   const totalLeads = leads.length;
   const wonRevenue = bookings
     .filter((b) => b.status === "confirmed")
-    .reduce((sum, b) => sum + b.value, 0);
+    .reduce((sum, b) => sum + ((b as any).valueKes || b.value || 0), 0);
   const activeBookings = bookings.filter((b) => b.status !== "lost").length;
   const conversionRate = leads.length > 0
     ? Math.round((pipelineByStage.paid.count / leads.length) * 100 * 10) / 10
     : 0;
 
   const recentBookings = [...bookings]
-    .sort((a, b) => b.closeDate.localeCompare(a.closeDate))
+    .sort((a, b) => (b.closeDate || '').localeCompare(a.closeDate || ''))
     .slice(0, 4);
 
   const topPerformers = [...team]
-    .sort((a, b) => b.revenue - a.revenue)
+    .sort((a, b) => ((b as any).revenueKes || b.revenue || 0) - ((a as any).revenueKes || a.revenue || 0))
     .slice(0, 3);
 
   if (!hydrated) {
@@ -74,7 +95,16 @@ export default function OverviewPage() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4">
+      {/* Overview header & Date Picker just under the top line */}
+      <div className="flex items-center justify-between pb-2">
+        <h2 className="text-xl font-semibold text-white">Overview</h2>
+        <button className="flex items-center gap-2 rounded-lg border border-ink-700 bg-ink-900 px-3 py-1.5 text-sm text-neutral-300 hover:bg-ink-850">
+          <Calendar className="h-4 w-4" />
+          Last 30 days
+        </button>
+      </div>
+
       {/* Stat cards row */}
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <StatCard
@@ -112,7 +142,7 @@ export default function OverviewPage() {
               <p className="text-xs text-neutral-500">Monthly performance vs target</p>
             </div>
           </div>
-          <RevenueTrendChart data={REVENUE_TREND} />
+          <RevenueTrendChart data={revenueTrend} />
         </Card>
 
         <Card>
@@ -173,7 +203,7 @@ export default function OverviewPage() {
                   <p className="truncate text-sm font-medium text-white">{b.clientName}</p>
                   <p className="text-xs text-neutral-500">{b.ownerName} · {relativeTime(b.closeDate + "T12:00:00Z")}</p>
                 </div>
-                <div className="text-sm font-semibold text-white">{formatMoney(b.value, currency)}</div>
+                <div className="font-semibold text-white">{formatMoney((b as any).valueKes || b.value || 0, (b as any).currency || currency)}</div>
                 <Badge
                   tone={b.status === "confirmed" ? "success" : b.status === "lost" ? "danger" : "warning"}
                   icon={
