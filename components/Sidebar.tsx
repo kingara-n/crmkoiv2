@@ -1,10 +1,11 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { usePathname } from "next/navigation";
 import {
   LayoutDashboard, GitBranch, Handshake, Users, Building2,
-  Plane, BarChart3, Settings as SettingsIcon, ChevronLeft, Banknote,
+  Plane, BarChart3, Settings as SettingsIcon, ChevronLeft,
   FileText, Car, Receipt, FolderOpen, CheckCircle2
 } from "lucide-react";
 import { useStore, useSettings } from "@/lib/store";
@@ -40,13 +41,17 @@ export function Sidebar() {
       } flex flex-col`}
     >
       {/* Brand */}
-      <div className="px-4 py-5 flex items-center gap-3">
-        <div className="h-9 w-9 shrink-0 rounded-lg bg-white flex items-center justify-center">
-          <Banknote className="h-5 w-5 text-black" />
+      <div className="px-3 py-4 flex items-center gap-2 border-b border-ink-700/50">
+        <div className="shrink-0 flex items-center justify-center" style={{ width: collapsed ? 36 : 40, height: collapsed ? 36 : 40 }}>
+          <Image
+            src="/koi-logo.png"
+            alt="Koi CRM"
+            width={collapsed ? 36 : 120}
+            height={collapsed ? 36 : 40}
+            className={`object-contain transition-all duration-200 ${collapsed ? "w-9 h-9" : "w-28 h-10"}`}
+            style={{ filter: "drop-shadow(0 1px 4px rgba(0,0,0,0.4))" }}
+          />
         </div>
-        {!collapsed && (
-          <span className="text-white font-semibold">Koi Travel</span>
-        )}
       </div>
 
       {/* Nav */}
