@@ -138,7 +138,7 @@ export default function OverviewPage() {
 
   // Department Row Math
   const opsDeparturesToday = tripsToday.length;
-  const opsTripsInProgress = useStore.getState().trips.filter(t => t.status === "in-progress" || t.status === "active").length;
+  const opsTripsInProgress = useStore.getState().trips.filter(t => t.status === "on_ground").length;
   const mktContractsExpiring = contractsExpiringSoon.length;
   
   const accOverdueAR = invoices.filter(inv => inv.dueDate && inv.dueDate < todayStr && !inv.paidAt).reduce((sum, inv) => sum + (inv.amountKes || 0), 0);

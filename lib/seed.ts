@@ -85,6 +85,6 @@ export const SEED_TASKS: any[] = Array.from({length: 20}).map((_, i) => ({
 export const SEED_TRIPS: Trip[] = Array.from({length: 20}).map((_, i) => ({
   id: `tr${i}`, bookingId: `b${i}`, bookingName: `Annual Retreat ${i+1}`, clientName: `Corporate Client ${i+1}`,
   destination: "Serengeti", startDate: dOffset((i % 14) - 2), endDate: dOffset((i % 14) + 5),
-  status: (i % 14) - 2 <= 0 && (i % 14) + 5 >= 0 ? "in-progress" : (i % 14) - 2 > 0 ? "upcoming" : "completed", 
+  status: (i % 14) - 2 <= 0 && (i % 14) + 5 >= 0 ? "on_ground" : (i % 14) - 2 > 0 ? "upcoming" : "completed", 
   travelerCount: 4 + i, ownerName: "Local Admin", createdAt: dOffset(-30 - i)
 }));
