@@ -152,13 +152,13 @@ export const useStore = create<Store>()((set, get) => ({
   fetchInitialData: async () => {
     set({ isLoading: true });
 
-    // Helper: resolve with seed data immediately if Supabase is unavailable
     const withFallback = async <T>(promise: any, fallback: T[]): Promise<T[]> => {
       try {
-        const { data } = await promise;
-        return data && data.length > 0 ? data : fallback;
+        const { data, error } = await promise;
+        if (error) throw error;
+        return data || [];
       } catch {
-        return fallback;
+        return fallback; // Only fallback if there's a network/auth error, not if it's just empty
       }
     };
 
@@ -210,15 +210,15 @@ export const useStore = create<Store>()((set, get) => ({
         console.error("Error fetching initial data:", error);
         set({
           isLoading: false,
-          clients: SEED_CLIENTS,
-          suppliers: SEED_SUPPLIERS,
-          purchaseOrders: SEED_POS,
-          leads: SEED_LEADS,
-          bookings: SEED_BOOKINGS,
-          trips: SEED_TRIPS,
-          invoices: SEED_INVOICES,
-          tasks: SEED_TASKS,
-          team: SEED_TEAM,
+          clients: [],
+          suppliers: [],
+          purchaseOrders: [],
+          leads: [],
+          bookings: [],
+          trips: [],
+          invoices: [],
+          tasks: [],
+          team: SEED_TEAM, // Keep team so the UI doesn't crash on assignee fields
         });
       }
     };
@@ -228,14 +228,14 @@ export const useStore = create<Store>()((set, get) => ({
     if (result === "timeout") {
       set({
         isLoading: false,
-        clients: SEED_CLIENTS,
-        suppliers: SEED_SUPPLIERS,
-        purchaseOrders: SEED_POS,
-        leads: SEED_LEADS,
-        bookings: SEED_BOOKINGS,
-        trips: SEED_TRIPS,
-        invoices: SEED_INVOICES,
-        tasks: SEED_TASKS,
+        clients: [],
+        suppliers: [],
+        purchaseOrders: [],
+        leads: [],
+        bookings: [],
+        trips: [],
+        invoices: [],
+        tasks: [],
         team: SEED_TEAM,
       });
     }
