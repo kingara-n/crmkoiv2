@@ -193,7 +193,13 @@ export const useStore = create<Store>()((set, get) => ({
           withFallback(supabase.from("koi_task_comments").select("*").then(r => ({ data: r.error ? [] : r.data })), []),
           withFallback(supabase.from("koi_lead_comments").select("*").then(r => ({ data: r.error ? [] : r.data })), []),
           withFallback(supabase.from("koi_notifications").select("*").then(r => ({ data: r.error ? [] : r.data })), []),
-          withFallback(supabase.from("profiles").select("*").then(r => ({ data: r.error ? [] : r.data })), SEED_TEAM),
+          withFallback(
+            supabase.from("profiles").select("*").then(r => {
+              if (r.error || !r.data || r.data.length === 0) throw new Error("empty");
+              return { data: r.data };
+            }),
+            SEED_TEAM
+          ),
         ]);
         set({
           isLoading: false,
