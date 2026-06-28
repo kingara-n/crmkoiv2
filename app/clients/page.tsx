@@ -15,12 +15,14 @@ import { ClientModal } from "@/components/modals/ClientModal";
 import { useStore } from "@/lib/store";
 import { useIsHydrated } from "@/lib/useIsHydrated";
 import { formatMoney, relativeTime } from "@/lib/format";
-import { Client, Tier } from "@/lib/types";
+import { Client, TripType } from "@/lib/types";
 
-const TIER_FILTERS: { value: Tier | "all"; label: string }[] = [
-  { value: "VIP", label: "VIP" },
-  { value: "Premium", label: "Premium" },
-  { value: "Standard", label: "Standard" },
+const TRIP_TYPE_FILTERS: { value: TripType | "all"; label: string }[] = [
+  { value: "Travel", label: "Travel" },
+  { value: "Business", label: "Business" },
+  { value: "Incentive", label: "Incentive" },
+  { value: "Meeting", label: "Meeting" },
+  { value: "Conference", label: "Conference" },
 ];
 
 export default function ClientsPage() {
@@ -30,13 +32,13 @@ export default function ClientsPage() {
   const currency = useStore((s) => s.settings.currency);
 
   const [query, setQuery] = useState("");
-  const [tierFilter, setTierFilter] = useState<Tier | "all">("all");
+  const [tripTypeFilter, setTripTypeFilter] = useState<TripType | "all">("all");
   const [modalOpen, setModalOpen] = useState(false);
   const [editing, setEditing] = useState<Client | null>(null);
 
   const filtered = useMemo(() => {
     let rows = clients;
-    if (tierFilter !== "all") rows = rows.filter((c) => c.tier === tierFilter);
+    if (tripTypeFilter !== "all") rows = rows.filter((c) => c.tripType === tripTypeFilter);
     if (query) {
       const q = query.toLowerCase();
       rows = rows.filter(
@@ -48,7 +50,7 @@ export default function ClientsPage() {
       );
     }
     return rows;
-  }, [clients, tierFilter, query]);
+  }, [clients, tripTypeFilter, query]);
 
   const totalRevenue = clients.reduce((sum, c) => sum + c.revenue, 0);
   const avgHealth = clients.length
@@ -56,8 +58,8 @@ export default function ClientsPage() {
     : 0;
   const activeDeals = bookings.filter((b) => b.status !== "lost").length;
 
-  function tierBadge(t: Tier) {
-    const tone = t === "VIP" ? "success" : t === "Premium" ? "info" : "neutral";
+  function tripTypeBadge(t: TripType) {
+    const tone = t === "Travel" ? "success" : t === "Business" ? "info" : t === "Incentive" ? "accent" : "neutral";
     return <Badge tone={tone}>{t.charAt(0).toUpperCase() + t.slice(1)}</Badge>;
   }
 
@@ -93,21 +95,21 @@ export default function ClientsPage() {
           <Filter className="h-4 w-4" />
         </button>
         <button
-          onClick={() => setTierFilter("all")}
+          onClick={() => setTripTypeFilter("all")}
           className={`rounded-lg px-3 py-1.5 text-sm transition-colors ${
-            tierFilter === "all"
+            tripTypeFilter === "all"
               ? "bg-accent-500 text-black font-medium"
               : "border border-ink-700 bg-ink-900 text-neutral-300 hover:bg-ink-850"
           }`}
         >
           All
         </button>
-        {TIER_FILTERS.map((f) => (
+        {TRIP_TYPE_FILTERS.map((f) => (
           <button
             key={f.value}
-            onClick={() => setTierFilter(f.value as Tier)}
+            onClick={() => setTripTypeFilter(f.value as TripType)}
             className={`rounded-lg border px-3 py-1.5 text-sm transition-colors ${
-              tierFilter === f.value
+              tripTypeFilter === f.value
                 ? "border-accent-500 bg-accent-500/10 text-accent-400"
                 : "border-ink-700 bg-ink-900 text-neutral-300 hover:bg-ink-850"
             }`}
@@ -135,10 +137,10 @@ export default function ClientsPage() {
                 <Avatar initials={c.name.split(/\s+/).slice(0, 2).map((w) => w[0]).join("").toUpperCase()} />
                 <div>
                   <p className="font-semibold text-white">{c.name}</p>
-                  <p className="text-xs text-neutral-500">{c.industry ?? (c.type === "leisure" ? "Leisure traveller" : "—")}</p>
+                  <p className="text-xs text-neutral-500">{c.industry ?? (c.type === "individual" ? "Individual" : "—")}</p>
                 </div>
               </div>
-              {tierBadge(c.tier)}
+              {tripTypeBadge(c.tripType)}
             </div>
 
             {/* Two-column details */}

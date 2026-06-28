@@ -30,7 +30,7 @@ export type Currency = "KES" | "USD" | "EUR" | "GBP" | "CAD";
 
 export type BookingStatus = "confirmed" | "pending" | "lost";
 
-export type Tier = "VIP" | "Premium" | "Standard";
+export type TripType = "Travel" | "Business" | "Incentive" | "Meeting" | "Conference";
 
 export type SupplierType = "hotel" | "camp" | "transport" | "dmc" | "airline" | "cruise_line";
 
@@ -42,8 +42,8 @@ export interface Client {
   id: string;
   name: string;            // company or family name (display)
   industry?: string;       // for corporate
-  type: "leisure" | "corporate";
-  tier: Tier;
+  type: "individual" | "corporate";
+  tripType: TripType;
   city?: string;
   country: string;
   email: string;

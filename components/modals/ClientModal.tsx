@@ -5,7 +5,7 @@ import { Modal } from "@/components/ui/Modal";
 import { Button } from "@/components/ui/Button";
 import { Input, Select, Label, Textarea } from "@/components/ui/Field";
 import { useStore } from "@/lib/store";
-import { Client, Tier } from "@/lib/types";
+import { Client, TripType } from "@/lib/types";
 import { ClientDocuments } from "@/components/ui/ClientDocuments";
 
 export function ClientModal({
@@ -20,10 +20,10 @@ export function ClientModal({
   const addClient = useStore((s) => s.addClient);
   const updateClient = useStore((s) => s.updateClient);
 
-  const [type, setType] = useState<"leisure" | "corporate">("leisure");
+  const [type, setType] = useState<"individual" | "corporate">("individual");
   const [name, setName] = useState("");
   const [industry, setIndustry] = useState("");
-  const [tier, setTier] = useState<Tier>("Premium");
+  const [tripType, setTripType] = useState<TripType>("Travel");
   const [city, setCity] = useState("");
   const [country, setCountry] = useState("Kenya");
   const [email, setEmail] = useState("");
@@ -41,7 +41,7 @@ export function ClientModal({
       setType(editing.type);
       setName(editing.name);
       setIndustry(editing.industry ?? "");
-      setTier(editing.tier);
+      setTripType(editing.tripType);
       setCity(editing.city ?? "");
       setCountry(editing.country);
       setEmail(editing.email);
@@ -52,8 +52,8 @@ export function ClientModal({
       setSeat(editing.seatPreference ?? "");
       setMedical(editing.medicalNotes ?? "");
     } else {
-      setType("leisure");
-      setName(""); setIndustry(""); setTier("Premium"); setCity(""); setCountry("Kenya");
+      setType("individual");
+      setName(""); setIndustry(""); setTripType("Travel"); setCity(""); setCountry("Kenya");
       setEmail(""); setPhone(""); setBirthday(""); setPassport("");
       setMeal(""); setSeat(""); setMedical("");
       setIsGroup(false);
@@ -66,16 +66,16 @@ export function ClientModal({
       name,
       type,
       industry: type === "corporate" ? industry : undefined,
-      tier,
+      tripType,
       city,
       country,
       email,
       phone,
-      birthday: type === "leisure" ? (birthday || undefined) : undefined,
-      passport: type === "leisure" ? passport : undefined,
-      mealPreference: type === "leisure" ? meal : undefined,
-      seatPreference: type === "leisure" ? seat : undefined,
-      medicalNotes: type === "leisure" ? medical : undefined,
+      birthday: type === "individual" ? (birthday || undefined) : undefined,
+      passport: type === "individual" ? passport : undefined,
+      mealPreference: type === "individual" ? meal : undefined,
+      seatPreference: type === "individual" ? seat : undefined,
+      medicalNotes: type === "individual" ? medical : undefined,
     };
     if (editing) {
       updateClient(editing.id, payload);
@@ -84,6 +84,15 @@ export function ClientModal({
     }
     onClose();
   }
+
+  // Handle switching type so tripType doesn't end up invalid
+  useEffect(() => {
+    if (type === "individual") {
+      if (!["Travel", "Business"].includes(tripType)) setTripType("Travel");
+    } else {
+      if (!["Business", "Incentive", "Meeting", "Conference"].includes(tripType)) setTripType("Business");
+    }
+  }, [type, tripType]);
 
   return (
     <Modal
@@ -102,7 +111,7 @@ export function ClientModal({
         <div>
           <Label>Client Type</Label>
           <div className="flex gap-2">
-            {(["leisure", "corporate"] as const).map((t) => (
+            {(["individual", "corporate"] as const).map((t) => (
               <button
                 key={t}
                 onClick={() => setType(t)}
@@ -118,7 +127,7 @@ export function ClientModal({
           </div>
         </div>
 
-        {type === "leisure" && (
+        {type === "individual" && (
           <div className="flex items-center gap-2 mt-2 mb-2">
             <input
               type="checkbox"
@@ -137,11 +146,21 @@ export function ClientModal({
             <Input id="name" value={name} onChange={(e) => setName(e.target.value)} />
           </div>
           <div>
-            <Label htmlFor="tier">Tier</Label>
-            <Select id="tier" value={tier} onChange={(e) => setTier(e.target.value as Tier)}>
-              <option value="enterprise">VIP</option>
-              <option value="growth">Premium</option>
-              <option value="starter">Standard</option>
+            <Label htmlFor="tripType">Trip Type</Label>
+            <Select id="tripType" value={tripType} onChange={(e) => setTripType(e.target.value as TripType)}>
+              {type === "individual" ? (
+                <>
+                  <option value="Travel">Travel</option>
+                  <option value="Business">Business</option>
+                </>
+              ) : (
+                <>
+                  <option value="Business">Business</option>
+                  <option value="Incentive">Incentive</option>
+                  <option value="Meeting">Meeting</option>
+                  <option value="Conference">Conference</option>
+                </>
+              )}
             </Select>
           </div>
         </div>
@@ -175,7 +194,7 @@ export function ClientModal({
           </div>
         </div>
 
-        {type === "leisure" && !isGroup && (
+        {type === "individual" && !isGroup && (
           <>
             <div className="grid grid-cols-2 gap-3">
               <div>

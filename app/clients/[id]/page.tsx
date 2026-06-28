@@ -44,8 +44,8 @@ export default function ClientProfilePage() {
           <div>
             <h1 className="text-2xl font-bold text-white flex items-center gap-3">
               {client.name}
-              <Badge tone={client.tier === "VIP" ? "accent" : client.tier === "Premium" ? "success" : "neutral"}>
-                {client.tier.toUpperCase()}
+              <Badge tone={client.tripType === "Travel" ? "success" : client.tripType === "Business" ? "info" : client.tripType === "Incentive" ? "accent" : "neutral"}>
+                {client.tripType.toUpperCase()}
               </Badge>
             </h1>
             <p className="text-sm text-neutral-400 mt-1">Client Profile & History</p>

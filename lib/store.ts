@@ -104,12 +104,7 @@ function mapToCamel(obj: any): any {
   if ('revenueKes' in newObj) { newObj.revenue = newObj.revenueKes; }
   if ('valueKes' in newObj) { newObj.value = newObj.valueKes; }
   if ('residentRateKes' in newObj) { newObj.residentRate = newObj.residentRateKes; }
-  
   // Enum mappings
-  if (newObj.tier === 'enterprise') newObj.tier = 'VIP';
-  if (newObj.tier === 'growth') newObj.tier = 'Premium';
-  if (newObj.tier === 'starter') newObj.tier = 'Standard';
-  
   if (newObj.stage === 'new_enquiry') newObj.stage = 'new_lead';
 
   return newObj;
@@ -127,12 +122,7 @@ function mapToSnake(obj: any): any {
   if ('revenue' in newObj && !('revenue_kes' in newObj)) { newObj.revenue_kes = newObj.revenue; delete newObj.revenue; }
   if ('value' in newObj && !('value_kes' in newObj)) { newObj.value_kes = newObj.value; delete newObj.value; }
   if ('resident_rate' in newObj && !('resident_rate_kes' in newObj)) { newObj.resident_rate_kes = newObj.resident_rate; delete newObj.resident_rate; }
-  
   // Enum mappings
-  if (newObj.tier === 'VIP') newObj.tier = 'enterprise';
-  if (newObj.tier === 'Premium') newObj.tier = 'growth';
-  if (newObj.tier === 'Standard') newObj.tier = 'starter';
-  
   if (newObj.stage === 'new_lead') newObj.stage = 'new_enquiry';
   if (newObj.type === 'cruise_line') newObj.type = 'transport'; // fallback for missing enum
 
