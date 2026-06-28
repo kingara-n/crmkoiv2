@@ -60,7 +60,7 @@ export default function ClientsPage() {
   const activeDeals = bookings.filter((b) => b.status !== "lost").length;
 
   function tripTypeBadge(t: TripType) {
-    const tone = t === "Travel" ? "success" : t === "Business" ? "info" : t === "Incentive" ? "accent" : t === "Exhibitions" ? "amber" : "neutral";
+    const tone = t === "Travel" ? "success" : t === "Business" ? "info" : t === "Incentive" ? "accent" : t === "Exhibitions" ? "warning" : "neutral";
     return <Badge tone={tone}>{t.charAt(0).toUpperCase() + t.slice(1)}</Badge>;
   }
 
