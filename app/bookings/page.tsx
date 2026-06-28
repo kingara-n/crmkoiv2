@@ -297,6 +297,10 @@ export default function BookingsPage() {
           bookingId={selectedBookingId}
         />
       )}
+      <BookingModal 
+        open={bookingModalOpen} 
+        onClose={() => setBookingModalOpen(false)} 
+      />
     </div>
   );
 }
