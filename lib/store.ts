@@ -193,7 +193,7 @@ export const useStore = create<Store>()((set, get) => ({
           withFallback(supabase.from("koi_task_comments").select("*").then(r => ({ data: r.error ? [] : r.data })), []),
           withFallback(supabase.from("koi_lead_comments").select("*").then(r => ({ data: r.error ? [] : r.data })), []),
           withFallback(supabase.from("koi_notifications").select("*").then(r => ({ data: r.error ? [] : r.data })), []),
-          withFallback(supabase.from("team_profiles").select("*").then(r => ({ data: r.error ? [] : r.data })), SEED_TEAM),
+          withFallback(supabase.from("profiles").select("*").then(r => ({ data: r.error ? [] : r.data })), SEED_TEAM),
         ]);
         set({
           isLoading: false,
@@ -205,7 +205,10 @@ export const useStore = create<Store>()((set, get) => ({
           trips: trips.map(mapToCamel),
           transfers: transfers.map(mapToCamel),
           notifications: notifications.map(mapToCamel),
-          team: team.map(mapToCamel),
+          team: team.map((t: any) => {
+            const camel = mapToCamel(t);
+            return { ...camel, name: camel.name || `${camel.firstName || ""} ${camel.lastName || ""}`.trim() || "Unknown User" };
+          }),
           clientDocuments: clientDocuments.map(mapToCamel),
           invoices: invoices.map(mapToCamel),
           invoiceEditApprovals: invoiceEditApprovals.map(mapToCamel),
