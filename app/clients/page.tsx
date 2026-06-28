@@ -23,6 +23,7 @@ const TRIP_TYPE_FILTERS: { value: TripType | "all"; label: string }[] = [
   { value: "Incentive", label: "Incentive" },
   { value: "Meeting", label: "Meeting" },
   { value: "Conference", label: "Conference" },
+  { value: "Exhibitions", label: "Exhibitions" },
 ];
 
 export default function ClientsPage() {
@@ -59,7 +60,7 @@ export default function ClientsPage() {
   const activeDeals = bookings.filter((b) => b.status !== "lost").length;
 
   function tripTypeBadge(t: TripType) {
-    const tone = t === "Travel" ? "success" : t === "Business" ? "info" : t === "Incentive" ? "accent" : "neutral";
+    const tone = t === "Travel" ? "success" : t === "Business" ? "info" : t === "Incentive" ? "accent" : t === "Exhibitions" ? "amber" : "neutral";
     return <Badge tone={tone}>{t.charAt(0).toUpperCase() + t.slice(1)}</Badge>;
   }
 

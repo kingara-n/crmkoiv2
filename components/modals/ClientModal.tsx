@@ -90,7 +90,7 @@ export function ClientModal({
     if (type === "individual") {
       if (!["Travel", "Business"].includes(tripType)) setTripType("Travel");
     } else {
-      if (!["Business", "Incentive", "Meeting", "Conference"].includes(tripType)) setTripType("Business");
+      if (!["Business", "Incentive", "Meeting", "Conference", "Exhibitions"].includes(tripType)) setTripType("Business");
     }
   }, [type, tripType]);
 
@@ -159,6 +159,7 @@ export function ClientModal({
                   <option value="Incentive">Incentive</option>
                   <option value="Meeting">Meeting</option>
                   <option value="Conference">Conference</option>
+                  <option value="Exhibitions">Exhibitions</option>
                 </>
               )}
             </Select>

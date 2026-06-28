@@ -27,10 +27,9 @@ export const STAGE_LABELS: Record<Stage, string> = {
 };
 
 export type Currency = "KES" | "USD" | "EUR" | "GBP" | "CAD";
-
 export type BookingStatus = "confirmed" | "pending" | "lost";
 
-export type TripType = "Travel" | "Business" | "Incentive" | "Meeting" | "Conference";
+export type TripType = "Travel" | "Business" | "Incentive" | "Meeting" | "Conference" | "Exhibitions";
 
 export type SupplierType = "hotel" | "camp" | "transport" | "dmc" | "airline" | "cruise_line";
 
