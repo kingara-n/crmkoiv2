@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useMemo } from "react";
-import { Search, Plus, FileText, Download, Trash2, Calendar, File } from "lucide-react";
+import { Search, Plus, FileText, Download, Trash2, Calendar, File, Eye } from "lucide-react";
 import { Card } from "@/components/ui/Card";
 import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
@@ -150,13 +150,22 @@ export default function DocumentsPage() {
                             </div>
                           </td>
                           <td className="px-5 py-4 text-right">
-                            <Button 
-                              variant="secondary" 
-                              className="h-8 text-xs px-2"
-                              onClick={() => alert("Simulation: Document would download from " + doc.storageUrl)}
-                            >
-                              <Download className="h-3.5 w-3.5 mr-1" /> Download
-                            </Button>
+                            <div className="flex justify-end gap-2">
+                              <Button
+                                variant="secondary"
+                                className="h-8 text-xs px-2"
+                                onClick={() => window.open(doc.storageUrl || "#", "_blank")}
+                              >
+                                <Eye className="h-3.5 w-3.5 mr-1" /> View
+                              </Button>
+                              <Button 
+                                variant="secondary" 
+                                className="h-8 text-xs px-2"
+                                onClick={() => alert("Simulation: Document would download from " + doc.storageUrl)}
+                              >
+                                <Download className="h-3.5 w-3.5 mr-1" /> Download
+                              </Button>
+                            </div>
                           </td>
                         </tr>
                       );
