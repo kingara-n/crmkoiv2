@@ -27,6 +27,7 @@ export function DocumentUploadModal({
   const [docType, setDocType] = useState("passport");
   const [filename, setFilename] = useState("");
   const [file, setFile] = useState<File | null>(null);
+  const [isUploading, setIsUploading] = useState(false);
 
   async function handleRealUpload(e: React.FormEvent) {
     e.preventDefault();

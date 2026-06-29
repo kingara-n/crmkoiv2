@@ -35,7 +35,7 @@ export default function DocumentsPage() {
           clients.find((c) => c.id === d.clientId)?.name.toLowerCase().includes(q)
       );
     }
-    return rows.sort((a, b) => b.uploadedAt.localeCompare(a.uploadedAt));
+    return rows.sort((a, b) => (b.createdAt || "").localeCompare(a.createdAt || ""));
   }, [documents, clients, filterType, query]);
 
   if (!hydrated) return <div className="text-neutral-500 p-2">Loading…</div>;

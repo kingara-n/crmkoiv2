@@ -174,8 +174,8 @@ export default function ClientProfilePage() {
                         <File className="h-4 w-4 text-accent-400" />
                       </div>
                       <div>
-                        <p className="font-medium text-white text-sm">{doc.filename}</p>
-                        <p className="text-xs text-neutral-500 mt-0.5">Uploaded {formatDate(doc.uploadedAt)}</p>
+                        <p className="text-sm font-medium text-white">{doc.filename}</p>
+                        <p className="text-xs text-neutral-500 mt-0.5">Uploaded {doc.createdAt ? formatDate(doc.createdAt) : "—"}</p>
                       </div>
                     </div>
                     <Badge tone={doc.docType === "passport" ? "success" : doc.docType === "payment_receipt" ? "accent" : "neutral"}>
