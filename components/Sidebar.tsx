@@ -90,9 +90,7 @@ export function Sidebar() {
               </h3>
             )}
             {collapsed && idx > 0 && <div className="h-px bg-ink-700/50 mx-3 my-2" />}
-            {section.items.map(({ href, label, icon: Icon, requireAdmin }) => {
-              // Hide admin-only links from non-admins
-              if (requireAdmin && settings?.role !== "management") return null;
+            {section.items.map(({ href, label, icon: Icon }) => {
 
               const active = href === "/" ? pathname === "/" : pathname.startsWith(href);
               return (
