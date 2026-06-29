@@ -12,7 +12,7 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" className="dark">
+    <html lang="en" className="light">
       <head>
         {/* Inter loaded at runtime so the build doesn't depend on Google Fonts. */}
         <link rel="preconnect" href="https://fonts.googleapis.com" />

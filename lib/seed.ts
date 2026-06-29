@@ -84,7 +84,7 @@ export const DEFAULT_SETTINGS: UserSettings = {
   email: "amara.osei@koitravel.com",
   role: "management",
   timezone: "Africa/Nairobi",
-  darkMode: true,
+  darkMode: false,
   currency: "KES",
   compactView: false,
   revenueTarget: 50000000,
