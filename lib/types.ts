@@ -208,9 +208,9 @@ export interface ClientDocument {
   filename: string;
   storageUrl: string;
   docType?: string;
-  expiresAt?: string;
+  createdAt?: string;
   uploadedBy?: string;
-  uploadedAt: string;
+  expiresAt?: string;
 }
 
 export interface DocumentTemplate {

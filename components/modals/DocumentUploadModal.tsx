@@ -21,6 +21,7 @@ export function DocumentUploadModal({
   const clients = useStore((s) => s.clients);
   const bookings = useStore((s) => s.bookings);
   const addClientDocument = useStore((s) => s.addClientDocument);
+  const settings = useStore((s) => s.settings);
 
   const [clientId, setClientId] = useState(initialClientId || "");
   const [docType, setDocType] = useState("passport");
@@ -55,6 +56,7 @@ export function DocumentUploadModal({
         filename: file.name,
         docType,
         storageUrl: publicUrlData.publicUrl,
+        uploadedBy: `${settings.firstName} ${settings.lastName}`.trim() || 'Unknown User',
       });
 
       setIsUploading(false);

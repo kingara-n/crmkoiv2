@@ -113,14 +113,15 @@ export default function DocumentsPage() {
                     <th className="px-5 py-3 font-medium">Document</th>
                     <th className="px-5 py-3 font-medium">Type</th>
                     <th className="px-5 py-3 font-medium">Client</th>
-                    <th className="px-5 py-3 font-medium">Uploaded Date</th>
+                    <th className="px-5 py-3 font-medium">Uploaded By</th>
+                    <th className="px-5 py-3 font-medium">Upload Time</th>
                     <th className="px-5 py-3 font-medium text-right">Actions</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-ink-700/50">
                   {filtered.length === 0 ? (
                     <tr>
-                      <td colSpan={5} className="p-8 text-center text-neutral-500">
+                      <td colSpan={6} className="p-8 text-center text-neutral-500">
                         No documents found.
                       </td>
                     </tr>
@@ -144,9 +145,12 @@ export default function DocumentsPage() {
                           </td>
                           <td className="px-5 py-4 text-neutral-300">{client?.name || "Unknown"}</td>
                           <td className="px-5 py-4 text-neutral-300">
+                            {doc.uploadedBy || "—"}
+                          </td>
+                          <td className="px-5 py-4 text-neutral-300">
                             <div className="flex items-center gap-1.5">
                               <Calendar className="h-3.5 w-3.5 text-neutral-500" />
-                              {formatDate(doc.uploadedAt)}
+                              {doc.createdAt ? formatDate(doc.createdAt) : "—"}
                             </div>
                           </td>
                           <td className="px-5 py-4 text-right">
