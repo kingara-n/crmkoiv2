@@ -276,8 +276,13 @@ export const useStore = create<Store>()((set, get) => ({
   },
   
   addClientDocument: async (doc) => {
-    const { data } = await supabase.from("client_documents").insert(mapToSnake(doc)).select().single();
+    const { data, error } = await supabase.from("client_documents").insert(mapToSnake(doc)).select().single();
+    if (error) {
+      console.error("Error inserting document:", error);
+      throw new Error(`DB Error: ${error.message || "Failed to insert"}`);
+    }
     if (data) set((s) => ({ clientDocuments: [...s.clientDocuments, mapToCamel(data)] }));
+    else throw new Error("Failed to save document to database (no data returned)");
   },
 
   addDocumentTemplate: async (doc) => {

@@ -62,9 +62,9 @@ export function DocumentUploadModal({
 
       setIsUploading(false);
       onClose();
-    } catch (error) {
+    } catch (error: any) {
       console.error("Upload failed", error);
-      alert("Upload failed. Make sure the 'documents' storage bucket exists and is public.");
+      alert(`Upload/Save failed: ${error?.message || "Make sure the 'documents' storage bucket exists and is public."}`);
       setIsUploading(false);
     }
   }
