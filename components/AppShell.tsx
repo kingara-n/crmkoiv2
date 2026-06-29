@@ -6,6 +6,7 @@ import { Sidebar } from "./Sidebar";
 import { TopBar } from "./TopBar";
 import { useStore } from "@/lib/store";
 import { useIsHydrated } from "@/lib/useIsHydrated";
+import { supabase } from "@/lib/supabase";
 
 export function AppShell({ children }: { children: ReactNode }) {
   const pathname = usePathname();
@@ -27,6 +28,25 @@ export function AppShell({ children }: { children: ReactNode }) {
     if (!isAuthPage && !fetched.current) {
       fetched.current = true;
       fetchInitialData();
+    }
+
+    if (!isAuthPage) {
+      // Subscribe to any change in the public schema to trigger an instant background refresh
+      const channel = supabase
+        .channel("schema-db-changes")
+        .on(
+          "postgres_changes",
+          { event: "*", schema: "public" },
+          () => {
+            // Re-fetch data silently in the background
+            fetchInitialData();
+          }
+        )
+        .subscribe();
+
+      return () => {
+        supabase.removeChannel(channel);
+      };
     }
   }, [pathname, fetchInitialData]);
 

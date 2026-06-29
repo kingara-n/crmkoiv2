@@ -108,6 +108,7 @@ function mapToCamel(obj: any): any {
   if ('residentRateKes' in newObj) { newObj.residentRate = newObj.residentRateKes; }
   // Enum mappings
   if (newObj.stage === 'new_enquiry') newObj.stage = 'new_lead';
+  if (newObj.type === 'leisure') newObj.type = 'individual';
 
   return newObj;
 }
@@ -127,6 +128,7 @@ function mapToSnake(obj: any): any {
   // Enum mappings
   if (newObj.stage === 'new_lead') newObj.stage = 'new_enquiry';
   if (newObj.type === 'cruise_line') newObj.type = 'transport'; // fallback for missing enum
+  if (newObj.type === 'individual') newObj.type = 'leisure';
 
   return newObj;
 }
