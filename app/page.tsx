@@ -152,7 +152,7 @@ export default function OverviewPage() {
 
   // Live pipeline totals — recompute from current leads
   const pipelineByStage: Record<Stage, { count: number; value: number }> = {
-    new_lead: { count: 0, value: 0 },
+    new_enquiry: { count: 0, value: 0 },
     quoted: { count: 0, value: 0 },
     in_discussion: { count: 0, value: 0 },
     confirmed: { count: 0, value: 0 },
@@ -160,7 +160,7 @@ export default function OverviewPage() {
   };
   leads.forEach((l) => {
     // legacy migration
-    const stage = l.stage === "new_enquiry" as any ? "new_lead" : l.stage;
+    const stage = l.stage === "new_lead" as any ? "new_enquiry" : l.stage;
     if (pipelineByStage[stage]) {
       pipelineByStage[stage].count++;
       pipelineByStage[stage].value += (l as any).valueKes || l.value || 0;
