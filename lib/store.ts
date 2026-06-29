@@ -78,6 +78,8 @@ interface Store {
   updateTransfer: (id: string, patch: Partial<Transfer>) => Promise<void>;
   deleteTransfer: (id: string) => Promise<void>;
 
+  updateTeamMember: (id: string, patch: Partial<TeamMember>) => Promise<void>;
+
   addTask: (t: Omit<Task, "id" | "createdAt">) => Promise<void>;
   updateTask: (id: string, patch: Partial<Task>) => Promise<void>;
   addTaskComment: (c: Omit<TaskComment, "id" | "createdAt">) => Promise<void>;
@@ -407,8 +409,28 @@ export const useStore = create<Store>()((set, get) => ({
     await supabase.from("transfers").update(mapToSnake(patch)).eq("id", id);
   },
   deleteTransfer: async (id) => {
+    try {
+      await supabase.from("transfers").delete().eq("id", id);
+    } catch (e) {
+      console.error(e);
+    }
     set((s) => ({ transfers: s.transfers.filter((t) => t.id !== id) }));
-    await supabase.from("transfers").delete().eq("id", id);
+  },
+
+  updateTeamMember: async (id, patch) => {
+    try {
+      const dbPatch: any = {};
+      if (patch.role) dbPatch.role = patch.role;
+      if (patch.department) dbPatch.department = patch.department;
+      
+      const { error } = await supabase.from("profiles").update(dbPatch).eq("id", id);
+      if (error) throw error;
+    } catch (e) {
+      console.error(e);
+    }
+    set((s) => ({
+      team: s.team.map((t) => (t.id === id ? { ...t, ...patch } : t)),
+    }));
   },
 
   addTask: async (t) => {

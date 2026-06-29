@@ -168,6 +168,7 @@ export interface TeamMember {
   name: string;
   initials: string;
   role: string;
+  department?: string;
   email: string;
   phone: string;
   isTopPerformer?: boolean;

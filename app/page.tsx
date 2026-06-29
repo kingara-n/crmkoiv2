@@ -32,8 +32,7 @@ export default function OverviewPage() {
 
   useEffect(() => {
     if (hydrated) {
-      const role = settings.role;
-      if (role !== "Sales Manager" && role !== "Director" && role !== "management") {
+      if (settings.role !== "management") {
         router.push("/tasks");
       }
     }

@@ -152,7 +152,7 @@ const TRIP_TITLES = [
   "New Year's Safari","Christmas Family Trip","School Educational Safari","Medical Tourism Package",
   "Conference & Safari Bundle","Private Island Escape","Luxury Train Journey","Hot Air Balloon Safari",
 ];
-const STAGES: Stage[] = ["new_lead","quoted","in_discussion","confirmed","paid"];
+const STAGES: Stage[] = ["new_enquiry","quoted","in_discussion","confirmed","paid"];
 
 export const SEED_LEADS: Lead[] = Array.from({ length: 50 }).map((_, i) => ({
   id: `l${i}`,
