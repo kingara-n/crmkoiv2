@@ -5,6 +5,7 @@ import { Modal } from "@/components/ui/Modal";
 import { Button } from "@/components/ui/Button";
 import { Input, Label, Select } from "@/components/ui/Field";
 import { useStore } from "@/lib/store";
+import { supabase } from "@/lib/supabase";
 
 export function DocumentUploadModal({
   open,
@@ -24,34 +25,50 @@ export function DocumentUploadModal({
   const [clientId, setClientId] = useState(initialClientId || "");
   const [docType, setDocType] = useState("passport");
   const [filename, setFilename] = useState("");
-  const [isUploading, setIsUploading] = useState(false);
+  const [file, setFile] = useState<File | null>(null);
 
-  // Derive booking ID if it's tied strictly to a booking
-  // For now, we link docs purely to clients, but docType determines if it satisfies booking rules.
-
-  async function handleSimulatedUpload(e: React.FormEvent) {
+  async function handleRealUpload(e: React.FormEvent) {
     e.preventDefault();
-    if (!clientId || !filename) return;
+    if (!clientId || !file) return;
 
     setIsUploading(true);
 
-    // Simulate upload delay
-    await new Promise((r) => setTimeout(r, 1000));
+    try {
+      // 1. Upload to Supabase Storage
+      const fileExt = file.name.split('.').pop();
+      const filePath = `client-${clientId}/${Date.now()}.${fileExt}`;
+      
+      const { error: uploadError } = await supabase.storage
+        .from('documents')
+        .upload(filePath, file);
 
-    await addClientDocument({
-      clientId,
-      filename,
-      docType,
-      storageUrl: `https://mockstorage.com/${filename.replace(/\s+/g, "_")}`,
-    });
+      if (uploadError) throw uploadError;
 
-    setIsUploading(false);
-    onClose();
+      // 2. Get Public URL
+      const { data: publicUrlData } = supabase.storage
+        .from('documents')
+        .getPublicUrl(filePath);
+
+      // 3. Save to database
+      await addClientDocument({
+        clientId,
+        filename: file.name,
+        docType,
+        storageUrl: publicUrlData.publicUrl,
+      });
+
+      setIsUploading(false);
+      onClose();
+    } catch (error) {
+      console.error("Upload failed", error);
+      alert("Upload failed. Make sure the 'documents' storage bucket exists and is public.");
+      setIsUploading(false);
+    }
   }
 
   return (
     <Modal open={open} onClose={onClose} title="Upload Document">
-      <form onSubmit={handleSimulatedUpload} className="space-y-4">
+      <form onSubmit={handleRealUpload} className="space-y-4">
         <div>
           <Label>Client</Label>
           <Select value={clientId} onChange={(e) => setClientId(e.target.value)} required>
@@ -105,7 +122,12 @@ export function DocumentUploadModal({
                   <input
                     type="file"
                     className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
-                    onChange={(e) => setFilename(e.target.files?.[0]?.name || "")}
+                    onChange={(e) => {
+                      if (e.target.files?.[0]) {
+                        setFile(e.target.files[0]);
+                        setFilename(e.target.files[0].name);
+                      }
+                    }}
                     required
                   />
                 </label>
@@ -118,7 +140,12 @@ export function DocumentUploadModal({
                 <input
                     type="file"
                     className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
-                    onChange={(e) => setFilename(e.target.files?.[0]?.name || "")}
+                    onChange={(e) => {
+                      if (e.target.files?.[0]) {
+                        setFile(e.target.files[0]);
+                        setFilename(e.target.files[0].name);
+                      }
+                    }}
                   />
               </div>
             )}

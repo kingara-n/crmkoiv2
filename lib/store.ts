@@ -316,6 +316,9 @@ export const useStore = create<Store>()((set, get) => ({
 
   addLead: async (l) => {
     const dbLead = mapToSnake({ ...l, daysInStage: 0 });
+    delete dbLead.probability;
+    delete dbLead.source;
+    delete dbLead.owner_name;
     const { data } = await supabase.from("leads").insert(dbLead).select().single();
     if (data) set((s) => ({ leads: [...s.leads, mapToCamel(data)] }));
   },
@@ -352,7 +355,11 @@ export const useStore = create<Store>()((set, get) => ({
   },
   updateLead: async (id, patch) => {
     set((s) => ({ leads: s.leads.map((l) => (l.id === id ? { ...l, ...patch } : l)) }));
-    await supabase.from("leads").update(mapToSnake(patch)).eq("id", id);
+    const dbPatch = mapToSnake(patch);
+    delete dbPatch.probability;
+    delete dbPatch.source;
+    delete dbPatch.owner_name;
+    await supabase.from("leads").update(dbPatch).eq("id", id);
   },
   deleteLead: async (id) => {
     set((s) => ({ leads: s.leads.filter((l) => l.id !== id) }));
