@@ -119,7 +119,8 @@ function mapToSnake(obj: any): any {
   const newObj: any = {};
   for (const key of Object.keys(obj)) {
     const snakeKey = key.replace(/[A-Z]/g, (letter) => `_${letter.toLowerCase()}`);
-    newObj[snakeKey] = obj[key];
+    // Convert empty strings to null to avoid crashing Postgres UUID/numeric columns
+    newObj[snakeKey] = obj[key] === "" ? null : obj[key];
   }
   // Reverse overrides
   if ('revenue' in newObj && !('revenue_kes' in newObj)) { newObj.revenue_kes = newObj.revenue; delete newObj.revenue; }
