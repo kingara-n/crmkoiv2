@@ -29,7 +29,7 @@ export function LeadModal({
   const [destination, setDestination] = useState("");
   const [value, setValue] = useState("");
   const [currency, setCurrency] = useState<Currency>("KES");
-  const [stage, setStage] = useState<Stage>(defaultStage ?? "new_lead");
+  const [stage, setStage] = useState<Stage>(defaultStage ?? "new_enquiry");
   const [ownerId, setOwnerId] = useState("");
   const [probability, setProbability] = useState("50");
   const [source, setSource] = useState("Referral");
@@ -53,7 +53,7 @@ export function LeadModal({
       setDestination("");
       setValue("");
       setCurrency("KES");
-      setStage(defaultStage ?? "new_lead");
+      setStage(defaultStage ?? "new_enquiry");
       setOwnerId(team[0]?.id ?? "");
       setProbability("50");
       setSource("Referral");

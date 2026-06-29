@@ -26,7 +26,7 @@ export function TaskModal({
     const formData = new FormData(e.currentTarget);
     const title = formData.get("title") as string;
     const description = formData.get("description") as string;
-    const priority = formData.get("priority") as string;
+    const department = formData.get("department") as string;
     const dueDate = formData.get("dueDate") as string;
     const assignedTo = formData.get("assignedTo") as string;
     const status = formData.get("status") as any;
@@ -41,7 +41,7 @@ export function TaskModal({
       await addTask({
         title,
         description,
-        priority,
+        department,
         dueDate: dueDate || undefined,
         assignedTo: assignedTo || undefined,
         assignedName,
@@ -103,15 +103,19 @@ export function TaskModal({
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-neutral-300 mb-1">Priority</label>
+            <label className="block text-sm font-medium text-neutral-300 mb-1">Department</label>
             <select
-              name="priority"
+              name="department"
+              required
               className="w-full bg-ink-900 border border-ink-700 rounded-lg px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-accent-500"
             >
-              <option value="General">General</option>
-              <option value="Sales-Oriented">Sales-Oriented</option>
+              <option value="">--</option>
+              <option value="Accounts">Accounts</option>
               <option value="Operations">Operations</option>
-              <option value="Marketing">Marketing</option>
+              <option value="Tickets">Tickets</option>
+              <option value="Tours">Tours</option>
+              <option value="Management">Management</option>
+              <option value="Business Development">Business Development</option>
             </select>
           </div>
 

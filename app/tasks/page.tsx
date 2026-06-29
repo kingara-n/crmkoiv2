@@ -33,6 +33,7 @@ export default function TasksPage() {
 
   const [activeTask, setActiveTask] = useState<string | null>(null);
   const [taskModalOpen, setTaskModalOpen] = useState(false);
+  const [departmentFilter, setDepartmentFilter] = useState("");
 
   if (!hydrated) return <div className="text-neutral-500 p-2">Loading…</div>;
 
@@ -47,6 +48,19 @@ export default function TasksPage() {
           <h2 className="text-xl font-bold text-white">Tasks</h2>
         </div>
         <div className="flex items-center gap-3">
+          <select
+            value={departmentFilter}
+            onChange={(e) => setDepartmentFilter(e.target.value)}
+            className="bg-ink-900 border border-ink-700 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:ring-2 focus:ring-accent-500"
+          >
+            <option value="">All Departments</option>
+            <option value="Accounts">Accounts</option>
+            <option value="Operations">Operations</option>
+            <option value="Tickets">Tickets</option>
+            <option value="Tours">Tours</option>
+            <option value="Management">Management</option>
+            <option value="Business Development">Business Development</option>
+          </select>
           <Button icon={<Plus className="h-4 w-4" />} onClick={() => setTaskModalOpen(true)}>
             New Task
           </Button>
@@ -58,7 +72,9 @@ export default function TasksPage() {
       <div className="flex-1 overflow-x-auto">
         <div className="flex gap-6 min-w-max h-full pb-6">
           {COLUMNS.map((col) => {
-            const columnTasks = tasks.filter((t) => t.status === col.id);
+            const columnTasks = tasks
+              .filter((t) => t.status === col.id)
+              .filter((t) => !departmentFilter || t.department === departmentFilter);
             return (
               <div key={col.id} className="w-[320px] flex flex-col">
                 <div className="flex items-center justify-between mb-4">
@@ -113,17 +129,23 @@ export default function TasksPage() {
                       </div>
 
                       <div className="flex items-center justify-between pt-2">
-                        {task.priority ? (
+                        {task.department ? (
                           <span
                             className={`text-[10px] font-semibold px-2 py-1 rounded-md uppercase tracking-wider ${
-                              task.priority === "Marketing"
-                                ? "bg-purple-500/20 text-purple-400"
-                                : task.priority === "Sales-Oriented"
-                                  ? "bg-blue-500/20 text-blue-400"
-                                  : "bg-green-500/20 text-green-400"
+                              task.department === "Accounts"
+                                ? "bg-red-500/20 text-red-400"
+                                : task.department === "Management"
+                                  ? "bg-purple-500/20 text-purple-400"
+                                  : task.department === "Business Development"
+                                    ? "bg-blue-500/20 text-blue-400"
+                                    : task.department === "Tours"
+                                      ? "bg-green-500/20 text-green-400"
+                                      : task.department === "Tickets"
+                                        ? "bg-yellow-500/20 text-yellow-400"
+                                        : "bg-neutral-500/20 text-neutral-400"
                             }`}
                           >
-                            {task.priority}
+                            {task.department}
                           </span>
                         ) : (
                           <div />

@@ -29,7 +29,7 @@ export default function PipelinePage() {
   // Group leads by stage. Memoised so columns recompute only when leads change.
   const leadsByStage = useMemo(() => {
     const map: Record<Stage, Lead[]> = {
-      new_lead: [],
+      new_enquiry: [],
       in_discussion: [],
       quoted: [],
       confirmed: [],
@@ -37,7 +37,7 @@ export default function PipelinePage() {
     };
     leads.forEach((l) => {
       // Handle legacy leads that might have old stage names during migration
-      if (l.stage === "new_enquiry" as any) l.stage = "new_lead";
+      if (l.stage === "new_lead" as any) l.stage = "new_enquiry";
       map[l.stage]?.push(l);
     });
     return map;

@@ -4,14 +4,14 @@
 export type UserRole = "management" | "sales" | "accounts" | "operations";
 
 export type Stage =
-  | "new_lead"
+  | "new_enquiry"
   | "in_discussion"
   | "quoted"
   | "confirmed"
   | "paid";
 
 export const STAGE_ORDER: Stage[] = [
-  "new_lead",
+  "new_enquiry",
   "quoted",
   "in_discussion",
   "confirmed",
@@ -19,7 +19,7 @@ export const STAGE_ORDER: Stage[] = [
 ];
 
 export const STAGE_LABELS: Record<Stage, string> = {
-  new_lead: "New Lead",
+  new_enquiry: "New Lead",
   in_discussion: "In discussion",
   quoted: "Quoted",
   confirmed: "Confirmed",
@@ -283,7 +283,7 @@ export interface Task {
   assignedTo?: string;
   assignedName?: string;
   relatedOpportunity?: string;
-  priority?: string;
+  department?: string;
   createdAt: string;
 }
 
