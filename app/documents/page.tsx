@@ -6,6 +6,7 @@ import { Card } from "@/components/ui/Card";
 import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
 import { DocumentUploadModal } from "@/components/modals/DocumentUploadModal";
+import { DocumentViewerModal } from "@/components/modals/DocumentViewerModal";
 import { useStore } from "@/lib/store";
 import { useIsHydrated } from "@/lib/useIsHydrated";
 import { formatDate } from "@/lib/format";
@@ -21,6 +22,7 @@ export default function DocumentsPage() {
   const [query, setQuery] = useState("");
   const [filterType, setFilterType] = useState<string>("all");
   const [uploadModalOpen, setUploadModalOpen] = useState(false);
+  const [viewDoc, setViewDoc] = useState<{ url: string; filename: string } | null>(null);
 
   const filtered = useMemo(() => {
     let rows = documents;
@@ -158,7 +160,7 @@ export default function DocumentsPage() {
                               <Button
                                 variant="secondary"
                                 className="h-8 text-xs px-2"
-                                onClick={() => window.open(doc.storageUrl || "#", "_blank")}
+                                onClick={() => setViewDoc({ url: doc.storageUrl || "", filename: doc.filename })}
                               >
                                 <Eye className="h-3.5 w-3.5 mr-1" /> View
                               </Button>
@@ -244,6 +246,13 @@ export default function DocumentsPage() {
           onClose={() => setUploadModalOpen(false)}
         />
       )}
+
+      <DocumentViewerModal
+        open={!!viewDoc}
+        onClose={() => setViewDoc(null)}
+        storageUrl={viewDoc?.url || null}
+        filename={viewDoc?.filename || ""}
+      />
     </div>
   );
 }

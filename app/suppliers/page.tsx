@@ -68,11 +68,6 @@ export default function SuppliersPage() {
           <h1 className="text-2xl font-semibold text-white">Suppliers</h1>
           <p className="text-sm text-neutral-400 mt-1">Manage supplier directory and track partnerships.</p>
         </div>
-        <div className="flex gap-3">
-          <Button variant="secondary" onClick={() => setModalOpen(true)}>
-            Add Supplier
-          </Button>
-        </div>
       </div>
 
       <div className="pt-2">
@@ -110,6 +105,12 @@ export default function SuppliersPage() {
                 {f.label}
               </button>
             ))}
+          </div>
+          
+          <div className="ml-auto">
+            <Button variant="primary" icon={<Plus className="h-4 w-4" />} onClick={() => setModalOpen(true)}>
+              Add Supplier
+            </Button>
           </div>
         </div>
 

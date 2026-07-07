@@ -1,13 +1,15 @@
 "use client";
 
 import { useState } from "react";
-import { FileText, Download, Clock, Plus } from "lucide-react";
-import { Card } from "@/components/ui/Card";
+import { FileText, Download, Clock, Plus, Eye, TrendingUp, Users, DollarSign, Target } from "lucide-react";
+import { Card, StatCard } from "@/components/ui/Card";
 import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
+import { DocumentViewerModal } from "@/components/modals/DocumentViewerModal";
 import { ConversionLineChart, LeadSourceDonut } from "@/components/charts/ReportCharts";
 import { useStore } from "@/lib/store";
 import { useIsHydrated } from "@/lib/useIsHydrated";
+import { formatMoneyFull } from "@/lib/format";
 
 interface Report {
   id: string;
@@ -47,8 +49,10 @@ export default function ReportsPage() {
   const bookings = useStore((s) => s.bookings);
   const clients = useStore((s) => s.clients);
   const team = useStore((s) => s.team);
+  const currency = useStore((s) => s.settings.currency);
 
   const [reports, setReports] = useState<Report[]>(SEED_REPORTS);
+  const [viewDoc, setViewDoc] = useState<{ url: string; filename: string } | null>(null);
 
   // Compute live lead-source breakdown from the actual leads in the store
   const sourceMap = new Map<string, number>();
@@ -78,6 +82,38 @@ export default function ReportsPage() {
     URL.revokeObjectURL(url);
   }
 
+  function viewReport(report: Report) {
+    let payload: any = { report: report.name, generated: new Date().toISOString() };
+    if (report.category === "Sales") payload.bookings = bookings;
+    else if (report.category === "Performance") payload.team = team;
+    else if (report.category === "Forecast") payload.pipeline = leads;
+    else if (report.category === "Team") payload.team = team;
+    else if (report.category === "Marketing") payload.leadSources = sourceData;
+    else payload.snapshot = { clients, bookings, leads };
+
+    const htmlContent = `
+      <html>
+      <head>
+        <style>
+          body { font-family: system-ui; padding: 40px; color: #111; line-height: 1.6; }
+          h1 { margin-bottom: 8px; font-size: 24px; }
+          .meta { color: #666; font-size: 14px; margin-bottom: 32px; border-bottom: 1px solid #eee; padding-bottom: 24px; }
+          pre { background: #f4f4f5; padding: 16px; border-radius: 8px; overflow-x: auto; font-size: 13px; }
+        </style>
+      </head>
+      <body>
+        <h1>${report.name}</h1>
+        <div class="meta">Category: ${report.category} &nbsp;|&nbsp; Date: ${report.date}</div>
+        <h3>Raw Data Snapshot</h3>
+        <pre>${JSON.stringify(payload, null, 2)}</pre>
+      </body>
+      </html>
+    `;
+    const blob = new Blob([htmlContent], { type: "text/html" });
+    const url = URL.createObjectURL(blob);
+    setViewDoc({ url, filename: report.name });
+  }
+
   function generateNew() {
     const id = "r_" + Math.random().toString(36).slice(2, 8);
     const newReport: Report = {
@@ -99,8 +135,38 @@ export default function ReportsPage() {
   if (!hydrated) return <div className="text-neutral-500 p-2">Loading…</div>;
 
   return (
-    <div className="space-y-5">
-      <p className="text-sm text-neutral-400">Generate and download performance reports</p>
+    <div className="space-y-6 pb-12">
+      <div>
+        <h1 className="text-2xl font-bold text-white mb-1">Reports & Analytics</h1>
+        <p className="text-sm text-neutral-400">Generate and download performance reports</p>
+      </div>
+
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        <StatCard
+          title="Total Pipeline Value"
+          value={formatMoneyFull(leads.reduce((sum, l) => sum + l.value, 0), currency)}
+          icon={<DollarSign className="h-4 w-4" />}
+          trend={{ value: 12, positive: true }}
+        />
+        <StatCard
+          title="Total Won (Bookings)"
+          value={formatMoneyFull(bookings.reduce((sum, b) => sum + b.value, 0), currency)}
+          icon={<Target className="h-4 w-4" />}
+          trend={{ value: 8, positive: true }}
+        />
+        <StatCard
+          title="Active Leads"
+          value={leads.filter(l => l.stage !== 'lost' && l.stage !== 'paid').length}
+          icon={<Users className="h-4 w-4" />}
+          trend={{ value: 4, positive: true }}
+        />
+        <StatCard
+          title="Avg Conversion"
+          value={`${CONVERSION_DATA[CONVERSION_DATA.length - 1].rate}%`}
+          icon={<TrendingUp className="h-4 w-4" />}
+          trend={{ value: 1.5, positive: true }}
+        />
+      </div>
 
       {/* Charts row */}
       <div className="grid gap-4 lg:grid-cols-2">
@@ -162,17 +228,26 @@ export default function ReportsPage() {
                   Generating…
                 </span>
               ) : (
-                <button
-                  onClick={() => downloadReport(r)}
-                  className="inline-flex items-center gap-2 rounded-lg border border-ink-700 bg-ink-850 px-3 py-1.5 text-sm text-neutral-300 hover:bg-ink-800"
-                >
-                  <Download className="h-4 w-4" /> Download
-                </button>
+                <div className="flex items-center gap-2">
+                  <Button variant="secondary" size="sm" onClick={() => viewReport(r)} icon={<Eye className="h-4 w-4" />}>
+                    View
+                  </Button>
+                  <Button variant="secondary" size="sm" onClick={() => downloadReport(r)} icon={<Download className="h-4 w-4" />}>
+                    Download
+                  </Button>
+                </div>
               )}
             </div>
           ))}
         </div>
       </Card>
+
+      <DocumentViewerModal
+        open={!!viewDoc}
+        onClose={() => setViewDoc(null)}
+        storageUrl={viewDoc?.url || null}
+        filename={viewDoc?.filename || ""}
+      />
     </div>
   );
 }

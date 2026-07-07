@@ -80,6 +80,19 @@ export interface Supplier {
   contractExpires?: string;
 }
 
+export interface RateSheet {
+  id: string;
+  supplierId: string;
+  seasonName: string;
+  startDate: string;
+  endDate: string;
+  residentRate: number;
+  nonResidentRateUsd: number;
+  currency: Currency;
+  notes?: string;
+  createdAt?: string;
+}
+
 export type PurchaseOrderStatus = "draft" | "sent" | "received" | "closed";
 
 export interface PurchaseOrder {
@@ -110,6 +123,7 @@ export interface Lead {
   ownerName: string;
   daysInStage: number;
   source: string;          // 'referral', 'website', 'corporate', ...
+  travefyUrl?: string;
   createdAt: string;
 }
 

@@ -6,7 +6,7 @@ import { usePathname } from "next/navigation";
 import {
   LayoutDashboard, GitBranch, Handshake, Users, Building2,
   Plane, BarChart3, Settings as SettingsIcon, ChevronLeft,
-  FileText, Car, Receipt, FolderOpen, CheckCircle2
+  FileText, Car, Receipt, FolderOpen, CheckCircle2, BookOpen
 } from "lucide-react";
 import { useStore, useSettings } from "@/lib/store";
 
@@ -37,6 +37,7 @@ const NAV_SECTIONS = [
       { href: "/trips", label: "Trips", icon: Plane },
       { href: "/transfers", label: "Transfers", icon: Car },
       { href: "/suppliers", label: "Suppliers", icon: Building2 },
+      { href: "/suppliers/rates", label: "Rate Sheets", icon: BookOpen },
       { href: "/documents", label: "Document Vault", icon: FolderOpen },
     ]
   },

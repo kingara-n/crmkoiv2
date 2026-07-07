@@ -10,6 +10,7 @@ import { Badge } from "@/components/ui/Badge";
 import { Avatar } from "@/components/ui/Avatar";
 import { formatDate, formatMoney } from "@/lib/format";
 import { ChevronLeft, Mail, Phone, MapPin, Calendar, File, Briefcase, Plane, Banknote } from "lucide-react";
+import { ActivityFeed } from "@/components/ActivityFeed";
 
 export default function ClientProfilePage() {
   const { id } = useParams() as { id: string };
@@ -186,6 +187,11 @@ export default function ClientProfilePage() {
               </div>
             )}
           </Card>
+
+          {/* Activity Feed */}
+          <div className="h-96">
+            <ActivityFeed entityType="client" entityId={id} />
+          </div>
         </div>
       </div>
     </div>

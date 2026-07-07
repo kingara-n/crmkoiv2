@@ -9,21 +9,22 @@ export function ConversionLineChart({ data }: { data: { month: string; rate: num
   return (
     <ResponsiveContainer width="100%" height={260}>
       <LineChart data={data} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
-        <CartesianGrid strokeDasharray="3 3" stroke="#2a2a2a" vertical={false} />
-        <XAxis dataKey="month" stroke="#888" tick={{ fontSize: 11 }} axisLine={false} tickLine={false} />
+        <CartesianGrid strokeDasharray="3 3" stroke="currentColor" className="text-ink-700/50" vertical={false} />
+        <XAxis dataKey="month" stroke="currentColor" className="text-neutral-500" tick={{ fill: 'currentColor' }} tickLine={false} axisLine={false} />
         <YAxis
-          stroke="#888"
-          tick={{ fontSize: 11 }}
+          stroke="currentColor"
+          className="text-neutral-500"
+          tick={{ fill: 'currentColor' }}
           tickFormatter={(v) => `${v}%`}
           axisLine={false}
           tickLine={false}
           width={45}
         />
         <Tooltip
-          contentStyle={{ background: "#161616", border: "1px solid #2a2a2a", borderRadius: 8, fontSize: 12 }}
+          contentStyle={{ backgroundColor: 'var(--ink-900)', border: "1px solid var(--ink-700)", borderRadius: 8, fontSize: 12, color: 'var(--text-white)' }}
           formatter={(v: number) => `${v}%`}
         />
-        <Line type="monotone" dataKey="rate" stroke="#22c55e" strokeWidth={2} dot={{ r: 3, fill: "#22c55e" }} />
+        <Line type="monotone" dataKey="rate" stroke="#22c55e" strokeWidth={3} dot={{ r: 4, fill: "#22c55e", strokeWidth: 0 }} activeDot={{ r: 6 }} />
       </LineChart>
     </ResponsiveContainer>
   );
@@ -41,9 +42,9 @@ export function LeadSourceDonut({ data }: { data: { name: string; value: number 
             cx="50%" cy="50%"
             innerRadius={50}
             outerRadius={80}
-            paddingAngle={3}
+            paddingAngle={2}
             dataKey="value"
-            stroke="#111"
+            stroke="none"
           >
             {data.map((_, i) => <Cell key={i} fill={DONUT_COLORS[i % DONUT_COLORS.length]} />)}
           </Pie>

@@ -6,6 +6,8 @@ import { Lead, Stage, STAGE_LABELS } from "@/lib/types";
 import { useStore, useCurrency } from "@/lib/store";
 import { Avatar } from "@/components/ui/Avatar";
 import { formatDate, formatMoney } from "@/lib/format";
+import { ActivityFeed } from "@/components/ActivityFeed";
+import { ItineraryBuilder } from "@/components/ItineraryBuilder";
 
 export function LeadDetailPanel({
   lead,
@@ -18,6 +20,7 @@ export function LeadDetailPanel({
   const [newComment, setNewComment] = useState("");
   const [showMentions, setShowMentions] = useState(false);
   const [mentionQuery, setMentionQuery] = useState("");
+  const [activeTab, setActiveTab] = useState<"details" | "itinerary">("details");
   const inputRef = useRef<HTMLInputElement>(null);
 
   const updateLead = useStore((s) => s.updateLead);
@@ -130,10 +133,28 @@ export function LeadDetailPanel({
         </div>
 
         {/* Content */}
-        <div className="flex-1 overflow-y-auto px-6 py-6">
-          <h1 className="text-2xl font-bold mb-6">{lead.title}</h1>
+        <div className="flex-1 flex flex-col min-h-0">
+          <div className="px-6 pt-6 pb-2 border-b border-ink-700 flex gap-6">
+            <button 
+              className={`pb-3 text-sm font-medium border-b-2 transition-colors ${activeTab === "details" ? "border-accent-500 text-accent-400" : "border-transparent text-neutral-400 hover:text-neutral-200"}`}
+              onClick={() => setActiveTab("details")}
+            >
+              Details & Activity
+            </button>
+            <button 
+              className={`pb-3 text-sm font-medium border-b-2 transition-colors ${activeTab === "itinerary" ? "border-accent-500 text-accent-400" : "border-transparent text-neutral-400 hover:text-neutral-200"}`}
+              onClick={() => setActiveTab("itinerary")}
+            >
+              Itinerary Builder
+            </button>
+          </div>
 
-          <div className="space-y-4 mb-8">
+          <div className="flex-1 overflow-y-auto px-6 py-6">
+            <h1 className="text-2xl font-bold mb-6">{lead.title}</h1>
+
+            {activeTab === "details" ? (
+              <>
+                <div className="space-y-4 mb-8">
             <div className="grid grid-cols-[120px_1fr] items-center text-sm">
               <div className="flex items-center gap-2 text-neutral-400">
                 <User className="h-4 w-4" />
@@ -198,7 +219,11 @@ export function LeadDetailPanel({
             </div>
           </div>
 
-          <div className="border-t border-ink-700 pt-6">
+          <div className="border-t border-ink-700 pt-6 mt-6">
+            <div className="h-96 mb-8">
+              <ActivityFeed entityType="lead" entityId={lead.id} />
+            </div>
+            
             <h3 className="font-semibold mb-4">Comments</h3>
             
             <form onSubmit={handleAddComment} className="mb-6 relative">
@@ -264,6 +289,11 @@ export function LeadDetailPanel({
                 </div>
               ))}
             </div>
+          </div>
+            </>
+          ) : (
+            <ItineraryBuilder leadId={lead.id} />
+          )}
           </div>
         </div>
       </div>

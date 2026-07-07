@@ -4,12 +4,14 @@ import { useState } from "react";
 import { Button } from "@/components/ui/Button";
 import { useStore } from "@/lib/store";
 import { supabase } from "@/lib/supabase";
-import { FileText, Upload, Trash2, Download } from "lucide-react";
+import { FileText, Upload, Trash2, Eye } from "lucide-react";
+import { DocumentViewerModal } from "@/components/modals/DocumentViewerModal";
 
 export function ClientDocuments({ clientId }: { clientId: string }) {
   const documents = useStore((s) => s.clientDocuments.filter(d => d.clientId === clientId));
   const addClientDocument = useStore((s) => s.addClientDocument);
   const [uploading, setUploading] = useState(false);
+  const [viewDoc, setViewDoc] = useState<{ url: string; filename: string } | null>(null);
 
   async function handleFileUpload(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
@@ -63,9 +65,13 @@ export function ClientDocuments({ clientId }: { clientId: string }) {
                 <span className="text-xs text-neutral-300 truncate">{doc.filename}</span>
               </div>
               <div className="flex items-center gap-1 shrink-0">
-                <a href={doc.storageUrl} target="_blank" rel="noreferrer" className="p-1 hover:bg-ink-700 rounded text-neutral-400">
-                  <Download className="h-3 w-3" />
-                </a>
+                <button
+                  onClick={() => setViewDoc({ url: doc.storageUrl, filename: doc.filename })}
+                  className="p-1 hover:bg-ink-700 rounded text-neutral-400"
+                  title="View Document"
+                >
+                  <Eye className="h-4 w-4" />
+                </button>
                 <button className="p-1 hover:bg-red-500/20 rounded text-red-400 transition-colors">
                   <Trash2 className="h-3 w-3" />
                 </button>
@@ -74,6 +80,13 @@ export function ClientDocuments({ clientId }: { clientId: string }) {
           ))}
         </ul>
       )}
+
+      <DocumentViewerModal
+        open={!!viewDoc}
+        onClose={() => setViewDoc(null)}
+        storageUrl={viewDoc?.url || null}
+        filename={viewDoc?.filename || ""}
+      />
     </div>
   );
 }

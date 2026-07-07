@@ -29,20 +29,14 @@ export function formatMoney(amountKes: number, target: Currency = "KES"): string
   const value = convert(safeAmount, target);
   const symbol = CURRENCY_SYMBOLS[target];
 
-  if (Math.abs(value) >= 1_000_000) {
-    return `${symbol} ${(value / 1_000_000).toFixed(2)}M`;
-  }
-  if (Math.abs(value) >= 1_000) {
-    return `${symbol} ${(value / 1_000).toFixed(1)}k`;
-  }
-  return `${symbol} ${value.toLocaleString("en-US", { maximumFractionDigits: 0 })}`;
+  return `${symbol} ${value.toLocaleString("en-US", { maximumFractionDigits: 2 })}`;
 }
 
 export function formatMoneyFull(amountKes: number, target: Currency = "KES"): string {
   const safeAmount = amountKes || 0;
   const value = convert(safeAmount, target);
   const symbol = CURRENCY_SYMBOLS[target];
-  return `${symbol} ${value.toLocaleString("en-US", { maximumFractionDigits: 0 })}`;
+  return `${symbol} ${value.toLocaleString("en-US", { maximumFractionDigits: 2 })}`;
 }
 
 export function formatDate(iso: string): string {

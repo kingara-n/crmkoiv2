@@ -9,6 +9,7 @@ import {
   LeadComment,
   PurchaseOrder,
   DocumentTemplate,
+  RateSheet,
 } from "./types";
 import {
   SEED_TEAM, DEFAULT_SETTINGS, SEED_POS, SEED_CLIENTS, SEED_SUPPLIERS, SEED_LEADS, SEED_BOOKINGS, SEED_TRIPS, SEED_TASKS, SEED_INVOICES
@@ -18,6 +19,7 @@ import { supabase } from "./supabase";
 interface Store {
   clients: Client[];
   suppliers: Supplier[];
+  rateSheets: RateSheet[];
   purchaseOrders: PurchaseOrder[];
   leads: Lead[];
   leadComments: LeadComment[];
@@ -52,6 +54,10 @@ interface Store {
   approveSupplier: (id: string) => Promise<void>;
   rejectSupplier: (id: string) => Promise<void>;
   deleteSupplier: (id: string) => Promise<void>;
+
+  addRateSheet: (rs: Omit<RateSheet, "id" | "createdAt">) => Promise<void>;
+  updateRateSheet: (id: string, patch: Partial<RateSheet>) => Promise<void>;
+  deleteRateSheet: (id: string) => Promise<void>;
 
   addPurchaseOrder: (po: Omit<PurchaseOrder, "id" | "createdAt">) => Promise<void>;
   updatePurchaseOrder: (id: string, patch: Partial<PurchaseOrder>) => Promise<void>;
@@ -137,6 +143,7 @@ function mapToSnake(obj: any): any {
 export const useStore = create<Store>()((set, get) => ({
   clients: [],
   suppliers: [],
+  rateSheets: [],
   purchaseOrders: [],
   leads: [],
   bookings: [],
@@ -180,12 +187,13 @@ export const useStore = create<Store>()((set, get) => ({
     const fetchAll = async () => {
       try {
         const [
-          clients, suppliers, purchaseOrders, leads, bookings, trips,
+          clients, suppliers, rateSheets, purchaseOrders, leads, bookings, trips,
           transfers, clientDocuments, invoices, invoiceEditApprovals,
           tasks, taskComments, leadComments, notifications, team
         ] = await Promise.all([
           withFallback(supabase.from("clients").select("*"), SEED_CLIENTS),
           withFallback(supabase.from("suppliers").select("*"), SEED_SUPPLIERS),
+          withFallback(supabase.from("rate_sheets").select("*").then(r => ({ data: r.error ? [] : r.data })), []),
           withFallback(supabase.from("koi_purchase_orders").select("*").then(r => ({ data: r.error ? [] : r.data })), SEED_POS),
           withFallback(supabase.from("leads").select("*"), SEED_LEADS),
           withFallback(supabase.from("bookings").select("*"), SEED_BOOKINGS),
@@ -210,6 +218,7 @@ export const useStore = create<Store>()((set, get) => ({
           isLoading: false,
           clients: clients.map(mapToCamel),
           suppliers: suppliers.map(mapToCamel),
+          rateSheets: rateSheets.map(mapToCamel),
           purchaseOrders: purchaseOrders.map(mapToCamel),
           leads: leads.map(mapToCamel),
           bookings: bookings.map(mapToCamel),
@@ -233,6 +242,7 @@ export const useStore = create<Store>()((set, get) => ({
           isLoading: false,
           clients: [],
           suppliers: [],
+          rateSheets: [],
           purchaseOrders: [],
           leads: [],
           bookings: [],
@@ -251,6 +261,7 @@ export const useStore = create<Store>()((set, get) => ({
         isLoading: false,
         clients: [],
         suppliers: [],
+        rateSheets: [],
         purchaseOrders: [],
         leads: [],
         bookings: [],
@@ -308,6 +319,21 @@ export const useStore = create<Store>()((set, get) => ({
   deleteSupplier: async (id) => {
     set((s) => ({ suppliers: s.suppliers.filter((sp) => sp.id !== id) }));
     await supabase.from("suppliers").delete().eq("id", id);
+  },
+
+  addRateSheet: async (rs) => {
+    const { data, error } = await supabase.from("rate_sheets").insert(mapToSnake(rs)).select().single();
+    if (error) console.error("Error inserting rate sheet:", error);
+    if (data) set((s) => ({ rateSheets: [...s.rateSheets, mapToCamel(data)] }));
+  },
+  updateRateSheet: async (id, patch) => {
+    set((s) => ({ rateSheets: s.rateSheets.map((r) => (r.id === id ? { ...r, ...patch } : r)) }));
+    const { error } = await supabase.from("rate_sheets").update(mapToSnake(patch)).eq("id", id);
+    if (error) console.error("Error updating rate sheet:", error);
+  },
+  deleteRateSheet: async (id) => {
+    set((s) => ({ rateSheets: s.rateSheets.filter((r) => r.id !== id) }));
+    await supabase.from("rate_sheets").delete().eq("id", id);
   },
 
   addPurchaseOrder: async (po) => {
