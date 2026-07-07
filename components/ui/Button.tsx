@@ -8,6 +8,7 @@ interface Props extends ButtonHTMLAttributes<HTMLButtonElement> {
   variant?: Variant;
   icon?: ReactNode;
   fullWidth?: boolean;
+  size?: "sm" | "md" | "lg";
 }
 
 const VARIANTS: Record<Variant, string> = {

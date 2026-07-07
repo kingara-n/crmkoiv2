@@ -6,7 +6,6 @@ import { Button } from "@/components/ui/Button";
 import { useStore } from "@/lib/store";
 import { RateSheet } from "@/lib/types";
 import { supabase } from "@/lib/supabase";
-import { mapToSnake, mapToCamel } from "@/lib/store";
 
 export function RateSheetModal({
   open,
@@ -49,11 +48,32 @@ export function RateSheetModal({
         await updateRateSheet(initialData.id, formData);
       } else {
         // Call the supabase insert directly here so we can catch the exact error message
-        const dbPayload = mapToSnake(formData);
+        const dbPayload = {
+          supplier_id: formData.supplierId,
+          season_name: formData.seasonName,
+          start_date: formData.startDate,
+          end_date: formData.endDate,
+          resident_rate: formData.residentRate,
+          non_resident_rate_usd: formData.nonResidentRateUsd,
+          currency: formData.currency,
+          notes: formData.notes,
+        };
         const { data, error } = await supabase.from("rate_sheets").insert(dbPayload).select().single();
         if (error) throw error;
         if (data) {
-          useStore.setState((s) => ({ rateSheets: [...s.rateSheets, mapToCamel(data)] }));
+          const camelData = {
+            id: data.id,
+            supplierId: data.supplier_id,
+            seasonName: data.season_name,
+            startDate: data.start_date,
+            endDate: data.end_date,
+            residentRate: data.resident_rate,
+            nonResidentRateUsd: data.non_resident_rate_usd,
+            currency: data.currency,
+            notes: data.notes,
+            createdAt: data.created_at,
+          } as RateSheet;
+          useStore.setState((s) => ({ rateSheets: [...s.rateSheets, camelData] }));
         }
       }
       onClose();

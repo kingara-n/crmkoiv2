@@ -143,28 +143,28 @@ export default function ReportsPage() {
 
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <StatCard
-          title="Total Pipeline Value"
+          label="Total Pipeline Value"
           value={formatMoneyFull(leads.reduce((sum, l) => sum + l.value, 0), currency)}
           icon={<Briefcase className="h-4 w-4" />}
-          trend={{ value: 12, positive: true }}
+          delta={{ value: "12%", positive: true }}
         />
         <StatCard
-          title="Total Won Bookings"
+          label="Won Bookings"
           value={formatMoneyFull(bookings.reduce((sum, b) => sum + b.value, 0), currency)}
           icon={<CheckSquare className="h-4 w-4" />}
-          trend={{ value: 8, positive: true }}
+          delta={{ value: "8%", positive: true }}
         />
         <StatCard
-          title="Active Leads"
-          value={leads.filter((l) => l.status === "new" || l.status === "contacted").length.toString()}
+          label="Active Leads"
+          value={leads.length.toString()}
           icon={<Target className="h-4 w-4" />}
-          trend={{ value: 5, positive: true }}
+          delta={{ value: "4%", positive: true }}
         />
         <StatCard
-          title="Avg Conversion"
+          label="Conversion Rate"
           value={`${CONVERSION_DATA[CONVERSION_DATA.length - 1].rate}%`}
-          icon={<TrendingUp className="h-4 w-4" />}
-          trend={{ value: 1.5, positive: true }}
+          icon={<Target className="h-4 w-4" />}
+          delta={{ value: "2%", positive: true }}
         />
       </div>
 
@@ -229,10 +229,10 @@ export default function ReportsPage() {
                 </span>
               ) : (
                 <div className="flex items-center gap-2">
-                  <Button variant="secondary" size="sm" onClick={() => viewReport(r)} icon={<Eye className="h-4 w-4" />}>
+                  <Button variant="secondary" onClick={() => viewReport(r)} icon={<Eye className="h-4 w-4" />}>
                     View
                   </Button>
-                  <Button variant="secondary" size="sm" onClick={() => downloadReport(r)} icon={<Download className="h-4 w-4" />}>
+                  <Button variant="secondary" onClick={() => downloadReport(r)} icon={<Download className="h-4 w-4" />}>
                     Download
                   </Button>
                 </div>

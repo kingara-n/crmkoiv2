@@ -215,6 +215,7 @@ export interface Notification {
 }
 
 export interface UserSettings {
+  userId?: string;
   firstName: string;
   lastName: string;
   email: string;

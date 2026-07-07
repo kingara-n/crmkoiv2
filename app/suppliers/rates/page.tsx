@@ -172,7 +172,7 @@ function SupplierRateBlock({ supplier, rateSheets, currency, onAddRate, onEditRa
             <div className="text-center py-6">
               <FileText className="h-8 w-8 text-neutral-600 mx-auto mb-3" />
               <p className="text-sm text-neutral-400 mb-4">No seasonal rate sheets found for {supplier.name}.</p>
-              <Button variant="secondary" size="sm" icon={<Plus className="h-4 w-4" />} onClick={onAddRate}>Add First Rate Sheet</Button>
+              <Button variant="secondary" icon={<Plus className="h-4 w-4" />} onClick={onAddRate}>Add First Rate Sheet</Button>
             </div>
           ) : (
             <div className="space-y-3">
@@ -194,12 +194,12 @@ function SupplierRateBlock({ supplier, rateSheets, currency, onAddRate, onEditRa
                       <p className="text-[10px] uppercase text-neutral-500 font-bold mb-1">Non-Resident</p>
                       <p className="text-sm text-white">{formatMoneyFull(rs.nonResidentRateUsd, "USD")}</p>
                     </div>
-                    <Button variant="secondary" size="sm" onClick={() => onEditRate(rs)}>Edit</Button>
+                    <Button variant="secondary" onClick={() => onEditRate(rs)}>Edit</Button>
                   </div>
                 </div>
               ))}
               <div className="pt-2">
-                <Button variant="secondary" size="sm" icon={<Plus className="h-4 w-4" />} onClick={onAddRate}>Add Season</Button>
+                <Button variant="secondary" icon={<Plus className="h-4 w-4" />} onClick={onAddRate}>Add Season</Button>
               </div>
             </div>
           )}
