@@ -6,7 +6,7 @@ import { usePathname } from "next/navigation";
 import {
   LayoutDashboard, GitBranch, Handshake, Users, Building2,
   Plane, BarChart3, Settings as SettingsIcon, ChevronLeft,
-  FileText, Car, Receipt, FolderOpen, CheckCircle2, BookOpen
+  FileText, Car, Receipt, FolderOpen, CheckCircle2, BookOpen, Calendar
 } from "lucide-react";
 import { useStore, useSettings } from "@/lib/store";
 
@@ -15,6 +15,7 @@ const NAV_SECTIONS = [
     title: "Workspace",
     items: [
       { href: "/", label: "Dashboard", icon: LayoutDashboard },
+      { href: "/calendar", label: "Calendar", icon: Calendar },
       { href: "/tasks", label: "Tasks", icon: CheckCircle2 },
     ]
   },

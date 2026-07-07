@@ -23,7 +23,7 @@ export default function RatesManagementPage() {
   const [activeSupplierId, setActiveSupplierId] = useState<string | undefined>();
 
   const activeSuppliers = useMemo(() => {
-    let list = suppliers.filter(s => s.status === "approved");
+    let list = suppliers; // Show all suppliers (including pending) so they can have rate sheets added
     if (query) {
       const q = query.toLowerCase();
       list = list.filter(s => s.name.toLowerCase().includes(q) || s.category.toLowerCase().includes(q));

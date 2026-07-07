@@ -1,5 +1,5 @@
 import {
-  Client, Supplier, Lead, Booking, Trip, TeamMember, Notification, UserSettings, PurchaseOrder, Stage
+  Client, Supplier, Lead, Booking, Trip, TeamMember, Notification, UserSettings, PurchaseOrder, Stage, CalendarEvent
 } from "./types";
 
 // ─── Helpers ────────────────────────────────────────────────────────────────
@@ -245,3 +245,50 @@ export const SEED_TRIPS: Trip[] = Array.from({ length: 50 }).map((_, i) => {
     createdAt: dOffset(-(30 + i)),
   };
 });
+
+const currentYear = new Date().getFullYear();
+const currentMonth = new Date().getMonth();
+const currentDay = new Date().getDate();
+
+export const SEED_CALENDAR_EVENTS: CalendarEvent[] = [
+  {
+    id: "evt-1",
+    title: "Client Strategy Sync",
+    startDate: new Date(currentYear, currentMonth, 4, 10, 0).toISOString(),
+    endDate: new Date(currentYear, currentMonth, 4, 11, 0).toISOString(),
+    type: "Meeting",
+    userId: "st2", 
+  },
+  {
+    id: "evt-2",
+    title: "Rewarding Marketing",
+    startDate: new Date(currentYear, currentMonth, 12, 10, 0).toISOString(),
+    endDate: new Date(currentYear, currentMonth, 12, 11, 0).toISOString(),
+    type: "Event",
+    userId: "st1", 
+  },
+  {
+    id: "evt-3",
+    title: "Quarterly Review",
+    startDate: new Date(currentYear, currentMonth, 15, 10, 0).toISOString(),
+    endDate: new Date(currentYear, currentMonth, 15, 11, 0).toISOString(),
+    type: "Event",
+    userId: "st3", 
+  },
+  {
+    id: "evt-4",
+    title: "Supplier Follow-up",
+    startDate: new Date(currentYear, currentMonth, 27, 10, 0).toISOString(),
+    endDate: new Date(currentYear, currentMonth, 27, 11, 0).toISOString(),
+    type: "Reminder",
+    userId: "st4", 
+  },
+  {
+    id: "evt-5",
+    title: "Lunch with Team",
+    startDate: new Date(currentYear, currentMonth, currentDay, 12, 30).toISOString(),
+    endDate: new Date(currentYear, currentMonth, currentDay, 14, 0).toISOString(),
+    type: "Meeting",
+    userId: "st1", 
+  },
+];

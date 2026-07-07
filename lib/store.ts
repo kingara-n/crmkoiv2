@@ -10,9 +10,11 @@ import {
   PurchaseOrder,
   DocumentTemplate,
   RateSheet,
+  CalendarEvent,
 } from "./types";
 import {
-  SEED_TEAM, DEFAULT_SETTINGS, SEED_POS, SEED_CLIENTS, SEED_SUPPLIERS, SEED_LEADS, SEED_BOOKINGS, SEED_TRIPS, SEED_TASKS, SEED_INVOICES
+  SEED_TEAM, DEFAULT_SETTINGS, SEED_POS, SEED_CLIENTS, SEED_SUPPLIERS, SEED_LEADS, SEED_BOOKINGS, SEED_TRIPS, SEED_TASKS, SEED_INVOICES,
+  SEED_CALENDAR_EVENTS
 } from "./seed";
 import { supabase } from "./supabase";
 
@@ -28,6 +30,7 @@ interface Store {
   transfers: Transfer[];
   team: TeamMember[];
   notifications: AppNotification[];
+  calendarEvents: CalendarEvent[];
   settings: UserSettings;
   
   clientDocuments: ClientDocument[];
@@ -95,6 +98,10 @@ interface Store {
   markNotificationRead: (id: string) => Promise<void>;
   markAllNotificationsRead: () => Promise<void>;
 
+  addCalendarEvent: (event: Omit<CalendarEvent, "id" | "createdAt">) => Promise<void>;
+  updateCalendarEvent: (id: string, patch: Partial<CalendarEvent>) => Promise<void>;
+  deleteCalendarEvent: (id: string) => Promise<void>;
+
   updateSettings: (patch: Partial<UserSettings>) => Promise<void>;
   toggleSidebar: () => void;
   resetDemoData: () => void;
@@ -151,6 +158,7 @@ export const useStore = create<Store>()((set, get) => ({
   transfers: [],
   team: SEED_TEAM, // In real app, fetch from profiles
   notifications: [],
+  calendarEvents: [],
   settings: DEFAULT_SETTINGS,
   
   clientDocuments: [],
@@ -189,7 +197,7 @@ export const useStore = create<Store>()((set, get) => ({
         const [
           clients, suppliers, rateSheets, purchaseOrders, leads, bookings, trips,
           transfers, clientDocuments, invoices, invoiceEditApprovals,
-          tasks, taskComments, leadComments, notifications, team
+          tasks, taskComments, leadComments, notifications, team, calendarEvents
         ] = await Promise.all([
           withFallback(supabase.from("clients").select("*"), SEED_CLIENTS),
           withFallback(supabase.from("suppliers").select("*"), SEED_SUPPLIERS),
@@ -213,6 +221,7 @@ export const useStore = create<Store>()((set, get) => ({
             }),
             SEED_TEAM
           ),
+          withFallback(supabase.from("calendar_events").select("*").then(r => ({ data: r.error ? [] : r.data })), SEED_CALENDAR_EVENTS),
         ]);
         set({
           isLoading: false,
@@ -235,6 +244,7 @@ export const useStore = create<Store>()((set, get) => ({
           tasks: tasks.map(mapToCamel),
           taskComments: taskComments.map(mapToCamel),
           leadComments: leadComments.map(mapToCamel),
+          calendarEvents: calendarEvents.map(mapToCamel),
         });
       } catch (error) {
         console.error("Error fetching initial data:", error);
@@ -516,6 +526,22 @@ export const useStore = create<Store>()((set, get) => ({
   markAllNotificationsRead: async () => {
     set((s) => ({ notifications: s.notifications.map((n) => ({ ...n, read: true })) }));
     await supabase.from("koi_notifications").update({ read: true }).neq("read", true);
+  },
+
+  addCalendarEvent: async (ev) => {
+    const { data, error } = await supabase.from("calendar_events").insert(mapToSnake(ev)).select().single();
+    if (error) console.error("Error inserting calendar event:", error);
+    if (data) set((s) => ({ calendarEvents: [...s.calendarEvents, mapToCamel(data)] }));
+  },
+  updateCalendarEvent: async (id, patch) => {
+    set((s) => ({ calendarEvents: s.calendarEvents.map((e) => (e.id === id ? { ...e, ...patch } : e)) }));
+    const { error } = await supabase.from("calendar_events").update(mapToSnake(patch)).eq("id", id);
+    if (error) console.error("Error updating calendar event:", error);
+  },
+  deleteCalendarEvent: async (id) => {
+    set((s) => ({ calendarEvents: s.calendarEvents.filter((e) => e.id !== id) }));
+    const { error } = await supabase.from("calendar_events").delete().eq("id", id);
+    if (error) console.error("Error deleting calendar event:", error);
   },
 
   updateSettings: async (patch) => {

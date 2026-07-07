@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { FileText, Download, Clock, Plus, Eye, TrendingUp, Users, DollarSign, Target } from "lucide-react";
+import { FileText, Download, Clock, Plus, Eye, TrendingUp, Users, Target, Briefcase, CheckSquare, Activity } from "lucide-react";
 import { Card, StatCard } from "@/components/ui/Card";
 import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
@@ -145,20 +145,20 @@ export default function ReportsPage() {
         <StatCard
           title="Total Pipeline Value"
           value={formatMoneyFull(leads.reduce((sum, l) => sum + l.value, 0), currency)}
-          icon={<DollarSign className="h-4 w-4" />}
+          icon={<Briefcase className="h-4 w-4" />}
           trend={{ value: 12, positive: true }}
         />
         <StatCard
-          title="Total Won (Bookings)"
+          title="Total Won Bookings"
           value={formatMoneyFull(bookings.reduce((sum, b) => sum + b.value, 0), currency)}
-          icon={<Target className="h-4 w-4" />}
+          icon={<CheckSquare className="h-4 w-4" />}
           trend={{ value: 8, positive: true }}
         />
         <StatCard
           title="Active Leads"
-          value={leads.filter(l => l.stage !== 'lost' && l.stage !== 'paid').length}
-          icon={<Users className="h-4 w-4" />}
-          trend={{ value: 4, positive: true }}
+          value={leads.filter((l) => l.status === "new" || l.status === "contacted").length.toString()}
+          icon={<Target className="h-4 w-4" />}
+          trend={{ value: 5, positive: true }}
         />
         <StatCard
           title="Avg Conversion"

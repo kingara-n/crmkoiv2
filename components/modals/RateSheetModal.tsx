@@ -5,6 +5,8 @@ import { Modal } from "@/components/ui/Modal";
 import { Button } from "@/components/ui/Button";
 import { useStore } from "@/lib/store";
 import { RateSheet } from "@/lib/types";
+import { supabase } from "@/lib/supabase";
+import { mapToSnake, mapToCamel } from "@/lib/store";
 
 export function RateSheetModal({
   open,
@@ -19,8 +21,9 @@ export function RateSheetModal({
 }) {
   const addRateSheet = useStore((s) => s.addRateSheet);
   const updateRateSheet = useStore((s) => s.updateRateSheet);
-  const suppliers = useStore((s) => s.suppliers.filter(sup => sup.status === "approved"));
-
+  const suppliers = useStore((s) => s.suppliers); // Include all suppliers so pending ones can get rates too
+  const [errorMsg, setErrorMsg] = useState<string | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [formData, setFormData] = useState<Partial<RateSheet>>(
     initialData || {
       supplierId: supplierId || (suppliers[0]?.id || ""),
@@ -38,12 +41,28 @@ export function RateSheetModal({
     e.preventDefault();
     if (!formData.supplierId || !formData.seasonName || !formData.startDate || !formData.endDate) return;
 
-    if (initialData) {
-      await updateRateSheet(initialData.id, formData);
-    } else {
-      await addRateSheet(formData as any);
+    setErrorMsg(null);
+    setIsSubmitting(true);
+    
+    try {
+      if (initialData) {
+        await updateRateSheet(initialData.id, formData);
+      } else {
+        // Call the supabase insert directly here so we can catch the exact error message
+        const dbPayload = mapToSnake(formData);
+        const { data, error } = await supabase.from("rate_sheets").insert(dbPayload).select().single();
+        if (error) throw error;
+        if (data) {
+          useStore.setState((s) => ({ rateSheets: [...s.rateSheets, mapToCamel(data)] }));
+        }
+      }
+      onClose();
+    } catch (err: any) {
+      console.error("Submission error:", err);
+      setErrorMsg(err.message || JSON.stringify(err));
+    } finally {
+      setIsSubmitting(false);
     }
-    onClose();
   }
 
   return (
@@ -137,12 +156,18 @@ export function RateSheetModal({
           />
         </div>
 
+        {errorMsg && (
+          <div className="bg-red-500/10 border border-red-500/50 text-red-500 text-sm p-3 rounded-lg">
+            <strong>Error saving to database:</strong> {errorMsg}
+          </div>
+        )}
+
         <div className="flex justify-end gap-3 pt-4 border-t border-ink-700">
-          <Button variant="secondary" onClick={onClose} type="button">
+          <Button variant="secondary" onClick={onClose} type="button" disabled={isSubmitting}>
             Cancel
           </Button>
-          <Button variant="primary" type="submit">
-            {initialData ? "Save Changes" : "Create Rate Sheet"}
+          <Button variant="primary" type="submit" disabled={isSubmitting}>
+            {isSubmitting ? "Saving..." : (initialData ? "Save Changes" : "Create Rate Sheet")}
           </Button>
         </div>
       </form>

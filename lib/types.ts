@@ -18,6 +18,16 @@ export const STAGE_ORDER: Stage[] = [
   "paid",
 ];
 
+export interface CalendarEvent {
+  id: string;
+  title: string;
+  startDate: string; // ISO datetime
+  endDate: string; // ISO datetime
+  type: string; // "Meeting", "Reminder", "Event", etc.
+  userId?: string;
+  createdAt?: string;
+}
+
 export const STAGE_LABELS: Record<Stage, string> = {
   new_enquiry: "New Lead",
   in_discussion: "In discussion",
