@@ -54,9 +54,11 @@ export function RateSheetModal({
           start_date: formData.startDate,
           end_date: formData.endDate,
           resident_rate: formData.residentRate,
+          resident_rate_kes: formData.residentRate,
           non_resident_rate_usd: formData.nonResidentRateUsd,
           currency: formData.currency,
           notes: formData.notes,
+          service_type: "standard",
         };
         const { data, error } = await supabase.from("rate_sheets").insert(dbPayload).select().single();
         if (error) throw error;
@@ -67,7 +69,7 @@ export function RateSheetModal({
             seasonName: data.season_name,
             startDate: data.start_date,
             endDate: data.end_date,
-            residentRate: data.resident_rate,
+            residentRate: data.resident_rate ?? data.resident_rate_kes,
             nonResidentRateUsd: data.non_resident_rate_usd,
             currency: data.currency,
             notes: data.notes,
