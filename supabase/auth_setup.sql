@@ -40,7 +40,13 @@ CREATE TRIGGER on_auth_user_created
   AFTER INSERT ON auth.users
   FOR EACH ROW EXECUTE FUNCTION public.handle_new_user();
 
--- 5. Set up the super admin account profile in profiles
+-- 5. Confirm the email address for the admin user so they can log in without email confirmation errors
+UPDATE auth.users
+SET email_confirmed_at = coalesce(email_confirmed_at, now()),
+    confirmed_at = coalesce(confirmed_at, now())
+WHERE email = 'admin@koitravel.co.ke';
+
+-- 6. Set up the super admin account profile in profiles
 -- (Note: Ensure the auth user with ID '240931a3-063c-4d56-ab8f-d521d1322101' is created via signUp first)
 INSERT INTO public.profiles (id, email, first_name, last_name, role, status)
 VALUES ('240931a3-063c-4d56-ab8f-d521d1322101', 'admin@koitravel.co.ke', 'Super', 'Admin', 'management', 'active')
