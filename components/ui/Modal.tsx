@@ -46,9 +46,12 @@ export function Modal({
       <div
         className={`w-full ${sizes[size]} rounded-card bg-ink-900 border border-ink-700 shadow-2xl`}
         onClick={(e) => e.stopPropagation()}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="modal-title"
       >
         <div className="flex items-center justify-between border-b border-ink-700 px-5 py-4">
-          <h2 className="text-base font-semibold text-white">{title}</h2>
+          <h2 id="modal-title" className="text-base font-semibold text-white">{title}</h2>
           <button
             onClick={onClose}
             className="rounded p-1 text-neutral-400 hover:bg-ink-800 hover:text-white"

@@ -8,6 +8,7 @@ import { useIsHydrated } from "@/lib/useIsHydrated";
 import { Avatar } from "./ui/Avatar";
 import { relativeTime } from "@/lib/format";
 import { motion, AnimatePresence } from "framer-motion";
+import { supabase } from "@/lib/supabase";
 
 const TITLES: Record<string, string> = {
   "/": "Overview",
@@ -277,7 +278,11 @@ export function TopBar() {
                 Settings
               </button>
               <button
-                onClick={() => { setMenuOpen(false); router.push("/login"); }}
+                onClick={async () => {
+                  setMenuOpen(false);
+                  await supabase.auth.signOut();
+                  router.push("/login");
+                }}
                 className="flex w-full items-center gap-2 px-4 py-2 text-sm text-neutral-300 hover:bg-ink-800"
               >
                 <LogOut className="h-4 w-4" />

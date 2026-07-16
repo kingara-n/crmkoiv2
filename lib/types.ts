@@ -225,6 +225,7 @@ export interface UserSettings {
   currency: Currency;
   compactView: boolean;
   revenueTarget?: number;
+  status?: string;
 }
 
 export interface ClientDocument {

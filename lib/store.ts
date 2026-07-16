@@ -103,6 +103,7 @@ interface Store {
   deleteCalendarEvent: (id: string) => Promise<void>;
 
   updateSettings: (patch: Partial<UserSettings>) => Promise<void>;
+  loadUserProfile: (userId: string) => Promise<void>;
   toggleSidebar: () => void;
   resetDemoData: () => void;
 }
@@ -546,6 +547,37 @@ export const useStore = create<Store>()((set, get) => ({
 
   updateSettings: async (patch) => {
     set((s) => ({ settings: { ...s.settings, ...patch } }));
+  },
+
+  loadUserProfile: async (userId) => {
+    try {
+      const { data, error } = await supabase
+        .from("profiles")
+        .select("*")
+        .eq("id", userId)
+        .single();
+      if (error) throw error;
+      if (data) {
+        const camelProfile = mapToCamel(data);
+        set((s) => ({
+          settings: {
+            ...s.settings,
+            userId: camelProfile.id,
+            firstName: camelProfile.firstName || "",
+            lastName: camelProfile.lastName || "",
+            email: camelProfile.email || "",
+            role: camelProfile.role || "sales",
+            timezone: camelProfile.timezone || "Africa/Nairobi (EAT)",
+            darkMode: camelProfile.darkMode ?? true,
+            currency: camelProfile.currency || "KES",
+            compactView: camelProfile.compactView ?? false,
+            status: camelProfile.status || "awaiting_approval",
+          }
+        }));
+      }
+    } catch (e) {
+      console.error("Error loading user profile:", e);
+    }
   },
 
   toggleSidebar: () => set((s) => ({ sidebarCollapsed: !s.sidebarCollapsed })),
