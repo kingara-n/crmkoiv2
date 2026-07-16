@@ -51,6 +51,7 @@ interface Store {
   deleteClient: (id: string) => Promise<void>;
   
   addClientDocument: (doc: Omit<ClientDocument, "id" | "uploadedAt">) => Promise<void>;
+  deleteClientDocument: (id: string, storageUrl: string) => Promise<void>;
   addDocumentTemplate: (doc: Omit<DocumentTemplate, "id" | "createdAt">) => Promise<void>;
 
   addSupplier: (s: Omit<Supplier, "id" | "status">, asPending: boolean) => Promise<void>;
@@ -306,6 +307,27 @@ export const useStore = create<Store>()((set, get) => ({
     }
     if (data) set((s) => ({ clientDocuments: [...s.clientDocuments, mapToCamel(data)] }));
     else throw new Error("Failed to save document to database (no data returned)");
+  },
+
+  deleteClientDocument: async (id, storageUrl) => {
+    // Extract filename from URL
+    const urlParts = storageUrl.split("/client-docs/");
+    const storagePath = urlParts[urlParts.length - 1];
+    
+    if (storagePath) {
+      const { error: storageError } = await supabase.storage.from("client-docs").remove([storagePath]);
+      if (storageError) {
+        console.error("Error removing file from storage:", storageError);
+      }
+    }
+    
+    const { error: dbError } = await supabase.from("client_documents").delete().eq("id", id);
+    if (dbError) {
+      console.error("Error deleting document record from DB:", dbError);
+      throw new Error(`DB Error: ${dbError.message}`);
+    } else {
+      set((s) => ({ clientDocuments: s.clientDocuments.filter((d) => d.id !== id) }));
+    }
   },
 
   addDocumentTemplate: async (doc) => {

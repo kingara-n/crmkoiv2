@@ -10,6 +10,7 @@ import { DocumentViewerModal } from "@/components/modals/DocumentViewerModal";
 export function ClientDocuments({ clientId }: { clientId: string }) {
   const documents = useStore((s) => s.clientDocuments.filter(d => d.clientId === clientId));
   const addClientDocument = useStore((s) => s.addClientDocument);
+  const deleteClientDocument = useStore((s) => s.deleteClientDocument);
   const [uploading, setUploading] = useState(false);
   const [viewDoc, setViewDoc] = useState<{ url: string; filename: string } | null>(null);
 
@@ -72,7 +73,15 @@ export function ClientDocuments({ clientId }: { clientId: string }) {
                 >
                   <Eye className="h-4 w-4" />
                 </button>
-                <button className="p-1 hover:bg-red-500/20 rounded text-red-400 transition-colors">
+                <button
+                  onClick={async () => {
+                    if (confirm("Are you sure you want to delete this document?")) {
+                      await deleteClientDocument(doc.id, doc.storageUrl);
+                    }
+                  }}
+                  className="p-1 hover:bg-red-500/20 rounded text-red-400 transition-colors"
+                  title="Delete Document"
+                >
                   <Trash2 className="h-3 w-3" />
                 </button>
               </div>
