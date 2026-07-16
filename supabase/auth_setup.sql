@@ -42,8 +42,7 @@ CREATE TRIGGER on_auth_user_created
 
 -- 5. Confirm the email address for the admin user so they can log in without email confirmation errors
 UPDATE auth.users
-SET email_confirmed_at = coalesce(email_confirmed_at, now()),
-    confirmed_at = coalesce(confirmed_at, now())
+SET email_confirmed_at = coalesce(email_confirmed_at, now())
 WHERE email = 'admin@koitravel.co.ke';
 
 -- 6. Set up the super admin account profile in profiles
