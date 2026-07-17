@@ -124,50 +124,50 @@ export function BookingInvoiceModal({
               )}
 
               {editingId === inv.id && (
-                <div className="mt-4 space-y-3 p-3 border border-ink-700 rounded bg-ink-950">
+                <form onSubmit={(e) => { e.preventDefault(); handleProposeEdit(); }} className="mt-4 space-y-3 p-3 border border-ink-700 rounded bg-ink-950">
                   <h5 className="text-sm font-medium">Propose Change</h5>
                   <div className="grid grid-cols-2 gap-3">
                     <div>
                       <Label>Amount</Label>
-                      <Input value={amount} onChange={(e) => setAmount(e.target.value)} type="number" />
+                      <Input value={amount} onChange={(e) => setAmount(e.target.value)} type="number" required />
                     </div>
                     <div>
                       <Label>Due Date</Label>
-                      <Input value={dueDate} onChange={(e) => setDueDate(e.target.value)} type="date" />
+                      <Input value={dueDate} onChange={(e) => setDueDate(e.target.value)} type="date" required />
                     </div>
                   </div>
                   <div className="flex gap-2">
-                    <Button className="text-xs py-1 px-2" onClick={handleProposeEdit}>Submit to Managers</Button>
-                    <Button variant="secondary" className="text-xs py-1 px-2" onClick={() => setEditingId(null)}>Cancel</Button>
+                    <Button type="submit" className="text-xs py-1 px-2">Submit to Managers</Button>
+                    <Button variant="secondary" className="text-xs py-1 px-2" onClick={() => setEditingId(null)} type="button">Cancel</Button>
                   </div>
-                </div>
+                </form>
               )}
             </div>
           );
         })}
 
         {creating && (
-           <div className="border border-accent-500/30 rounded-lg p-4 bg-accent-500/5 mt-4">
+           <form onSubmit={(e) => { e.preventDefault(); handleSaveNew(); }} className="border border-accent-500/30 rounded-lg p-4 bg-accent-500/5 mt-4">
              <h4 className="font-semibold text-white mb-4">New Invoice</h4>
              <div className="grid grid-cols-2 gap-3 mb-4">
                <div>
                  <Label>Invoice Number</Label>
-                 <Input value={number} onChange={(e) => setNumber(e.target.value)} />
+                 <Input value={number} onChange={(e) => setNumber(e.target.value)} required />
                </div>
                <div>
                  <Label>Amount</Label>
-                 <Input value={amount} onChange={(e) => setAmount(e.target.value)} type="number" />
+                 <Input value={amount} onChange={(e) => setAmount(e.target.value)} type="number" required />
                </div>
                <div>
                  <Label>Due Date</Label>
-                 <Input value={dueDate} onChange={(e) => setDueDate(e.target.value)} type="date" />
+                 <Input value={dueDate} onChange={(e) => setDueDate(e.target.value)} type="date" required />
                </div>
              </div>
              <div className="flex gap-2">
-               <Button onClick={handleSaveNew}>Save Invoice</Button>
-               <Button variant="secondary" onClick={() => setCreating(false)}>Cancel</Button>
+               <Button type="submit">Save Invoice</Button>
+               <Button variant="secondary" onClick={() => setCreating(false)} type="button">Cancel</Button>
              </div>
-           </div>
+           </form>
         )}
 
         {invoices.length > 0 && !creating && (

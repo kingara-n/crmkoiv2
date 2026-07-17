@@ -101,18 +101,12 @@ export function SupplierModal({
       onClose={onClose}
       title={submitAsPending ? "Submit supplier for approval" : "Add supplier"}
       size="lg"
-      footer={
-        <>
-          <Button variant="secondary" onClick={onClose}>Cancel</Button>
-          <Button onClick={handleSave}>{submitAsPending ? "Submit" : "Add supplier"}</Button>
-        </>
-      }
     >
-      <div className="space-y-4">
+      <form onSubmit={(e) => { e.preventDefault(); handleSave(); }} className="space-y-4">
         <div className="grid grid-cols-2 gap-3">
           <div>
             <Label htmlFor="sname">Supplier name</Label>
-            <Input id="sname" value={name} onChange={(e) => setName(e.target.value)} />
+            <Input id="sname" value={name} onChange={(e) => setName(e.target.value)} required />
           </div>
           <div>
             <Label htmlFor="stype">Type</Label>
@@ -151,11 +145,11 @@ export function SupplierModal({
         <div className="grid grid-cols-2 gap-3">
           <div>
             <Label htmlFor="acc">Accounts email</Label>
-            <Input id="acc" type="email" value={accountsEmail} onChange={(e) => setAccountsEmail(e.target.value)} />
+            <Input id="acc" type="email" value={accountsEmail} onChange={(e) => setAccountsEmail(e.target.value)} required />
           </div>
           <div>
             <Label htmlFor="book">Bookings email</Label>
-            <Input id="book" type="email" value={bookingsEmail} onChange={(e) => setBookingsEmail(e.target.value)} />
+            <Input id="book" type="email" value={bookingsEmail} onChange={(e) => setBookingsEmail(e.target.value)} required />
           </div>
         </div>
 
@@ -206,7 +200,12 @@ export function SupplierModal({
             This will be submitted for management approval before it goes live in the supplier directory.
           </p>
         )}
-      </div>
+
+        <div className="pt-4 flex justify-end gap-3 border-t border-ink-800">
+          <Button variant="secondary" onClick={onClose} type="button">Cancel</Button>
+          <Button type="submit">{submitAsPending ? "Submit" : "Add supplier"}</Button>
+        </div>
+      </form>
     </Modal>
   );
 }

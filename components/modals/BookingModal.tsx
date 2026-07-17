@@ -65,18 +65,12 @@ export function BookingModal({
       open={open}
       onClose={onClose}
       title="Add Booking"
-      footer={
-        <>
-          <Button variant="secondary" onClick={onClose}>Cancel</Button>
-          <Button onClick={handleSave}>Add Booking</Button>
-        </>
-      }
     >
-      <div className="space-y-4">
+      <form onSubmit={(e) => { e.preventDefault(); handleSave(); }} className="space-y-4">
         <div className="grid grid-cols-2 gap-3">
           <div>
             <Label htmlFor="client">Client</Label>
-            <Select id="client" value={clientId} onChange={(e) => setClientId(e.target.value)}>
+            <Select id="client" value={clientId} onChange={(e) => setClientId(e.target.value)} required>
               {clients.map((c) => (
                 <option key={c.id} value={c.id}>{c.name}</option>
               ))}
@@ -111,6 +105,7 @@ export function BookingModal({
                 onChange={(e) => setValue(e.target.value)}
                 placeholder="580000"
                 className="flex-1"
+                required
               />
             </div>
           </div>
@@ -127,7 +122,7 @@ export function BookingModal({
         <div className="grid grid-cols-2 gap-3">
           <div>
             <Label htmlFor="owner">Owner</Label>
-            <Select id="owner" value={ownerId} onChange={(e) => setOwnerId(e.target.value)}>
+            <Select id="owner" value={ownerId} onChange={(e) => setOwnerId(e.target.value)} required>
               {team.map((t) => (
                 <option key={t.id} value={t.id}>{t.name}</option>
               ))}
@@ -142,7 +137,12 @@ export function BookingModal({
             </Select>
           </div>
         </div>
-      </div>
+
+        <div className="pt-4 flex justify-end gap-3 border-t border-ink-800">
+          <Button variant="secondary" onClick={onClose} type="button">Cancel</Button>
+          <Button type="submit">Add Booking</Button>
+        </div>
+      </form>
     </Modal>
   );
 }

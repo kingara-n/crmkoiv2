@@ -72,48 +72,42 @@ export function TripModal({
       open={open}
       onClose={onClose}
       title={editing ? "Edit trip" : "Add trip"}
-      footer={
-        <>
-          <Button variant="secondary" onClick={onClose}>Cancel</Button>
-          <Button onClick={handleSave}>{editing ? "Save changes" : "Add trip"}</Button>
-        </>
-      }
     >
-      <div className="space-y-4">
+      <form onSubmit={(e) => { e.preventDefault(); handleSave(); }} className="space-y-4">
         <div>
           <Label htmlFor="tname">Trip name</Label>
-          <Input id="tname" value={name} onChange={(e) => setName(e.target.value)} placeholder="e.g. Acme · Tsavo safari" />
+          <Input id="tname" value={name} onChange={(e) => setName(e.target.value)} placeholder="e.g. Acme · Tsavo safari" required />
         </div>
         <div className="grid grid-cols-2 gap-3">
           <div>
             <Label htmlFor="tdest">Destination</Label>
-            <Input id="tdest" value={destination} onChange={(e) => setDestination(e.target.value)} />
+            <Input id="tdest" value={destination} onChange={(e) => setDestination(e.target.value)} required />
           </div>
           <div>
             <Label htmlFor="tcount">Traveller count</Label>
-            <Input id="tcount" type="number" value={travellerCount} onChange={(e) => setTravellerCount(e.target.value)} />
+            <Input id="tcount" type="number" value={travellerCount} onChange={(e) => setTravellerCount(e.target.value)} required />
           </div>
         </div>
         <div className="grid grid-cols-2 gap-3">
           <div>
             <Label htmlFor="tstart">Start date</Label>
-            <Input id="tstart" type="date" value={startDate} onChange={(e) => setStartDate(e.target.value)} />
+            <Input id="tstart" type="date" value={startDate} onChange={(e) => setStartDate(e.target.value)} required />
           </div>
           <div>
             <Label htmlFor="tend">End date</Label>
-            <Input id="tend" type="date" value={endDate} onChange={(e) => setEndDate(e.target.value)} />
+            <Input id="tend" type="date" value={endDate} onChange={(e) => setEndDate(e.target.value)} required />
           </div>
         </div>
         <div className="grid grid-cols-2 gap-3">
           <div>
             <Label htmlFor="tclient">Client</Label>
-            <Select id="tclient" value={clientName} onChange={(e) => setClientName(e.target.value)}>
+            <Select id="tclient" value={clientName} onChange={(e) => setClientName(e.target.value)} required>
               {clients.map((c) => <option key={c.id} value={c.name}>{c.name}</option>)}
             </Select>
           </div>
           <div>
             <Label htmlFor="towner">Owner</Label>
-            <Select id="towner" value={ownerName} onChange={(e) => setOwnerName(e.target.value)}>
+            <Select id="towner" value={ownerName} onChange={(e) => setOwnerName(e.target.value)} required>
               {team.map((t) => <option key={t.id} value={t.name}>{t.name}</option>)}
             </Select>
           </div>
@@ -126,7 +120,12 @@ export function TripModal({
             <option value="completed">Completed</option>
           </Select>
         </div>
-      </div>
+
+        <div className="pt-4 flex justify-end gap-3 border-t border-ink-800">
+          <Button variant="secondary" onClick={onClose} type="button">Cancel</Button>
+          <Button type="submit">{editing ? "Save changes" : "Add trip"}</Button>
+        </div>
+      </form>
     </Modal>
   );
 }
