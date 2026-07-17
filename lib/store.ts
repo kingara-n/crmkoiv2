@@ -110,7 +110,7 @@ interface Store {
 }
 
 // Convert from snake_case db columns to camelCase frontend model
-function mapToCamel(obj: any): any {
+export function mapToCamel(obj: any): any {
   if (!obj) return obj;
   const newObj: any = {};
   for (const key of Object.keys(obj)) {
@@ -128,7 +128,7 @@ function mapToCamel(obj: any): any {
 }
 
 // Convert from camelCase frontend model to snake_case db columns
-function mapToSnake(obj: any): any {
+export function mapToSnake(obj: any): any {
   if (!obj) return obj;
   const newObj: any = {};
   for (const key of Object.keys(obj)) {

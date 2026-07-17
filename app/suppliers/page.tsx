@@ -26,13 +26,22 @@ const TYPE_LABELS: Record<SupplierType, string> = {
   cruise_line: "Cruise Line",
 };
 
+import { useSuppliersQuery, usePurchaseOrdersQuery, useApproveSupplierMutation, useRejectSupplierMutation } from "@/lib/queries";
+
 export default function SuppliersPage() {
   const hydrated = useIsHydrated();
-  const suppliers = useStore((s) => s.suppliers);
-  const purchaseOrders = useStore((s) => s.purchaseOrders);
-  const approveSupplier = useStore((s) => s.approveSupplier);
-  const rejectSupplier = useStore((s) => s.rejectSupplier);
-  const deleteSupplier = useStore((s) => s.deleteSupplier);
+  
+  // React Query queries (server state)
+  const { data: suppliers = [] } = useSuppliersQuery();
+  const { data: purchaseOrders = [] } = usePurchaseOrdersQuery();
+
+  // Mutations
+  const approveSupplierMutation = useApproveSupplierMutation();
+  const rejectSupplierMutation = useRejectSupplierMutation();
+
+  const approveSupplier = (id: string) => approveSupplierMutation.mutate(id);
+  const rejectSupplier = (id: string) => rejectSupplierMutation.mutate(id);
+
   const settings = useStore((s) => s.settings);
   const currency = settings.currency;
 
@@ -127,7 +136,7 @@ export default function SuppliersPage() {
                 <div>
                   <div className="flex items-center gap-2 mb-1">
                     <p className="font-semibold text-white">{s.name}</p>
-                    <Badge tone="neutral">{TYPE_LABELS[s.type]}</Badge>
+                    <Badge tone="neutral">{TYPE_LABELS[s.type as SupplierType]}</Badge>
                   </div>
                   <p className="text-xs text-neutral-500">{s.category}</p>
                 </div>

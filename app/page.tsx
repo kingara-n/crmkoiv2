@@ -12,21 +12,32 @@ import { Badge } from "@/components/ui/Badge";
 import { ProgressBar } from "@/components/ui/ProgressBar";
 import { Avatar } from "@/components/ui/Avatar";
 import { RevenueTrendChart } from "@/components/charts/RevenueTrendChart";
+import { PipelineValueChart, SupplierDistributionDonut } from "@/components/charts/DashboardCharts";
 import { useStore } from "@/lib/store";
 import { useIsHydrated } from "@/lib/useIsHydrated";
 import { formatMoney, relativeTime } from "@/lib/format";
 import { STAGE_LABELS, Stage } from "@/lib/types";
-
-// Dynamic calculation happens inside the component based on store data.
+import {
+  useClientsQuery, useBookingsQuery, useTeamQuery, useLeadsQuery,
+  useInvoicesQuery, useTripsQuery, usePurchaseOrdersQuery,
+  useSuppliersQuery, useInvoiceApprovalsQuery
+} from "@/lib/queries";
 
 export default function OverviewPage() {
   const router = useRouter();
   const hydrated = useIsHydrated();
-  const leads = useStore((s) => s.leads);
-  const bookings = useStore((s) => s.bookings);
-  const team = useStore((s) => s.team);
-  const clients = useStore((s) => s.clients);
-  const invoices = useStore((s) => s.invoices);
+
+  // React Query queries (server state)
+  const { data: leads = [] } = useLeadsQuery();
+  const { data: bookings = [] } = useBookingsQuery();
+  const { data: team = [] } = useTeamQuery();
+  const { data: clients = [] } = useClientsQuery();
+  const { data: invoices = [] } = useInvoicesQuery();
+  const { data: trips = [] } = useTripsQuery();
+  const { data: purchaseOrders = [] } = usePurchaseOrdersQuery();
+  const { data: suppliers = [] } = useSuppliersQuery();
+  const { data: invoiceEditApprovals = [] } = useInvoiceApprovalsQuery();
+
   const currency = useStore((s) => s.settings.currency);
   const settings = useStore((s) => s.settings);
 
@@ -115,10 +126,10 @@ export default function OverviewPage() {
   in14Days.setDate(today.getDate() + 14);
   const in14DaysStr = in14Days.toISOString().split("T")[0];
 
-  const tripsToday = useStore.getState().trips.filter(t => (t.startDate && t.startDate.startsWith(todayStr)) || (t.endDate && t.endDate.startsWith(todayStr)));
-  const posDueSoon = useStore.getState().purchaseOrders?.filter(po => po.dueDate && po.dueDate >= todayStr && po.dueDate <= in3DaysStr && po.status !== "closed") || [];
+  const tripsToday = trips.filter(t => (t.startDate && t.startDate.startsWith(todayStr)) || (t.endDate && t.endDate.startsWith(todayStr)));
+  const posDueSoon = purchaseOrders?.filter(po => po.dueDate && po.dueDate >= todayStr && po.dueDate <= in3DaysStr && po.status !== "closed") || [];
   const invoicesDueSoon = invoices.filter(inv => inv.dueDate && inv.dueDate >= todayStr && inv.dueDate <= in3DaysStr && !inv.paidAt);
-  const contractsExpiringSoon = useStore.getState().suppliers?.filter(s => s.contractExpires && s.contractExpires >= todayStr && s.contractExpires <= in14DaysStr) || [];
+  const contractsExpiringSoon = suppliers?.filter(s => s.contractExpires && s.contractExpires >= todayStr && s.contractExpires <= in14DaysStr) || [];
   
   const todayItems: any[] = [];
   tripsToday.forEach(t => todayItems.push({ id: t.id, icon: <PlaneTakeoff className="h-4 w-4 text-accent-400" />, title: `Trip: ${t.clientName}`, subtitle: `Departing/Returning today` }));
@@ -137,17 +148,17 @@ export default function OverviewPage() {
 
   // Department Row Math
   const opsDeparturesToday = tripsToday.length;
-  const opsTripsInProgress = useStore.getState().trips.filter(t => t.status === "on_ground").length;
+  const opsTripsInProgress = trips.filter(t => t.status === "on_ground").length;
   const mktContractsExpiring = contractsExpiringSoon.length;
   
   const accOverdueAR = invoices.filter(inv => inv.dueDate && inv.dueDate < todayStr && !inv.paidAt).reduce((sum, inv) => sum + (inv.amountKes || 0), 0);
   const endOfWeek = new Date(today);
   endOfWeek.setDate(today.getDate() + (7 - today.getDay()));
   const eowStr = endOfWeek.toISOString().split("T")[0];
-  const accPosDueThisWeek = useStore.getState().purchaseOrders?.filter(po => po.dueDate && po.dueDate >= todayStr && po.dueDate <= eowStr && po.status !== "closed").length || 0;
+  const accPosDueThisWeek = purchaseOrders?.filter(po => po.dueDate && po.dueDate >= todayStr && po.dueDate <= eowStr && po.status !== "closed").length || 0;
 
-  const mgtNetMargin = revenueThisMonth - (useStore.getState().purchaseOrders?.filter(po => po.status === "closed" && po.dueDate && new Date(po.dueDate) >= currentMonth).reduce((s, po) => s + (po.amount || 0), 0) || 0);
-  const mgtPendingApprovals = useStore.getState().invoiceEditApprovals?.filter(a => a.status === "pending").length || 0;
+  const mgtNetMargin = revenueThisMonth - (purchaseOrders?.filter(po => po.status === "closed" && po.dueDate && new Date(po.dueDate) >= currentMonth).reduce((s, po) => s + (po.amount || 0), 0) || 0);
+  const mgtPendingApprovals = invoiceEditApprovals?.filter(a => a.status === "pending").length || 0;
 
   // Live pipeline totals — recompute from current leads
   const pipelineByStage: Record<Stage, { count: number; value: number }> = {
@@ -158,8 +169,7 @@ export default function OverviewPage() {
     paid: { count: 0, value: 0 },
   };
   leads.forEach((l) => {
-    // legacy migration
-    const stage = l.stage === "new_lead" as any ? "new_enquiry" : l.stage;
+    const stage = (l.stage === "new_lead" as any ? "new_enquiry" : l.stage) as Stage;
     if (pipelineByStage[stage]) {
       pipelineByStage[stage].count++;
       pipelineByStage[stage].value += (l as any).valueKes || l.value || 0;
@@ -173,9 +183,6 @@ export default function OverviewPage() {
   const revenueByCurrency: Record<string, number> = { KES: 0, USD: 0, EUR: 0, CAD: 0, GBP: 0 };
   bookings.filter(b => b.status === "confirmed").forEach(b => {
     const cur = b.currency || "KES";
-    const amt = (b as any).valueKes || b.value || 0; // We use the nominal value since the DB value column may be in native currency in our updated schema
-    // Wait, the DB has amount in native currency, but we named it valueKes in the past. If the value is native, we sum it into the currency bucket.
-    // If we assume `b.value` is the native amount:
     if (revenueByCurrency[cur] !== undefined) {
       revenueByCurrency[cur] += b.value || 0;
     } else {
@@ -198,6 +205,31 @@ export default function OverviewPage() {
   const topPerformers = [...team]
     .sort((a, b) => ((b as any).revenueKes || b.revenue || 0) - ((a as any).revenueKes || a.revenue || 0))
     .slice(0, 3);
+
+  // Supplier distribution data calculation
+  const supplierDistribution = useMemo(() => {
+    const counts: Record<string, { value: number; count: number }> = {};
+    purchaseOrders.forEach(po => {
+      if (po.status !== "draft") {
+        const name = po.supplierName || "Other";
+        if (!counts[name]) counts[name] = { value: 0, count: 0 };
+        counts[name].value += po.amount || 0;
+        counts[name].count += 1;
+      }
+    });
+    return Object.entries(counts)
+      .map(([name, { value, count }]) => ({ name, value, count }))
+      .sort((a, b) => b.value - a.value)
+      .slice(0, 5);
+  }, [purchaseOrders]);
+
+  const pipelineChartData = useMemo(() => {
+    return (Object.keys(pipelineByStage) as Stage[]).map((stage) => ({
+      stage: STAGE_LABELS[stage],
+      value: pipelineByStage[stage].value,
+      count: pipelineByStage[stage].count
+    }));
+  }, [pipelineByStage]);
 
   if (!hydrated) {
     return <div className="text-neutral-500 p-2">Loading…</div>;
@@ -466,6 +498,25 @@ export default function OverviewPage() {
             <p className="text-xs text-neutral-500">Management detail hidden</p>
           </Card>
         )}
+      </div>
+
+      {/* Interactive Charts Row */}
+      <div className="grid gap-4 lg:grid-cols-3">
+        <Card className="lg:col-span-2">
+          <div className="mb-4">
+            <h2 className="text-base font-semibold text-white">Supplier Distribution</h2>
+            <p className="text-xs text-neutral-500">Volume share based on purchase orders</p>
+          </div>
+          <SupplierDistributionDonut data={supplierDistribution} />
+        </Card>
+
+        <Card>
+          <div className="mb-4">
+            <h2 className="text-base font-semibold text-white">Pipeline Value by Stage</h2>
+            <p className="text-xs text-neutral-500">Total potential value per stage</p>
+          </div>
+          <PipelineValueChart data={pipelineChartData} />
+        </Card>
       </div>
 
       {/* Recent bookings */}
