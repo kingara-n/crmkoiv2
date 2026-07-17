@@ -48,6 +48,23 @@ export function AppShell({ children }: { children: ReactNode }) {
     async function handleSession(session: any) {
       if (session?.user) {
         await loadUserProfile(session.user.id);
+      } else {
+        useStore.setState({
+          settings: {
+            userId: "",
+            firstName: "",
+            lastName: "",
+            email: "",
+            role: "sales",
+            timezone: "Africa/Nairobi (EAT)",
+            darkMode: true,
+            currency: "KES",
+            compactView: false,
+            status: "awaiting_approval",
+            avatarUrl: "",
+            revenueTarget: 0,
+          }
+        });
       }
       if (mounted) setAuthChecking(false);
     }
