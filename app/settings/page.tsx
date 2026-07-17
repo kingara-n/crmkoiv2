@@ -167,7 +167,6 @@ export default function SettingsPage() {
         </div>
         <div className="space-y-4">
           {[
-            { id: "auto_responder", name: "Lead Auto-Responder", desc: "Instantly reply to new leads with a welcome email." },
             { id: "follow_up", name: "Follow-up Reminders", desc: "Automated reminders to staff to follow up on pending leads." },
             { id: "doc_chasers", name: "Document Chasers", desc: "Automatically request missing travel documents from clients." },
             { id: "welcome_home", name: "Welcome Home Emails", desc: "Send a 'Welcome Home' email after a trip ends asking for feedback." },
@@ -184,6 +183,24 @@ export default function SettingsPage() {
               </label>
             </div>
           ))}
+        </div>
+      </Card>
+
+      <Card>
+        <div className="mb-5">
+          <h2 className="text-base font-semibold text-white">Planned Integrations</h2>
+          <p className="text-xs text-neutral-500">Integrations that can be connected in the future.</p>
+        </div>
+        <div className="space-y-4">
+          <div className="flex items-center justify-between py-2">
+            <div>
+              <p className="text-sm font-medium text-neutral-400">Email Auto-Responder (Resend)</p>
+              <p className="text-xs text-neutral-500">Automatically reply to new leads with custom email templates.</p>
+            </div>
+            <span className="rounded bg-ink-800 px-2 py-1 text-[10px] font-medium text-neutral-400">
+              Not Connected
+            </span>
+          </div>
         </div>
       </Card>
 
