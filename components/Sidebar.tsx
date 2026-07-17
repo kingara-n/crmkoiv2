@@ -6,7 +6,7 @@ import { usePathname } from "next/navigation";
 import {
   LayoutDashboard, GitBranch, Handshake, Users, Building2,
   Plane, BarChart3, Settings as SettingsIcon, ChevronLeft,
-  FileText, Car, Receipt, FolderOpen, CheckCircle2, BookOpen, Calendar
+  FileText, Car, Receipt, FolderOpen, CheckCircle2, BookOpen, Calendar, Shield
 } from "lucide-react";
 import { useStore, useSettings } from "@/lib/store";
 
@@ -53,6 +53,7 @@ const NAV_SECTIONS = [
     items: [
       { href: "/reports", label: "Reports", icon: BarChart3 },
       { href: "/staff-activity", label: "Performance", icon: Users },
+      { href: "/admin", label: "Admin Panel", icon: Shield },
     ]
   }
 ];
@@ -93,6 +94,7 @@ export function Sidebar() {
             )}
             {collapsed && idx > 0 && <div className="h-px bg-ink-700/50 mx-3 my-2" />}
             {section.items.map(({ href, label, icon: Icon }) => {
+              if (href === "/admin" && settings.role !== "management") return null;
 
               const active = href === "/" ? pathname === "/" : pathname.startsWith(href);
               return (

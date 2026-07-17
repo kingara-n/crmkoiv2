@@ -21,6 +21,7 @@ export default function AdminPage() {
   const [editingRow, setEditingRow] = useState<string | null>(null);
   const [editRole, setEditRole] = useState("");
   const [editDept, setEditDept] = useState("");
+  const [editStatus, setEditStatus] = useState("");
 
   useEffect(() => {
     if (hydrated && settings.role !== "management") {
@@ -30,14 +31,15 @@ export default function AdminPage() {
 
   if (!hydrated || settings.role !== "management") return null;
 
-  const handleEdit = (id: string, currentRole: string, currentDept: string) => {
+  const handleEdit = (id: string, currentRole: string, currentDept: string, currentStatus: string) => {
     setEditingRow(id);
     setEditRole(currentRole || "sales");
     setEditDept(currentDept || "");
+    setEditStatus(currentStatus || "awaiting_approval");
   };
 
   const handleSave = async (id: string) => {
-    await updateTeamMember(id, { role: editRole, department: editDept });
+    await updateTeamMember(id, { role: editRole, department: editDept, status: editStatus } as any);
     setEditingRow(null);
   };
 
@@ -100,6 +102,7 @@ export default function AdminPage() {
                 <th className="px-5 py-3 font-medium">Email</th>
                 <th className="px-5 py-3 font-medium">Role</th>
                 <th className="px-5 py-3 font-medium">Department</th>
+                <th className="px-5 py-3 font-medium">Status</th>
                 <th className="px-5 py-3 font-medium text-right">Actions</th>
               </tr>
             </thead>
@@ -152,13 +155,30 @@ export default function AdminPage() {
                       </span>
                     )}
                   </td>
+                  <td className="px-5 py-4">
+                    {editingRow === user.id ? (
+                      <select
+                        value={editStatus}
+                        onChange={(e) => setEditStatus(e.target.value)}
+                        className="bg-ink-900 border border-ink-700 rounded px-2 py-1 text-white text-xs"
+                      >
+                        <option value="active">Active</option>
+                        <option value="awaiting_approval">Awaiting Approval</option>
+                        <option value="rejected">Rejected</option>
+                      </select>
+                    ) : (
+                      <Badge tone={user.status === "active" ? "success" : user.status === "rejected" ? "danger" : "warning"}>
+                        {(user.status || "awaiting_approval").replace("_", " ").toUpperCase()}
+                      </Badge>
+                    )}
+                  </td>
                   <td className="px-5 py-4 text-right">
                     {editingRow === user.id ? (
                       <Button variant="primary" className="h-7 text-xs px-2" onClick={() => handleSave(user.id)}>
                         <Save className="h-3 w-3 mr-1" /> Save
                       </Button>
                     ) : (
-                      <Button variant="secondary" className="h-7 text-xs px-2" onClick={() => handleEdit(user.id, user.role, user.department || "")}>
+                      <Button variant="secondary" className="h-7 text-xs px-2" onClick={() => handleEdit(user.id, user.role, user.department || "", user.status || "")}>
                         Edit Access
                       </Button>
                     )}

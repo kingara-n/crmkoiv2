@@ -488,6 +488,7 @@ export const useStore = create<Store>()((set, get) => ({
       const dbPatch: any = {};
       if (patch.role) dbPatch.role = patch.role;
       if (patch.department) dbPatch.department = patch.department;
+      if (patch.status) dbPatch.status = patch.status;
       
       const { error } = await supabase.from("profiles").update(dbPatch).eq("id", id);
       if (error) throw error;
