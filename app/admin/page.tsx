@@ -22,6 +22,7 @@ export default function AdminPage() {
   const [editRole, setEditRole] = useState("");
   const [editDept, setEditDept] = useState("");
   const [editStatus, setEditStatus] = useState("");
+  const [resetting, setResetting] = useState(false);
 
   useEffect(() => {
     if (hydrated && settings.role !== "management") {
@@ -42,8 +43,6 @@ export default function AdminPage() {
     await updateTeamMember(id, { role: editRole, department: editDept, status: editStatus } as any);
     setEditingRow(null);
   };
-
-  const [resetting, setResetting] = useState(false);
 
   const handleResetData = async () => {
     const confirmation = prompt("WARNING: This will permanently delete all Clients, Leads, Bookings, Trips, Transfers, Invoices, Tasks, and Notifications. This cannot be undone.\n\nType 'RESET' to confirm:");
