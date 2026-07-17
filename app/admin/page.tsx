@@ -7,8 +7,9 @@ import { useIsHydrated } from "@/lib/useIsHydrated";
 import { Card } from "@/components/ui/Card";
 import { Badge } from "@/components/ui/Badge";
 import { Avatar } from "@/components/ui/Avatar";
-import { Settings as SettingsIcon, Save } from "lucide-react";
+import { Settings as SettingsIcon, Save, Trash2, AlertTriangle } from "lucide-react";
 import { Button } from "@/components/ui/Button";
+import { supabase } from "@/lib/supabase";
 
 export default function AdminPage() {
   const router = useRouter();
@@ -38,6 +39,42 @@ export default function AdminPage() {
   const handleSave = async (id: string) => {
     await updateTeamMember(id, { role: editRole, department: editDept });
     setEditingRow(null);
+  };
+
+  const [resetting, setResetting] = useState(false);
+
+  const handleResetData = async () => {
+    const confirmation = prompt("WARNING: This will permanently delete all Clients, Leads, Bookings, Trips, Transfers, Invoices, Tasks, and Notifications. This cannot be undone.\n\nType 'RESET' to confirm:");
+    if (confirmation !== "RESET") {
+      alert("Reset cancelled.");
+      return;
+    }
+
+    try {
+      setResetting(true);
+      
+      // Delete in correct order to prevent foreign key violations
+      await supabase.from("invoice_edit_approvals").delete().neq("id", "00000000-0000-0000-0000-000000000000");
+      await supabase.from("invoices").delete().neq("id", "00000000-0000-0000-0000-000000000000");
+      await supabase.from("transfers").delete().neq("id", "00000000-0000-0000-0000-000000000000");
+      await supabase.from("trips").delete().neq("id", "00000000-0000-0000-0000-000000000000");
+      await supabase.from("bookings").delete().neq("id", "00000000-0000-0000-0000-000000000000");
+      await supabase.from("koi_lead_comments").delete().neq("id", "00000000-0000-0000-0000-000000000000");
+      await supabase.from("leads").delete().neq("id", "00000000-0000-0000-0000-000000000000");
+      await supabase.from("client_documents").delete().neq("id", "00000000-0000-0000-0000-000000000000");
+      await supabase.from("clients").delete().neq("id", "00000000-0000-0000-0000-000000000000");
+      await supabase.from("koi_task_comments").delete().neq("id", "00000000-0000-0000-0000-000000000000");
+      await supabase.from("koi_tasks").delete().neq("id", "00000000-0000-0000-0000-000000000000");
+      await supabase.from("koi_notifications").delete().neq("id", "00000000-0000-0000-0000-000000000000");
+      
+      alert("Database reset successfully! Reloading application...");
+      window.location.reload();
+    } catch (err: any) {
+      console.error(err);
+      alert("Error resetting database: " + err.message);
+    } finally {
+      setResetting(false);
+    }
   };
 
   return (
@@ -131,6 +168,37 @@ export default function AdminPage() {
             </tbody>
           </table>
         </Card>
+      </div>
+
+      {/* Danger Zone */}
+      <div className="mt-8 border border-red-500/20 bg-red-950/10 rounded-card p-6">
+        <div className="flex items-start gap-4">
+          <div className="h-10 w-10 rounded-lg bg-red-500/20 flex items-center justify-center text-red-400">
+            <AlertTriangle className="h-5 w-5" />
+          </div>
+          <div className="flex-1">
+            <h2 className="text-lg font-bold text-white mb-1">Danger Zone</h2>
+            <p className="text-sm text-neutral-400 mb-4">
+              Permanent administrative actions. Purge testing data to prepare the CRM for production.
+            </p>
+            <div className="border border-red-500/20 rounded-lg p-4 bg-ink-950 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+              <div>
+                <p className="text-sm font-semibold text-white">Reset Application Data</p>
+                <p className="text-xs text-neutral-400 mt-1">
+                  Permanently delete all clients, bookings, trips, leads, invoices, tasks, and notifications.
+                </p>
+              </div>
+              <Button
+                variant="danger"
+                onClick={handleResetData}
+                disabled={resetting}
+                icon={<Trash2 className="h-4 w-4" />}
+              >
+                {resetting ? "Resetting Database..." : "Reset Database"}
+              </Button>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   );
