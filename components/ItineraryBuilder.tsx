@@ -38,7 +38,7 @@ export function ItineraryBuilder({
         <div className="flex items-center justify-between mb-4">
           <div>
             <h3 className="text-base font-semibold text-white">e-Itinerary Link</h3>
-            <p className="text-xs text-neutral-400 mt-1">Link your Travefy or external itinerary to this lead.</p>
+            <p className="text-xs text-neutral-400 mt-1">Link your e-Itinerary URL to this lead.</p>
           </div>
           <Plane className="h-6 w-6 text-accent-500 opacity-50" />
         </div>
@@ -68,7 +68,7 @@ export function ItineraryBuilder({
               <LinkIcon className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-neutral-500" />
               <input 
                 type="url"
-                placeholder="https://travefy.com/..."
+                placeholder="https://example.com/itinerary/..."
                 value={inputValue}
                 onChange={(e) => setInputValue(e.target.value)}
                 className="w-full bg-ink-900 border border-ink-700 text-sm rounded-lg pl-9 pr-4 py-2 text-white focus:border-accent-500 outline-none"

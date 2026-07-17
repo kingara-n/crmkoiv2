@@ -216,12 +216,12 @@ export default function BookingsPage() {
                   <RowMenu
                     items={[
                       { 
-                        label: b.travefyUrl ? "View Travefy Itinerary" : "Link Travefy", 
+                        label: b.travefyUrl ? "View e-Itinerary" : "Link e-Itinerary", 
                         onClick: () => {
                           if (b.travefyUrl) {
                             window.open(b.travefyUrl, '_blank');
                           } else {
-                            const url = prompt("Enter Travefy Share URL for this booking:");
+                            const url = prompt("Enter e-Itinerary URL for this booking:");
                             if (url) updateBooking(b.id, { travefyUrl: url });
                           }
                         }, 
