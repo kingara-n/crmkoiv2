@@ -49,7 +49,7 @@ export default function LoginPage() {
     if (profile.status === "awaiting_approval") {
       router.push("/pending");
     } else if (profile.status === "active") {
-      router.push("/dashboard"); // or "/" depending on the home route
+      router.push("/");
     } else if (profile.status === "rejected") {
       // User is rejected, sign them out and show error
       await supabase.auth.signOut();
