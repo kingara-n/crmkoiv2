@@ -36,7 +36,7 @@ export default function SuppliersPage() {
   const settings = useStore((s) => s.settings);
   const currency = settings.currency;
 
-  const isManager = /manager|director/i.test(settings.role);
+  const isManager = /management|manager|director/i.test(settings.role);
 
   const [query, setQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState<SupplierStatus | "all">("all");
