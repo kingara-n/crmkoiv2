@@ -75,3 +75,22 @@ body.is-dragging {
     @apply scale-[0.97];
   }
 }
+
+@keyframes blob-float {
+  0% { transform: translate(0px, 0px) scale(1); }
+  33% { transform: translate(50px, -70px) scale(1.15); }
+  66% { transform: translate(-30px, 30px) scale(0.9); }
+  100% { transform: translate(0px, 0px) scale(1); }
+}
+
+.animate-blob-slow {
+  animation: blob-float 16s infinite ease-in-out;
+}
+
+.animate-blob-slower {
+  animation: blob-float 24s infinite ease-in-out;
+}
+
+.animate-blob-slowest {
+  animation: blob-float 32s infinite ease-in-out;
+}
