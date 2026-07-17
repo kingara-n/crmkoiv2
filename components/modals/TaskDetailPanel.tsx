@@ -79,12 +79,12 @@ export function TaskDetailPanel({
           (t) => t.name.replace(/\s+/g, "").toLowerCase() === mentionedName,
         );
         if (taggedUser) {
-          // Send notification
           await addNotification({
             userId: taggedUser.id,
             authorName: authorName,
             authorInitials: "LA",
             actionText: `Mentioned you in a comment on "${task.title}"`,
+            link: `/tasks?id=${task.id}`,
           });
         }
       }

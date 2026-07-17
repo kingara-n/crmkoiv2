@@ -90,7 +90,7 @@ interface Store {
 
   updateTeamMember: (id: string, patch: Partial<TeamMember>) => Promise<void>;
 
-  addTask: (t: Omit<Task, "id" | "createdAt">) => Promise<void>;
+  addTask: (t: Omit<Task, "id" | "createdAt">) => Promise<Task | undefined>;
   updateTask: (id: string, patch: Partial<Task>) => Promise<void>;
   addTaskComment: (c: Omit<TaskComment, "id" | "createdAt">) => Promise<void>;
 
@@ -501,7 +501,11 @@ export const useStore = create<Store>()((set, get) => ({
 
   addTask: async (t) => {
     const { data } = await supabase.from("koi_tasks").insert(mapToSnake(t)).select().single();
-    if (data) set((s) => ({ tasks: [...s.tasks, mapToCamel(data)] }));
+    if (data) {
+      const camel = mapToCamel(data) as Task;
+      set((s) => ({ tasks: [...s.tasks, camel] }));
+      return camel;
+    }
   },
   updateTask: async (id, patch) => {
     set((s) => ({ tasks: s.tasks.map((t) => (t.id === id ? { ...t, ...patch } : t)) }));

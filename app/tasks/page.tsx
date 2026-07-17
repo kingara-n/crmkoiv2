@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useStore } from "@/lib/store";
 import { useIsHydrated } from "@/lib/useIsHydrated";
 import {
@@ -32,6 +32,14 @@ export default function TasksPage() {
   const updateTask = useStore((s) => s.updateTask);
 
   const [activeTask, setActiveTask] = useState<string | null>(null);
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const taskId = params.get("id");
+    if (taskId) {
+      setActiveTask(taskId);
+    }
+  }, []);
   const [taskModalOpen, setTaskModalOpen] = useState(false);
   const [departmentFilter, setDepartmentFilter] = useState("");
 

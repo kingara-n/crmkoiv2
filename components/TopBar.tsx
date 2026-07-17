@@ -227,7 +227,13 @@ export function TopBar() {
                 {displayedNotifs.map((n) => (
                   <button
                     key={n.id}
-                    onClick={() => markRead(n.id)}
+                    onClick={() => {
+                      markRead(n.id);
+                      if (n.link) {
+                        router.push(n.link);
+                        setNotifOpen(false);
+                      }
+                    }}
                     className="w-full text-left px-4 py-3 hover:bg-ink-800 transition-colors border-b border-ink-700/50 last:border-0 relative group"
                   >
                     <div className="flex items-start gap-3">

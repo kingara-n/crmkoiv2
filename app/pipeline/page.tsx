@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import {
   DndContext, DragEndEvent, DragOverlay, DragStartEvent,
   PointerSensor, useSensor, useSensors, closestCorners,
@@ -25,6 +25,17 @@ export default function PipelinePage() {
   const [modalOpen, setModalOpen] = useState(false);
   const [modalStage, setModalStage] = useState<Stage | undefined>();
   const [editing, setEditing] = useState<Lead | null>(null);
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const leadId = params.get("id");
+    if (leadId) {
+      const lead = leads.find((l) => l.id === leadId);
+      if (lead) {
+        setEditing(lead);
+      }
+    }
+  }, [leads]);
 
   // Group leads by stage. Memoised so columns recompute only when leads change.
   const leadsByStage = useMemo(() => {

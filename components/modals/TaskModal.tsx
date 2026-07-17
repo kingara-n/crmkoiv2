@@ -38,7 +38,7 @@ export function TaskModal({
     }
 
     try {
-      await addTask({
+      const createdTask = await addTask({
         title,
         description,
         department,
@@ -49,12 +49,13 @@ export function TaskModal({
       });
 
       // Send notification if assigned to someone else
-      if (assignedTo && assignedTo !== "local-user") {
+      if (assignedTo && assignedTo !== "local-user" && createdTask) {
         await addNotification({
           userId: assignedTo,
           authorName: `${settings.firstName} ${settings.lastName}`,
           authorInitials: `${settings.firstName.charAt(0)}${settings.lastName.charAt(0)}`,
           actionText: `assigned a task "${title}" to you.`,
+          link: `/tasks?id=${createdTask.id}`,
         });
       }
 

@@ -82,6 +82,7 @@ export function LeadDetailPanel({
             authorName: authorName,
             authorInitials: "LA",
             actionText: `Mentioned you in a lead comment on "${lead.title}"`,
+            link: `/pipeline?id=${lead.id}`,
           });
         }
       }
