@@ -22,8 +22,8 @@ const NAV_SECTIONS = [
   {
     title: "Business Development",
     items: [
-      { href: "/pipeline", label: "Pipeline", icon: GitBranch },
       { href: "/clients", label: "Clients", icon: Users },
+      { href: "/pipeline", label: "Pipeline", icon: GitBranch },
     ]
   },
   {
