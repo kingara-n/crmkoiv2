@@ -100,14 +100,8 @@ export function ClientModal({
       onClose={onClose}
       title={editing ? "Edit Client" : "Add Client"}
       size="lg"
-      footer={
-        <>
-          <Button variant="secondary" onClick={onClose}>Cancel</Button>
-          <Button onClick={handleSave}>{editing ? "Save Changes" : "Add Client"}</Button>
-        </>
-      }
     >
-      <div className="space-y-4">
+      <form onSubmit={(e) => { e.preventDefault(); handleSave(); }} className="space-y-4">
         <div>
           <Label>Client Type</Label>
           <div className="flex gap-2">
@@ -115,6 +109,7 @@ export function ClientModal({
               <button
                 key={t}
                 onClick={() => setType(t)}
+                type="button"
                 className={`flex-1 rounded-lg border px-3 py-2 text-sm capitalize transition-colors ${
                   type === t
                     ? "border-accent-500 bg-accent-500/10 text-accent-400"
@@ -143,7 +138,7 @@ export function ClientModal({
         <div className="grid grid-cols-2 gap-3">
           <div>
             <Label htmlFor="name">{type === "corporate" ? "Company Name" : (isGroup ? "Group Name / Contact Person" : "Full Name")}</Label>
-            <Input id="name" value={name} onChange={(e) => setName(e.target.value)} />
+            <Input id="name" value={name} onChange={(e) => setName(e.target.value)} required />
           </div>
           <div>
             <Label htmlFor="tripType">Trip Type</Label>
@@ -187,7 +182,7 @@ export function ClientModal({
         <div className="grid grid-cols-2 gap-3">
           <div>
             <Label htmlFor="email">Email</Label>
-            <Input id="email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} />
+            <Input id="email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} required />
           </div>
           <div>
             <Label htmlFor="phone">Phone</Label>
@@ -233,7 +228,12 @@ export function ClientModal({
             <p className="text-xs text-neutral-500 mb-3">You can upload Passports, Visas, etc. after the client is created, from the Document Vault.</p>
           </div>
         )}
-      </div>
+
+        <div className="pt-4 flex justify-end gap-3 border-t border-ink-800">
+          <Button variant="secondary" onClick={onClose} type="button">Cancel</Button>
+          <Button type="submit">{editing ? "Save Changes" : "Add Client"}</Button>
+        </div>
+      </form>
     </Modal>
   );
 }

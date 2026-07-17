@@ -107,19 +107,8 @@ export function LeadModal({
       open={open}
       onClose={onClose}
       title={editing ? "Edit deal" : "Add deal"}
-      footer={
-        <>
-          {editing && (
-            <Button variant="danger" onClick={handleDelete} className="mr-auto">
-              Delete
-            </Button>
-          )}
-          <Button variant="secondary" onClick={onClose}>Cancel</Button>
-          <Button onClick={handleSave}>{editing ? "Save changes" : "Add deal"}</Button>
-        </>
-      }
     >
-      <div className="space-y-4">
+      <form onSubmit={(e) => { e.preventDefault(); handleSave(); }} className="space-y-4">
         <div>
           <Label htmlFor="title">Deal title</Label>
           <Input
@@ -127,13 +116,14 @@ export function LeadModal({
             value={title}
             onChange={(e) => setTitle(e.target.value)}
             placeholder="e.g. Wanjiru honeymoon · Zanzibar"
+            required
           />
         </div>
 
         <div className="grid grid-cols-2 gap-3">
           <div>
             <Label htmlFor="client">Client</Label>
-            <Select id="client" value={clientId} onChange={(e) => setClientId(e.target.value)}>
+            <Select id="client" value={clientId} onChange={(e) => setClientId(e.target.value)} required>
               {clients.map((c) => (
                 <option key={c.id} value={c.id}>{c.name}</option>
               ))}
@@ -168,6 +158,7 @@ export function LeadModal({
                 onChange={(e) => setValue(e.target.value)}
                 placeholder="580000"
                 className="flex-1"
+                required
               />
             </div>
           </div>
@@ -184,7 +175,7 @@ export function LeadModal({
         <div className="grid grid-cols-2 gap-3">
           <div>
             <Label htmlFor="owner">Owner</Label>
-            <Select id="owner" value={ownerId} onChange={(e) => setOwnerId(e.target.value)}>
+            <Select id="owner" value={ownerId} onChange={(e) => setOwnerId(e.target.value)} required>
               {team.map((t) => (
                 <option key={t.id} value={t.id}>{t.name}</option>
               ))}
@@ -218,7 +209,17 @@ export function LeadModal({
             }}
           />
         </div>
-      </div>
+
+        <div className="pt-4 flex justify-end gap-3 border-t border-ink-800">
+          {editing && (
+            <Button variant="danger" onClick={handleDelete} type="button" className="mr-auto">
+              Delete
+            </Button>
+          )}
+          <Button variant="secondary" onClick={onClose} type="button">Cancel</Button>
+          <Button type="submit">{editing ? "Save changes" : "Add deal"}</Button>
+        </div>
+      </form>
     </Modal>
   );
 }

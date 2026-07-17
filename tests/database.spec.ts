@@ -1,8 +1,24 @@
 import { test, expect } from '@playwright/test';
 import { withSupawright } from 'supawright';
+import dotenv from 'dotenv';
+dotenv.config({ path: '.env.local' });
 
-// Setup Supawright integration
-const dbTest = withSupawright(test);
+// Setup Supawright integration with remote Supabase config
+const dbTest = withSupawright<any, 'public'>(['public'], {
+  supabase: {
+    supabaseUrl: process.env.NEXT_PUBLIC_SUPABASE_URL || '',
+    serviceRoleKey: process.env.SUPABASE_SERVICE_ROLE_KEY || ''
+  },
+  database: {
+    host: 'aws-0-eu-west-1.pooler.supabase.com',
+    port: 6543, // Transaction pooler port for Supabase remote databases
+    user: 'postgres.jndadrkcortxumlsisir', // Supabase pooler requires tenant ref prefix in username
+    database: 'postgres',
+    password: process.env.SUPABASE_DB_PASSWORD || '',
+    // Supabase connection pooling requires SSL enabled for remote connections
+    ssl: { rejectUnauthorized: false }
+  }
+});
 
 dbTest.describe('CRM Database Integration Tests (via Supawright)', () => {
   dbTest('verify profiles and clients table constraints', async ({ supawright }) => {
