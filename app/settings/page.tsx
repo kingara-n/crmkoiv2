@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import {
   Palette, Globe, Database, Save, RefreshCw, CheckCircle2, AlertCircle,
 } from "lucide-react";
@@ -11,6 +11,7 @@ import { Avatar } from "@/components/ui/Avatar";
 import { useStore } from "@/lib/store";
 import { useIsHydrated } from "@/lib/useIsHydrated";
 import { UserSettings, Currency } from "@/lib/types";
+import { supabase } from "@/lib/supabase";
 
 
 
@@ -39,6 +40,47 @@ export default function SettingsPage() {
   useEffect(() => {
     if (hydrated) setDraft(settings);
   }, [hydrated, settings]);
+
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [uploadingAvatar, setUploadingAvatar] = useState(false);
+
+  async function handleAvatarChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (file.size > 2 * 1024 * 1024) {
+      alert("Image size must be less than 2MB");
+      return;
+    }
+
+    setUploadingAvatar(true);
+
+    try {
+      const fileExt = file.name.split(".").pop();
+      const userId = draft.userId || "anonymous";
+      const fileName = `${userId}/${Date.now()}.${fileExt}`;
+
+      const { data, error } = await supabase.storage
+        .from("avatars")
+        .upload(fileName, file, { upsert: true });
+
+      if (error) throw error;
+
+      const { data: { publicUrl } } = supabase.storage
+        .from("avatars")
+        .getPublicUrl(fileName);
+
+      setDraft((d) => ({ ...d, avatarUrl: publicUrl }));
+      await updateSettings({ avatarUrl: publicUrl });
+      
+      alert("Profile picture updated successfully!");
+    } catch (err: any) {
+      console.error("Error uploading avatar:", err);
+      alert(`Upload failed: ${err.message || err}`);
+    } finally {
+      setUploadingAvatar(false);
+    }
+  }
 
   function applyToggle<K extends keyof UserSettings>(key: K, value: UserSettings[K]) {
     // Update both draft + persisted store so toggles feel instant
@@ -70,14 +112,22 @@ export default function SettingsPage() {
       <Card>
         <h2 className="mb-4 text-base font-semibold text-white">Profile</h2>
         <div className="mb-6 flex items-center gap-4">
-          <Avatar initials={initials} size="lg" />
+          <Avatar initials={initials} size="lg" avatarUrl={draft.avatarUrl} />
           <div>
             <button
-              onClick={() => alert("Avatar upload will be wired up once Supabase Storage is connected — see README.")}
-              className="rounded-lg border border-ink-700 bg-ink-800 px-3 py-1.5 text-sm text-neutral-200 hover:bg-ink-700"
+              onClick={() => fileInputRef.current?.click()}
+              disabled={uploadingAvatar}
+              className="rounded-lg border border-ink-700 bg-ink-800 px-3 py-1.5 text-sm text-neutral-200 hover:bg-ink-700 disabled:opacity-50"
             >
-              Change Avatar
+              {uploadingAvatar ? "Uploading..." : "Change Avatar"}
             </button>
+            <input 
+              type="file" 
+              ref={fileInputRef} 
+              onChange={handleAvatarChange} 
+              accept="image/*" 
+              className="hidden" 
+            />
             <p className="mt-1 text-xs text-neutral-500">JPG, PNG or GIF. Max 2MB.</p>
           </div>
         </div>

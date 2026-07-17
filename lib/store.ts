@@ -568,7 +568,26 @@ export const useStore = create<Store>()((set, get) => ({
   },
 
   updateSettings: async (patch) => {
+    const { settings } = get();
+    const userId = settings.userId;
     set((s) => ({ settings: { ...s.settings, ...patch } }));
+
+    if (userId) {
+      const dbPatch: any = {};
+      if (patch.firstName !== undefined) dbPatch.first_name = patch.firstName;
+      if (patch.lastName !== undefined) dbPatch.last_name = patch.lastName;
+      if (patch.avatarUrl !== undefined) dbPatch.avatar_url = patch.avatarUrl;
+      if (patch.timezone !== undefined) dbPatch.timezone = patch.timezone;
+      if (patch.darkMode !== undefined) dbPatch.dark_mode = patch.darkMode;
+      if (patch.currency !== undefined) dbPatch.currency = patch.currency;
+      if (patch.compactView !== undefined) dbPatch.compact_view = patch.compactView;
+      if (patch.revenueTarget !== undefined) dbPatch.revenue_target = patch.revenueTarget;
+      
+      const { error } = await supabase.from("profiles").update(dbPatch).eq("id", userId);
+      if (error) {
+        console.error("Error updating user profile in Supabase:", error);
+      }
+    }
   },
 
   loadUserProfile: async (userId) => {
@@ -594,6 +613,7 @@ export const useStore = create<Store>()((set, get) => ({
             currency: camelProfile.currency || "KES",
             compactView: camelProfile.compactView ?? false,
             status: camelProfile.status || "awaiting_approval",
+            avatarUrl: camelProfile.avatarUrl || "",
           }
         }));
       }

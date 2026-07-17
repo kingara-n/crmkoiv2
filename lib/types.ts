@@ -226,6 +226,7 @@ export interface UserSettings {
   compactView: boolean;
   revenueTarget?: number;
   status?: string;
+  avatarUrl?: string;
 }
 
 export interface ClientDocument {

@@ -258,7 +258,7 @@ export function TopBar() {
             className="rounded-lg ring-1 ring-ink-700 hover:ring-ink-600 transition-all"
             aria-label="User menu"
           >
-            <Avatar initials={initials} size="md" />
+            <Avatar initials={initials} size="md" avatarUrl={hydrated ? settings.avatarUrl : undefined} />
           </button>
           {menuOpen && (
             <div className="absolute right-0 top-full mt-2 w-48 rounded-card border border-ink-700 bg-ink-900 shadow-xl z-50 overflow-hidden">
